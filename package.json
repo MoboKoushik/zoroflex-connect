@@ -4,24 +4,26 @@
   "description": "Electron app to sync Tally data to Nest backend",
   "main": "dist/main/main.js",
   "scripts": {
+    "clean": "rmdir /s /q dist release && del package-lock.json",
     "build": "tsc",
+    "dev": "npm run build && electron .",
     "start": "npm run build && electron .",
-    "dev": "tsc && electron .",
     "watch": "tsc --watch",
-    "package": "electron-builder"
+    "package": "npm run build && electron-builder",
+    "package-win": "npm run build && electron-builder --win"
   },
   "keywords": [
     "electron",
     "tally",
     "sync"
   ],
-  "author": "",
+  "author": "MoboKoushik",
   "license": "ISC",
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.10.0",
     "@types/node-cron": "^3.0.11",
-    "@types/uuid": "^9.0.7",
+    "@types/uuid": "^10.0.0",
     "@types/xml2js": "^0.4.14",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
@@ -32,23 +34,29 @@
     "better-sqlite3": "^9.6.0",
     "electron-store": "^8.1.0",
     "node-cron": "^3.0.3",
+    "odbc": "^2.4.9",
     "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
     "xml2js": "^0.6.2"
   },
   "build": {
-    "appId": "com.zorroflex.tally-sync",
-    "productName": "Tally Sync",
+    "appId": "com.zorroflex.tallysync",
+    "productName": "Zoroflex Tally Sync",
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }

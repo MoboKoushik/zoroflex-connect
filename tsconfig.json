@@ -1,19 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "declaration": true,
-    "outDir": "./dist/renderer",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["electron"]
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": false,
+    "removeComments": true,
+    "sourceMap": true
   },
   "include": [
-    "src/renderer/**/*.ts",
-    "src/renderer/**/*.d.ts"
+    "src/**/*"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "release"
+  ]
 }
