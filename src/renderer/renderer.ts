@@ -1,14 +1,16 @@
-// Renderer process script
+// src/renderer/main/dashboard.ts
+// Renderer process script for dashboard/status window
 
-// If DOM types are not available, manually declare 'document' as any for type safety workaround
-declare const document: any;
+// No need for 'declare document: any' – use tsconfig lib "DOM"
 
+// Wait for DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  const statusText = document.getElementById('statusText');
-  const syncNowBtn = document.getElementById('syncNow');
-  const restartBtn = document.getElementById('restartServices');
-  const statusDiv = document.getElementById('status');
+  const statusText = document.getElementById('statusText') as HTMLElement | null;
+  const syncNowBtn = document.getElementById('syncNow') as HTMLButtonElement | null;
+  const restartBtn = document.getElementById('restartServices') as HTMLButtonElement | null;
+  const statusDiv = document.getElementById('status') as HTMLDivElement | null;
 
+  // Set initial status
   if (statusText) {
     statusText.textContent = 'Running';
   }
@@ -17,13 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     statusDiv.classList.add('running');
   }
 
+  // Sync Now button handler
   if (syncNowBtn) {
-    syncNowBtn.addEventListener('click', () => {
-      // Trigger sync via IPC (if needed)
-      // For now, just show a message
+    syncNowBtn.addEventListener('click', (e: MouseEvent) => {
+      e.preventDefault();  // Prevent default if button in form
+      // Real IPC: window.electronAPI?.triggerSync();  // From preload
       if (statusText) {
         statusText.textContent = 'Syncing...';
       }
+      // Mock delay
       setTimeout(() => {
         if (statusText) {
           statusText.textContent = 'Running';
@@ -32,12 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Restart Services button handler
   if (restartBtn) {
-    restartBtn.addEventListener('click', () => {
-      // Trigger restart via IPC (if needed)
+    restartBtn.addEventListener('click', (e: MouseEvent) => {
+      e.preventDefault();
+      // Real IPC: window.electronAPI?.restartServices();  // From preload
       if (statusText) {
         statusText.textContent = 'Restarting...';
       }
+      // Mock delay
       setTimeout(() => {
         if (statusText) {
           statusText.textContent = 'Running';
@@ -46,4 +53,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
