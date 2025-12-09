@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tally Sync</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+
+    .status.running {
+      background: #e8f5e9;
+      border-left-color: #4caf50;
+    }
+
+    .status.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+
+    .button {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+
+    .button:hover {
+      background: #1976d2;
+    }
+
+    .button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .info {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .info-item {
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .info-label {
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tally Sync Service</h1>
+    
+    <div id="status" class="status">
+      <strong>Status:</strong> <span id="statusText">Initializing...</span>
+    </div>
+
+    <div>
+      <button class="button" id="syncNow">Sync Now</button>
+      <button class="button" id="restartServices">Restart Services</button>
+    </div>
+
+    <div class="info">
+      <div class="info-item">
+        <span class="info-label">Service:</span> Running in background
+      </div>
+      <div class="info-item">
+        <span class="info-label">Mode:</span> System Tray
+      </div>
+      <div class="info-item">
+        <span class="info-label">Note:</span> This window can be minimized. The service will continue running.
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
+
