@@ -9,13 +9,10 @@
     "build": "npm run clean && tsc && npm run copy",
     "dev": "npm run build && electron .",
     "start": "npm run build && electron .",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && electron-builder",
+    "package-win": "npm run build && electron-builder --win"
   },
-  "keywords": [
-    "electron",
-    "tally",
-    "sync"
-  ],
+  "keywords": ["electron", "tally", "sync"],
   "author": "MoboKoushik",
   "license": "ISC",
   "devDependencies": {
@@ -51,13 +48,24 @@
       "assets/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "assets/",
+        "to": "assets/",
+        "filter": ["**/*"]
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }

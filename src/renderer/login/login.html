@@ -1,97 +1,139 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Zoroflex Connect</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: "Segoe UI", Tahoma, sans-serif;
-        background: #f0f0f0;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .login-box {
-        width: 300px;
-        background: white;
-        padding: 25px;
-        text-align: center;
-      }
-      h2 {
-        margin: 0 0 20px 0;
-        color: #106ebe;
-        font-size: 18px;
-        font-weight: 600;
-      }
-      .field {
-        margin-bottom: 12px;
-        text-align: left;
-      }
-      label {
-        font-size: 13px;
-        color: #333;
-        font-weight: 600;
-        margin-bottom: 4px;
-        display: block;
-      }
-      input {
-        width: 100%;
-        height: 30px;
-        padding: 0 10px;
-        border: 1px solid #999;
-        border-radius: 4px;
-        font-size: 14px;
-        box-sizing: border-box;
-      }
-      input:focus {
-        outline: none;
-        border-color: #106ebe;
-      }
-      button {
-        width: 100%;
-        height: 30px;
-        background: #042746;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 15px;
-      }
-      button:hover {
-        background: #0d5ba8;
-      }
-      .error {
-        color: #c00;
-        font-size: 13px;
-        margin-top: 10px;
-        min-height: 18px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="login-box">
-      <h2>Zoroflex Connect</h2>
+<head>
+  <meta charset="UTF-8">
+  <title>Zoroflex Connect</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      width: 380px;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .header {
+      padding: 8px 6px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .body {
+      padding: 10px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .field {
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      height: 25px;
+      padding: 0 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+    button {
+      width: 100%;
+      height: 30px;
+      background: linear-gradient(135deg, #667eea, #2b064f);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ffffff40;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 24px;
+      font-weight: 500;
+    }
+    .success { color: #2e7d32; }
+    .error { color: #d32f2f; }
+    .footer {
+      text-align: center;
+      background: #f8f9fa;
+      font-size: 12px;
+      color: #666;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>Zoroflex Connect</h1>
+      <p>Tally to Cloud Sync Client</p>
+    </div>
+    <div class="body">
       <form id="loginForm">
         <div class="field">
-          <input type="email" id="email" placeholder="Enter email" required />
+          <input type="email" id="email" placeholder="admin@company.com" required />
         </div>
         <div class="field">
-          <input
-            type="password"
-            id="password"
-            placeholder="Enter password"
-            required
-          />
+          <input type="password" id="password" placeholder="••••••••" required />
         </div>
-        <button type="submit">Connect</button>
-        <div id="error" class="error"></div>
+        <button type="submit" id="connectBtn">
+          <span id="btnContent">Connect</span>
+        </button>
+        <div id="message" class="message"></div>
       </form>
     </div>
+    <div class="footer">
+      © 2025 Zoroflex Solutions • Version 1.0.0
+    </div>
+  </div>
 
-    <script src="./login.js"></script>
-  </body>
+  <script src="./login.js"></script>
+</body>
 </html>
