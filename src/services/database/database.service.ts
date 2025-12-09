@@ -9,7 +9,7 @@ export interface UserProfile {
   token: string;
   biller_id?: string;
   apikey?: string;
-  organization?: { [key: string]: any };
+  organization?: any;
   created_at?: string;
 }
 
@@ -19,133 +19,57 @@ export class DatabaseService {
 
   constructor() {
     this.dbPath = path.join(app.getPath('userData'), 'tally-sync.db');
-    if (!fs.existsSync(path.dirname(this.dbPath))) {
-      fs.mkdirSync(path.dirname(this.dbPath), { recursive: true });
-    }
+    if (!fs.existsSync(path.dirname(this.dbPath))) fs.mkdirSync(path.dirname(this.dbPath), { recursive: true });
     this.init();
   }
 
   private init(): void {
     this.db = new sqlite3.Database(this.dbPath, (err) => {
-      if (err) {
-        console.error('Database init error:', err);
-      } else {
-        console.log('SQLite DB connected at:', this.dbPath);
+      if (err) console.error('DB init error:', err);
+      else {
+        console.log('DB connected');
         this.createTables();
       }
     });
   }
 
   private createTables(): void {
-    // Existing tables
-    const syncHistorySQL = `
-      CREATE TABLE IF NOT EXISTS sync_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sync_type TEXT NOT NULL,
-        status TEXT NOT NULL,
-        data TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-    this.db?.run(syncHistorySQL, (err) => {
-      if (err) console.error('Sync history table create error:', err);
-    });
+    // Existing
+    this.db?.run(`CREATE TABLE IF NOT EXISTS sync_history (id INTEGER PRIMARY KEY, sync_type TEXT, status TEXT, data TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+    this.db?.run(`CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, level TEXT, message TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
 
-    const logsSQL = `
-      CREATE TABLE IF NOT EXISTS logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        level TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-    this.db?.run(logsSQL, (err) => {
-      if (err) console.error('Logs table create error:', err);
-    });
-
-    // Profiles table
-    const profilesSQL = `
-      CREATE TABLE IF NOT EXISTS profiles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        token TEXT NOT NULL,
-        biller_id TEXT,
-        apikey TEXT,
-        organization TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-    this.db?.run(profilesSQL, (err) => {
-      if (err) console.error('Profiles table create error:', err);
-    });
+    // New profiles
+    this.db?.run(`CREATE TABLE IF NOT EXISTS profiles (id INTEGER PRIMARY KEY, email TEXT UNIQUE, token TEXT, biller_id TEXT, apikey TEXT, organization TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
   }
 
   getProfile(): Promise<UserProfile | null> {
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        return reject(new Error('DB not initialized'));
-      }
-      this.db.get(
-        'SELECT * FROM profiles LIMIT 1',
-        (err, row: any) => {
-          if (err) {
-            console.error('Get profile error:', err);
-            reject(err);
-          } else {
-            if (row && row.organization) {
-              try {
-                row.organization = JSON.parse(row.organization);
-              } catch (parseErr) {
-                console.error('Parse organization JSON error:', parseErr);
-                row.organization = {};
-              }
-            }
-            resolve(row ? row : null);
-          }
+      this.db?.get('SELECT * FROM profiles LIMIT 1', (err, row: any) => {
+        if (err) reject(err);
+        else {
+          if (row?.organization) row.organization = JSON.parse(row.organization);
+          resolve(row || null);
         }
-      );
+      });
     });
   }
 
   saveProfile(email: string, token: string, billerId?: string, apikey?: string, organization?: any): Promise<void> {
     const orgJson = organization ? JSON.stringify(organization) : null;
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        return reject(new Error('DB not initialized'));
-      }
-      this.db.run(
-        'INSERT OR REPLACE INTO profiles (email, token, biller_id, apikey, organization) VALUES (?, ?, ?, ?, ?)',
-        [email, token, billerId || null, apikey || null, orgJson],
-        (err) => {
-          if (err) {
-            console.error('Save profile error:', err);
-            reject(err);
-          } else {
-            console.log('Profile saved:', email);
-            resolve();
-          }
-        }
+      this.db?.run('INSERT OR REPLACE INTO profiles (email, token, biller_id, apikey, organization) VALUES (?, ?, ?, ?, ?)', 
+        [email, token, billerId || null, apikey || null, orgJson], 
+        (err) => err ? reject(err) : resolve()
       );
     });
   }
 
-  logSync(syncType: string, status: string, data?: any): void {
+  logSync(type: string, status: string, data?: any): void {
     const dataStr = data ? JSON.stringify(data) : null;
-    if (this.db) {
-      this.db.run(
-        'INSERT INTO logs (level, message) VALUES (?, ?)',
-        [`SYNC_${status.toUpperCase()}`, `Sync ${syncType}: ${dataStr || 'Completed'}`],
-        (err) => {
-          if (err) console.error('Log error:', err);
-        }
-      );
-    }
+    this.db?.run('INSERT INTO logs (level, message) VALUES (?, ?)', [`SYNC_${status}`, `${type}: ${dataStr || 'Done'}`]);
   }
 
   close(): void {
-    this.db?.close((err) => {
-      if (err) console.error('DB close error:', err);
-      console.log('DB closed');
-    });
+    this.db?.close();
   }
 }

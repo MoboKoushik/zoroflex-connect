@@ -1,190 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zoroflex Connect – Login</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zoroflex Connect</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: #f0f0f0;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-box {
+        width: 300px;
+        background: white;
+        padding: 25px;
+        text-align: center;
+      }
+      h2 {
+        margin: 0 0 20px 0;
+        color: #106ebe;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .field {
+        margin-bottom: 12px;
+        text-align: left;
+      }
+      label {
+        font-size: 13px;
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 4px;
+        display: block;
+      }
+      input {
+        width: 100%;
+        height: 30px;
+        padding: 0 10px;
+        border: 1px solid #999;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      input:focus {
+        outline: none;
+        border-color: #106ebe;
+      }
+      button {
+        width: 100%;
+        height: 30px;
+        background: #042746;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 15px;
+      }
+      button:hover {
+        background: #0d5ba8;
+      }
+      .error {
+        color: #c00;
+        font-size: 13px;
+        margin-top: 10px;
+        min-height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-box">
+      <h2>Zoroflex Connect</h2>
+      <form id="loginForm">
+        <div class="field">
+          <input type="email" id="email" placeholder="Enter email" required />
+        </div>
+        <div class="field">
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter password"
+            required
+          />
+        </div>
+        <button type="submit">Connect</button>
+        <div id="error" class="error"></div>
+      </form>
+    </div>
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-    }
-
-    .login-container {
-      background: white;
-      padding: 40px 50px;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-      width: 420px;
-      max-width: 90vw;
-      text-align: center;
-      animation: fadeIn 0.6s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .logo {
-      width: 80px;
-      height: 80px;
-      background: #667eea;
-      border-radius: 20px;
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 36px;
-      font-weight: bold;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 8px;
-      color: #2d3748;
-    }
-
-    p.subtitle {
-      color: #718096;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #4a5568;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: all 0.3s;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #5a6fd8;
-    }
-
-    button:disabled {
-      background: #a0aec0;
-      cursor: not-allowed;
-    }
-
-    .error {
-      color: #e53e3e;
-      font-size: 14px;
-      margin-top: 12px;
-      min-height: 20px;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #ffffff40;
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 8px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    footer {
-      margin-top: 30px;
-      font-size: 12px;
-      color: #a0aec0;
-    }
-  </style>
-</head>
-<body>
-  <div class="login-container">
-    <div class="logo">Z</div>
-    <h1>Zoroflex Connect</h1>
-    <p class="subtitle">Sign in to sync your Tally data</p>
-
-    <form id="error" class="error"></div>
-
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          placeholder="you@company.com"
-          required
-          autocomplete="email"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          placeholder="Enter your password"
-          required
-          autocomplete="current-password"
-        />
-      </div>
-
-      <button type="submit" id="loginBtn">
-        <span id="btnText">Sign In</span>
-      </button>
-    </form>
-
-    <footer>
-      Zoroflex Tally Sync • Version 1.0.0
-    </footer>
-  </div>
-
-  <script src="./login.js"></script> <!-- tsc এটা dist/renderer/login/login.js করে দিবে -->
-</body>
+    <script src="./login.js"></script>
+  </body>
 </html>

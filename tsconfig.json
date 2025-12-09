@@ -13,14 +13,9 @@
     "resolveJsonModule": true,
     "declaration": false,
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["node", "electron"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "release"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "release"]
 }
