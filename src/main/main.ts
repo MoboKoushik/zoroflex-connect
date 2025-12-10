@@ -8,7 +8,7 @@ let tray: Tray | null = null;
 let loginWindow: BrowserWindow | null = null;
 
 const dbService = new DatabaseService();
-const syncService = new SyncService();
+const syncService = new SyncService(dbService);
 
 
 ipcMain.on('login-success', async () => {
