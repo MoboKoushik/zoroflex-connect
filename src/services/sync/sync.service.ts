@@ -7,7 +7,7 @@ export class SyncService {
   private dbService = new DatabaseService();
   private intervalId: NodeJS.Timeout | null = null;
   private isRunning = false;
-  private connectionString = 'DSN=TallyODBC64_9000;'; 
+  private connectionString = 'DSN=TallyODBC64_9000;UID=;PWD=;';
   // private connectionString = 'DRIVER={Tally ODBC Driver};SERVER=localhost;PORT=9000;';
 
   startBackground(profile?: UserProfile): void {
@@ -26,6 +26,7 @@ export class SyncService {
   }
 
   manualSync(profile?: UserProfile): void {
+    console.log('Manual sync requested', profile);
     if (!profile) {
       console.log('Cannot sync: No profile');
       return;
@@ -52,6 +53,7 @@ export class SyncService {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       const dateFilter = sevenDaysAgo.toISOString().split('T')[0]; // YYYY-MM-DD
 
+
       const query = `
         SELECT 
           $Date AS date,
@@ -64,38 +66,42 @@ export class SyncService {
         ORDER BY $Date DESC
       `;
 
-      const result = await conn.query(query);
-      const vouchers: any[] = Array.isArray(result) ? result : [];
+      // const result = await conn.query(query);
+      // const vouchers: any[] = Array.isArray(result) ? result : [];
 
-      console.log(`Fetched ${vouchers.length} vouchers from Tally`);
+      // console.log(`Fetched ${vouchers.length} vouchers from Tally`);
 
-      if (vouchers.length === 0) {
-        this.dbService.logSync('odbc-pull', 'INFO', { message: 'No new vouchers' });
-        return;
-      }
+      await this.fetchCustomers(conn);
 
-      const payload = {
-        biller_id: profile.biller_id,
-        data: vouchers.map(v => ({
-          date: v.date,
-          number: v.number || '',
-          type: v.type || 'Sales',
-          party: v.party || '',
-          amount: Number(v.amount) || 0
-        }))
-      };
 
-      await axios.post('http://localhost:3000/api/sync', payload, {
-        headers: {
-          'Authorization': `Bearer ${profile.token}`,
-          'X-API-Key': profile.apikey || '',
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000
-      });
+
+      // if (vouchers.length === 0) {
+      //   this.dbService.logSync('odbc-pull', 'INFO', { message: 'No new vouchers' });
+      //   return;
+      // }
+
+      // const payload = {
+      //   biller_id: profile.biller_id,
+      //   data: vouchers.map(v => ({
+      //     date: v.date,
+      //     number: v.number || '',
+      //     type: v.type || 'Sales',
+      //     party: v.party || '',
+      //     amount: Number(v.amount) || 0
+      //   }))
+      // };
+
+      // await axios.post('http://localhost:3000/api/sync', payload, {
+      //   headers: {
+      //     'Authorization': `Bearer ${profile.token}`,
+      //     'X-API-Key': profile.apikey || '',
+      //     'Content-Type': 'application/json'
+      //   },
+      //   timeout: 15000
+      // });
 
       console.log('Data successfully sent to backend');
-      this.dbService.logSync('odbc-pull', 'SUCCESS', { count: vouchers.length });
+      // this.dbService.logSync('odbc-pull', 'SUCCESS', { count: vouchers.length });
 
     } catch (error: any) {
       console.error('Sync Failed:', error.message || error);
@@ -109,7 +115,7 @@ export class SyncService {
         msg = 'Invalid token – login again';
       }
 
-      this.dbService.logSync('odbc-pull', 'FAILED', { error: msg });
+      // this.dbService.logSync('odbc-pull', 'FAILED', { error: msg });
     } finally {
       if (conn) {
         try { await conn.close(); } catch (e) { }
@@ -117,6 +123,33 @@ export class SyncService {
       this.isRunning = false;
     }
   }
+
+
+  private async fetchCustomers(conn: odbc.Connection, limit = 50) {
+    console.log('Fetching customers from Tally...');
+    const query = `
+SELECT 
+  $Name as CustomerName,
+  $Parent as GroupName,
+  $Address as Address,
+  $Email as Email,
+  $Phone as Phone,
+  $Mobile as Mobile,
+  $GSTIN as GSTIN,
+  $GSTRegistrationType as GSTType,
+  $CreditPeriod as CreditPeriod,
+  $IsBillWiseOn as BillWise
+FROM Ledger
+WHERE $$IsLedOfGrp:$Name:$$GroupSundryDebtors
+      `;
+
+    const result = await conn.query(query);
+    const customers: any[] = Array.isArray(result) ? result : [];
+    console.log('Fetched customers from Tally:', customers);
+    console.log(`Fetched ${customers.length} customers from Tally`);
+    return customers;
+  };
+
 
   stop(): void {
     if (this.intervalId) {

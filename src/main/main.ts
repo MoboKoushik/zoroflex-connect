@@ -1,122 +1,131 @@
-import { app, BrowserWindow, Tray, Menu, ipcMain } from 'electron';
+import { app, BrowserWindow, Tray, Menu, ipcMain, dialog } from 'electron';
 import * as path from 'path';
 import axios from 'axios';
 import { DatabaseService } from '../services/database/database.service';
 import { SyncService } from '../services/sync/sync.service';
 
-// TALLY ODBC : TallyODBC64_9000
-
 let tray: Tray | null = null;
+let loginWindow: BrowserWindow | null = null;
+
 const dbService = new DatabaseService();
 const syncService = new SyncService();
-let loginWindow: BrowserWindow | null = null;
+
+
+ipcMain.on('login-success', async () => {
+  console.log('login-success event received → Starting background mode');
+  if (loginWindow) {
+    loginWindow.hide();
+    loginWindow = null;
+  }
+
+  const profile = await dbService.getProfile();
+  if (!profile) {
+    console.error('Profile missing after login!');
+    createLoginWindow();
+    return;
+  }
+
+  console.log('Profile loaded after login:', profile.email);
+
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+
+  app.setLoginItemSettings({ openAtLogin: true });
+  createTrayAndStartSync(profile);
+});
+
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
-  let profile = null;
-  try {
-    profile = await dbService.getProfile();
-  } catch (err) {
-    console.error('Profile check failed:', err);
-  }
 
-  console.log('profile===>', profile)
+  const profile = await dbService.getProfile().catch(() => null);
 
   if (profile) {
-    console.log('Profile found, starting background');
+    console.log('Profile found → Starting in background');
     app.setLoginItemSettings({ openAtLogin: true });
     createTrayAndStartSync(profile);
   } else {
-    console.log('No profile, opening login');
+    console.log('No profile → Opening login');
     createLoginWindow();
   }
 });
 
+
 function createLoginWindow(): void {
+  if (loginWindow) {
+    loginWindow.focus();
+    return;
+  }
+
   loginWindow = new BrowserWindow({
-    width: 340,
-    height: 280,
+    width: 380,
+    height: 300,
     show: false,
     frame: true,
     resizable: false,
     maximizable: false,
+    title: 'Zoroflex Connect',
+    icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '../renderer/login/preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
-    }
+      nodeIntegration: false,
+    },
   });
 
-  const loginPath = path.join(__dirname, '../renderer/login/login.html');
-  console.log('Loading login:', loginPath);
-  loginWindow.loadFile(loginPath);
-  loginWindow?.webContents.openDevTools({ mode: 'detach' });
+  loginWindow.loadFile(path.join(__dirname, '../renderer/login/login.html'));
 
   loginWindow.once('ready-to-show', () => {
-    loginWindow?.center();
     loginWindow?.show();
+    loginWindow?.center();
+  });
+
+  loginWindow.on('closed', () => {
+    loginWindow = null;
   });
 }
+
 ipcMain.handle('login', async (event, credentials: { email: string; password: string }) => {
-  console.log('Electron received login request:', credentials.email);
+  console.log('Login attempt:', credentials.email);
 
   try {
-    const response = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
+    const { data } = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
       timeout: 15000,
-      headers: { 'Content-Type': 'application/json' }
     });
 
-    const data = response.data;
-
-    // Only proceed if backend explicitly says success
-    if (data.success === true) {
-      console.log('Backend responded SUCCESS:', data);
-
+    if (data.success) {
       const { token, biller_id, apikey, organization } = data;
 
       await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
+      console.log('Profile saved successfully, sending login-success event');
 
-      // Only send success to renderer if truly successful
-      event.sender.send('login-success');
+      if (loginWindow) {
+        loginWindow.hide();
+        loginWindow = null;
+      }
+
+      const profile = await dbService.getProfile();
+      if (profile) {
+        if (tray) {
+          tray.destroy();
+          tray = null;
+        }
+        app.setLoginItemSettings({ openAtLogin: true });
+        createTrayAndStartSync(profile);
+      }
 
       return { success: true };
     } else {
-      // Backend rejected login
-      console.log('Backend rejected login:', data.message);
-      return { success: false, message: data.message || 'Invalid email or password' };
+      return { success: false, message: data.message || 'Login failed' };
     }
-
   } catch (error: any) {
-    console.error('Login request failed:', error.message);
-
-    if (error.code === 'ECONNREFUSED') {
-      return { success: false, message: 'Cannot connect to server (port 3000)' };
-    }
-    if (error.response?.data) {
-      return { success:false, message: error.response.data.message || 'Invalid credentials' };
-    }
-    return { success: false, message: 'Network error. Please try again.' };
-  }
-});
-
-ipcMain.on('login-success', async () => {
-  console.log('Login successful! Closing login window...');
-
-  if (loginWindow) {
-    loginWindow.close();
-    loginWindow = null;
-  }
-
-  let profile = null;
-  try {
-    profile = await dbService.getProfile();
-  } catch (err) {
-    console.error('Profile load failed after login:', err);
-  }
-
-  if (profile) {
-    createTrayAndStartSync(profile);
-    app.setLoginItemSettings({ openAtLogin: true });
+    console.error('Login error:', error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Server not reachable',
+    };
   }
 });
 
@@ -128,46 +137,61 @@ function createTrayAndStartSync(profile: any): void {
     : path.join(__dirname, '../../assets/icon.png');
 
   tray = new Tray(iconPath);
-  tray.setToolTip('Zoroflex Connect - Running in background');
+  tray.setToolTip('Zoroflex Connect - Connected');
 
-const contextMenu = Menu.buildFromTemplate([
+  const contextMenu = Menu.buildFromTemplate([
     { label: 'Sync Now', click: () => syncService.manualSync(profile) },
     { type: 'separator' },
-    { 
-      label: 'Disconnect', 
+    {
+      label: 'Disconnect',
       click: async () => {
-        syncService.stop();
-        try {
+        const { response } = await dialog.showMessageBox({
+          type: 'question',
+          buttons: ['Cancel', 'Disconnect'],
+          defaultId: 1,
+          message: 'Disconnect?',
+          detail: 'You will be logged out.',
+        });
+
+        if (response === 1) {
+          syncService.stop();
           await dbService.clearProfile();
-          console.log('Profile cleared successfully');
-        } catch (err) {
-          console.error('Failed to clear profile:', err);
-        }
-        if (tray) {
-          tray.destroy();
+          tray?.destroy();
           tray = null;
+          createLoginWindow();
         }
-        createLoginWindow();
-      }
+      },
     },
     { type: 'separator' },
-    { label: 'Quit', click: () => app.quit() }
+    { label: 'Quit', click: () => app.quit() },
   ]);
+
   tray.setContextMenu(contextMenu);
+  tray.on('click', () => tray?.popUpContextMenu());
 
-  syncService.startBackground(profile);
-
-  console.log('App is now running in background (Tray mode)');
+  // syncService.startBackground(profile);
+  console.log('Tray created + Background sync started');
 }
 
 app.on('window-all-closed', () => {
-  if (!tray && process.platform !== 'darwin') app.quit();
+  // 
 });
 
 app.on('before-quit', () => {
-  dbService.close();
+  console.log('App quitting → cleaning up...');
   syncService.stop();
+  dbService.close();
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) createLoginWindow();
 });
 
 const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) app.quit();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    loginWindow?.show();
+  });
+}
