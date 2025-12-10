@@ -70,7 +70,7 @@ export class SyncService {
       console.log(`Fetched ${vouchers.length} vouchers from Tally`);
 
       if (vouchers.length === 0) {
-        this.dbService.logSync('odbc-pull', 'info', { message: 'No new vouchers' });
+        this.dbService.logSync('odbc-pull', 'INFO', { message: 'No new vouchers' });
         return;
       }
 
@@ -95,7 +95,7 @@ export class SyncService {
       });
 
       console.log('Data successfully sent to backend');
-      this.dbService.logSync('odbc-pull', 'success', { count: vouchers.length });
+      this.dbService.logSync('odbc-pull', 'SUCCESS', { count: vouchers.length });
 
     } catch (error: any) {
       console.error('Sync Failed:', error.message || error);
@@ -109,7 +109,7 @@ export class SyncService {
         msg = 'Invalid token – login again';
       }
 
-      this.dbService.logSync('odbc-pull', 'error', { error: msg });
+      this.dbService.logSync('odbc-pull', 'FAILED', { error: msg });
     } finally {
       if (conn) {
         try { await conn.close(); } catch (e) { }

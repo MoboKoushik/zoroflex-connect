@@ -41,6 +41,7 @@ form.addEventListener('submit', async (e) => {
         }
 
         const result = await (window as any).electronAPI.login({ email, password });
+        console.log('Login response received in renderer:', typeof result);
 
         if (result.success) {
             message.innerHTML = '<span style="color:green">Success! Closing in 1 sec...</span>';

@@ -20,6 +20,8 @@ app.whenReady().then(async () => {
     console.error('Profile check failed:', err);
   }
 
+  console.log('profile===>', profile)
+
   if (profile) {
     console.log('Profile found, starting background');
     app.setLoginItemSettings({ openAtLogin: true });
@@ -56,7 +58,7 @@ function createLoginWindow(): void {
   });
 }
 ipcMain.handle('login', async (event, credentials: { email: string; password: string }) => {
-  console.log('Electron received login request:', credentials);
+  console.log('Electron received login request:', credentials.email);
 
   try {
     const response = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
@@ -64,26 +66,36 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
       headers: { 'Content-Type': 'application/json' }
     });
 
-    console.log('Backend responded SUCCESS:', response.data);
+    const data = response.data;
 
-    const { token, biller_id, apikey, organization } = response.data;
-    await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
+    // Only proceed if backend explicitly says success
+    if (data.success === true) {
+      console.log('Backend responded SUCCESS:', data);
 
-    event.sender.send('login-success');
+      const { token, biller_id, apikey, organization } = data;
 
-    return { success: true };
+      await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
+
+      // Only send success to renderer if truly successful
+      event.sender.send('login-success');
+
+      return { success: true };
+    } else {
+      // Backend rejected login
+      console.log('Backend rejected login:', data.message);
+      return { success: false, message: data.message || 'Invalid email or password' };
+    }
 
   } catch (error: any) {
-    console.error('Backend ERROR:', error.message);
+    console.error('Login request failed:', error.message);
+
     if (error.code === 'ECONNREFUSED') {
-      console.error('Backend is not running on port 3000!');
-      return { success: false, message: 'Server not running (port 3000)' };
+      return { success: false, message: 'Cannot connect to server (port 3000)' };
     }
-    if (error.response) {
-      console.error('Backend returned error:', error.response.data);
-      return { success: false, message: error.response.data.message || 'Invalid credentials' };
+    if (error.response?.data) {
+      return { success:false, message: error.response.data.message || 'Invalid credentials' };
     }
-    return { success: false, message: 'Network error' };
+    return { success: false, message: 'Network error. Please try again.' };
   }
 });
 
@@ -118,10 +130,27 @@ function createTrayAndStartSync(profile: any): void {
   tray = new Tray(iconPath);
   tray.setToolTip('Zoroflex Connect - Running in background');
 
-  const contextMenu = Menu.buildFromTemplate([
+const contextMenu = Menu.buildFromTemplate([
     { label: 'Sync Now', click: () => syncService.manualSync(profile) },
     { type: 'separator' },
-    { label: 'Open Login Again', click: () => createLoginWindow() },
+    { 
+      label: 'Disconnect', 
+      click: async () => {
+        syncService.stop();
+        try {
+          await dbService.clearProfile();
+          console.log('Profile cleared successfully');
+        } catch (err) {
+          console.error('Failed to clear profile:', err);
+        }
+        if (tray) {
+          tray.destroy();
+          tray = null;
+        }
+        createLoginWindow();
+      }
+    },
+    { type: 'separator' },
     { label: 'Quit', click: () => app.quit() }
   ]);
   tray.setContextMenu(contextMenu);
