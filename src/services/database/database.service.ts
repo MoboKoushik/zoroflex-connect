@@ -30,7 +30,7 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v2.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v3.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();

@@ -61,7 +61,7 @@ function createLoginWindow(): void {
 
   loginWindow = new BrowserWindow({
     width: 380,
-    height: 300,
+    height: 280,
     show: false,
     frame: true,
     resizable: false,
