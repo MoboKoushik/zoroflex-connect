@@ -155,7 +155,7 @@ function createTrayAndStartSync(profile: any): void {
 
         if (response === 1) {
           syncService.stop();
-          await dbService.clearProfile();
+          await dbService.logoutAndClearProfile();
           tray?.destroy();
           tray = null;
           createLoginWindow();
