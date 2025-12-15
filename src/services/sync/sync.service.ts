@@ -3,6 +3,15 @@
 import * as odbc from 'odbc';
 import axios from 'axios';
 import { DatabaseService, UserProfile } from '../database/database.service';
+import { fetchFullInvoices } from './invoiceFullService';
+import { fetchFromTally, XML_COMPANY_LIST } from "./tallyClient";
+// import { fetchAllLedgers } from './fetchLedgers';
+import { fetchAllVouchers } from './fetchAllVouchers';
+import { fetchAllVouchersODBC } from './fetchVouchersODBC';
+import { fetchReceipts } from './fetchReceiptsXML';
+import { fetchAllLedgers } from './fetchLedgers';
+import { fetchAllLedgersOpening } from './fetchLedegerOpeningAndCurrentBalence';
+import { fetchAllCompanies } from './fetchAllCompanies';
 
 const BASE_URL = 'http://localhost:3000';
 const API_KEY = '7061797A6F72726F74616C6C79';
@@ -302,18 +311,14 @@ export class SyncService {
     const runId = await this.dbService.logSyncStart(type, 'PAYMENT');
     const filter = parseInt(await this.dbService.getGlobalMaxAlterId()) || 0;
 
-    const query = `
-    SELECT 
-      V.$AlterId            AS AlterId,
-      V.$MasterId           AS MasterId,
-    FROM Voucher V
-    ORDER BY V.$AlterId ASC
-  `;
+    // const query = `Select $Name from ODBCTables`;
+    const query = `SELECT * FROM ODBC_Zoro_Sales WHERE 1 = 1`;
 
     const result = await conn.query(query);
-    const rows = Array.isArray(result) ? result : [];
+    console.log('Payment query result:', JSON.stringify(result, null, 2));
+    // const rows = Array.isArray(result) ? result : [];
 
-    console.log(`Fetched ${rows.length} PAYMENT(s) from Tally`, JSON.stringify(rows.slice(0, 2), null, 2));  // Log sample for brevity
+    // console.log(`Fetched ${rows.length} PAYMENT(s) from Tally`, JSON.stringify(rows.slice(0, 2), null, 2));  // Log sample for brevity
 
 
     // await this.executeSync(conn, runId, 'PAYMENT', query, async (rows, conn, profile) => {
@@ -427,49 +432,52 @@ export class SyncService {
       ORDER BY $AlterId ASC
     `;
 
-    await this.executeSync(conn, runId, 'JV_ENTRY', query, async (rows, conn, profile) => {
-      const jvEntries: any[] = [];
-      for (const row of rows) {
-        const ledgerQuery = `SELECT $LedgerName, $Amount, $IsDeemedPositive AS is_debit, $LedgerMasterId FROM LedgerEntries WHERE $VoucherNumber = '${row.voucher_number?.replace(/'/g, "''")}'`;
-        const ledgerRes = await conn.query(ledgerQuery);
-        const ledgerRows = Array.isArray(ledgerRes) ? ledgerRes : [];
-        const ledgerEntries = ledgerRows.map((le: any) => {
-          const isCustomerEntry = le.$LedgerName?.includes('Sundry Debtors') || le.$LedgerName?.includes('Customer');
-          return {
-            customer_id: isCustomerEntry ? (le.$LedgerMasterId?.toString() || '32375') : '3287375',
-            conversation_rate: 84,
-            company_name: le.$LedgerName || 'Bank Account',
-            is_debit: le.is_debit === 1,
-            amount: Math.abs(Number(le.$Amount)) || 26000.00,
-            currency: 'INR',
-            ...(isCustomerEntry ? {
-              invoice_details: [{
-                invoice_number: 'INV-1001',  // Can link via BillAllocations
-                invoice_date: this.formatTallyDate(row.date),
-                amount: Math.abs(Number(le.$Amount)) || 11000.00
-              }]
-            } : {})
-          };
-        });
-        jvEntries.push({
-          entry_type: 'JVENTRY',
-          transation_id: `Vd8543587${row.$AlterId}`,
-          biller_id: profile.biller_id!,
-          voucher_number: row.voucher_number || 'JV003',
-          ref_number: row.ref_number || 'JV002',
-          date: this.formatTallyDate(row.date),
-          ref_date: this.formatTallyDate(row.date),
-          narration: row.narration || 'Payment received from customer against invoice INV-1001',
-          ledger_entries: ledgerEntries
-        });
-      }
-      const batchMaxAlter = Math.max(...rows.map(r => parseInt(r.$AlterId || '0', 10))).toString();
-      return {
-        url: `${BASE_URL}/ledgers/tally/jv-entries`,
-        payload: { jv_entry: jvEntries },
-        batchMaxAlter
-      };
-    }, profile);
+    const result = await conn.query(query);
+    console.log('Journal query result:', result);
+
+    // await this.executeSync(conn, runId, 'JV_ENTRY', query, async (rows, conn, profile) => {
+    //   const jvEntries: any[] = [];
+    //   for (const row of rows) {
+    //     const ledgerQuery = `SELECT $LedgerName, $Amount, $IsDeemedPositive AS is_debit, $LedgerMasterId FROM LedgerEntries WHERE $VoucherNumber = '${row.voucher_number?.replace(/'/g, "''")}'`;
+    //     const ledgerRes = await conn.query(ledgerQuery);
+    //     const ledgerRows = Array.isArray(ledgerRes) ? ledgerRes : [];
+    //     const ledgerEntries = ledgerRows.map((le: any) => {
+    //       const isCustomerEntry = le.$LedgerName?.includes('Sundry Debtors') || le.$LedgerName?.includes('Customer');
+    //       return {
+    //         customer_id: isCustomerEntry ? (le.$LedgerMasterId?.toString() || '32375') : '3287375',
+    //         conversation_rate: 84,
+    //         company_name: le.$LedgerName || 'Bank Account',
+    //         is_debit: le.is_debit === 1,
+    //         amount: Math.abs(Number(le.$Amount)) || 26000.00,
+    //         currency: 'INR',
+    //         ...(isCustomerEntry ? {
+    //           invoice_details: [{
+    //             invoice_number: 'INV-1001',  // Can link via BillAllocations
+    //             invoice_date: this.formatTallyDate(row.date),
+    //             amount: Math.abs(Number(le.$Amount)) || 11000.00
+    //           }]
+    //         } : {})
+    //       };
+    //     });
+    //     jvEntries.push({
+    //       entry_type: 'JVENTRY',
+    //       transation_id: `Vd8543587${row.$AlterId}`,
+    //       biller_id: profile.biller_id!,
+    //       voucher_number: row.voucher_number || 'JV003',
+    //       ref_number: row.ref_number || 'JV002',
+    //       date: this.formatTallyDate(row.date),
+    //       ref_date: this.formatTallyDate(row.date),
+    //       narration: row.narration || 'Payment received from customer against invoice INV-1001',
+    //       ledger_entries: ledgerEntries
+    //     });
+    //   }
+    //   const batchMaxAlter = Math.max(...rows.map(r => parseInt(r.$AlterId || '0', 10))).toString();
+    //   return {
+    //     url: `${BASE_URL}/ledgers/tally/jv-entries`,
+    //     payload: { jv_entry: jvEntries },
+    //     batchMaxAlter
+    //   };
+    // }, profile);
   }
 
   // FULL SYNC 
@@ -490,10 +498,38 @@ export class SyncService {
         await this.syncOrganization(profile);
       }
 
-      await this.syncCustomers(conn, profile, type);
+      // const res = await fetchFullInvoices('20250101', '20251231');
+      // const res = await fetchFromTally(XML_COMPANY_LIST);
+      // console.log('Fetched full invoices:', JSON.stringify(res, null, 2));
+
+      // const ledgers = await fetchAllLedgers();  // No parameters needed
+      // console.log('Total Ledgers fetched:', ledgers.length);
+      // console.log('Total Ledgers:', JSON.stringify(ledgers, null, 2));
+
+      // const vouchers = await fetchAllVouchersODBC();
+      // console.log('Total Vouchers fetched:', vouchers.length);
+      // console.log('First voucher sample:', JSON.stringify(vouchers, null, 2));
+
+      // const result = await fetchAllLedgers();
+      // // console.log('Total Vouchers fetched:', result.length);
+      // console.log('First voucher sample:', JSON.stringify(result, null, 2));
+
+      // const result = await fetchAllVouchers();
+      // // console.log('Total Vouchers fetched:', result.length);
+      // console.log('First voucher sample:', JSON.stringify(result, null, 2));
+
+      // const result = await fetchAllLedgersOpening();
+      // // console.log('Total Vouchers fetched:', result.length);
+      // console.log('First voucher sample:', JSON.stringify(result, null, 2));
+
+      const result = await fetchAllCompanies();
+      // console.log('Total Vouchers fetched:', result.length);
+      console.log('First Company sample:', JSON.stringify(result, null, 2));
+
+      // await this.syncCustomers(conn, profile, type);
       // await this.syncInvoices(conn, profile, type);
-      await this.syncPayments(conn, profile, type);
-      await this.syncStockItems(conn, profile, type);
+      // await this.syncPayments(conn, profile, type);
+      // await this.syncStockItems(conn, profile, type);
       // await this.syncJournalEntries(conn, profile, type);
 
       await this.dbService.updateLastSuccessfulSync();

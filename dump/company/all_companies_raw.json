@@ -1,0 +1,2593 @@
+{
+  "ENVELOPE": {
+    "HEADER": [
+      {
+        "VERSION": [
+          "1"
+        ],
+        "STATUS": [
+          "1"
+        ]
+      }
+    ],
+    "BODY": [
+      {
+        "DESC": [
+          {
+            "CMPINFO": [
+              {
+                "COMPANY": [
+                  "0"
+                ],
+                "GROUP": [
+                  "0"
+                ],
+                "LEDGER": [
+                  "16"
+                ],
+                "COSTCATEGORY": [
+                  "0"
+                ],
+                "COSTCENTRE": [
+                  "0"
+                ],
+                "GODOWN": [
+                  "4"
+                ],
+                "STOCKGROUP": [
+                  "0"
+                ],
+                "STOCKCATEGORY": [
+                  "0"
+                ],
+                "STOCKITEM": [
+                  "12"
+                ],
+                "VOUCHERTYPE": [
+                  "0"
+                ],
+                "CURRENCY": [
+                  "2"
+                ],
+                "UNIT": [
+                  "0"
+                ],
+                "BUDGET": [
+                  "0"
+                ],
+                "CLIENTRULE": [
+                  "0"
+                ],
+                "SERVERRULE": [
+                  "0"
+                ],
+                "STATE": [
+                  "0"
+                ],
+                "TDSRATE": [
+                  "0"
+                ],
+                "TAXCLASSIFICATION": [
+                  "0"
+                ],
+                "STCATEGORY": [
+                  "0"
+                ],
+                "DEDUCTEETYPE": [
+                  "0"
+                ],
+                "ATTENDANCETYPE": [
+                  "0"
+                ],
+                "FBTCATEGORY": [
+                  "0"
+                ],
+                "FBTASSESSEETYPE": [
+                  "0"
+                ],
+                "TARIFFCLASSIFICATION": [
+                  "0"
+                ],
+                "EXCISEDUTYCLASSIFICATION": [
+                  "0"
+                ],
+                "SERIALNUMBER": [
+                  "0"
+                ],
+                "ADJUSTMENTCLASSIFICATION": [
+                  "0"
+                ],
+                "INCOMETAXSLAB": [
+                  "0"
+                ],
+                "INCOMETAXCLASSIFICATION": [
+                  "0"
+                ],
+                "LBTCLASSIFICATION": [
+                  "0"
+                ],
+                "TAXUNIT": [
+                  "4"
+                ],
+                "RETURNMASTER": [
+                  "0"
+                ],
+                "GSTCLASSIFICATION": [
+                  "0"
+                ],
+                "VOUCHERNUMBERSERIES": [
+                  "6"
+                ],
+                "VOUCHER": [
+                  "4"
+                ]
+              }
+            ]
+          }
+        ],
+        "DATA": [
+          {
+            "COLLECTION": [
+              {
+                "COMPANY": [
+                  {
+                    "$": {
+                      "NAME": "Vostech Solutions",
+                      "RESERVEDNAME": ""
+                    },
+                    "ENDINGAT": [
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "STARTINGFROM": [
+                      "20250401",
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "BOOKSFROM": [
+                      "20250401",
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "VATAPPLDATE": [
+                      ""
+                    ],
+                    "COMPOSITEAPPLICABLEDATE": [
+                      ""
+                    ],
+                    "VATREGDATE": [
+                      ""
+                    ],
+                    "DEACTIVATEEXCISEFROM": [
+                      ""
+                    ],
+                    "STREGDATE": [
+                      ""
+                    ],
+                    "DEACTIVATESERVICETAXFROM": [
+                      ""
+                    ],
+                    "LBTREGNDATE": [
+                      ""
+                    ],
+                    "DEACTIVATEVATFROM": [
+                      ""
+                    ],
+                    "CMPVATTINVALIDTILL": [
+                      ""
+                    ],
+                    "CMPENTITLEMENTDATE": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXPIRYDATE": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTFROM": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTTO": [
+                      ""
+                    ],
+                    "VATREGISTRATIONDATE": [
+                      ""
+                    ],
+                    "CSTREGISTRATIONDATE": [
+                      ""
+                    ],
+                    "CSTAPPLDATE": [
+                      ""
+                    ],
+                    "GSTAPPLICABLEDATE": [
+                      ""
+                    ],
+                    "AUTOSETOFFADVRCPTPYMTFROMPREV": [
+                      ""
+                    ],
+                    "ONLINERECONAPPLICABLEFROM": [
+                      ""
+                    ],
+                    "AUDITEDUPTO": [
+                      "20250401"
+                    ],
+                    "FIFOAPPLICABLEFROM": [
+                      "20250401"
+                    ],
+                    "RETURNSSTARTFROM": [
+                      ""
+                    ],
+                    "NAME": [
+                      "Vostech Solutions",
+                      {
+                        "_": "Vostech Solutions",
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "BASICCOMPANYFORMALNAME": [
+                      "Vostech Solutions"
+                    ],
+                    "GUID": [
+                      "40404fbc-141b-49c3-ba87-c2c6ad626b0e",
+                      {
+                        "_": "40404fbc-141b-49c3-ba87-c2c6ad626b0e",
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "EMAIL": [
+                      "ajolly@servicesats.com"
+                    ],
+                    "PRIORSTATENAME": [
+                      "Haryana"
+                    ],
+                    "PINCODE": [
+                      "121001"
+                    ],
+                    "PHONENUMBER": [
+                      "12004820"
+                    ],
+                    "CMPEMPLOYERID": [
+                      ""
+                    ],
+                    "FAXNUMBER": [
+                      ""
+                    ],
+                    "WEBSITE": [
+                      ""
+                    ],
+                    "COUNTRYISDCODE": [
+                      "+91"
+                    ],
+                    "INCOMETAXNUMBER": [
+                      ""
+                    ],
+                    "SALESTAXNUMBER": [
+                      ""
+                    ],
+                    "INTERSTATESTNUMBER": [
+                      ""
+                    ],
+                    "TANUMBER": [
+                      ""
+                    ],
+                    "VATTINNUMBER": [
+                      ""
+                    ],
+                    "COMPOSITETIN": [
+                      ""
+                    ],
+                    "EECDEBTORS": [
+                      ""
+                    ],
+                    "EECCREDITORS": [
+                      ""
+                    ],
+                    "COUNTRYNAME": [
+                      "India"
+                    ],
+                    "VATPYMTPERIOD": [
+                      ""
+                    ],
+                    "CSTPYMTPERIOD": [
+                      ""
+                    ],
+                    "STPYMTPERIOD": [
+                      ""
+                    ],
+                    "TDSPYMTPERIOD": [
+                      ""
+                    ],
+                    "TCSPYMTPERIOD": [
+                      ""
+                    ],
+                    "PFPYMTPERIOD": [
+                      ""
+                    ],
+                    "PTPYMTPERIOD": [
+                      ""
+                    ],
+                    "ESIPYMTPERIOD": [
+                      ""
+                    ],
+                    "FBTPYMTPERIOD": [
+                      ""
+                    ],
+                    "FBTYEARENDPYMTPERIOD": [
+                      ""
+                    ],
+                    "ITDEDUCTORWARD": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONNAME": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONFATHERNAME": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONDESIG": [
+                      ""
+                    ],
+                    "TANREGNO": [
+                      ""
+                    ],
+                    "VATFILINGPERIODICITY": [
+                      ""
+                    ],
+                    "ITDEDUCTORBRANCH": [
+                      ""
+                    ],
+                    "EXCISEREGN": [
+                      ""
+                    ],
+                    "EXCISERANGE": [
+                      ""
+                    ],
+                    "EXCISERANGEADDRESS": [
+                      ""
+                    ],
+                    "EXCISEDIVISION": [
+                      ""
+                    ],
+                    "EXCISEDIVISIONADDRESS": [
+                      ""
+                    ],
+                    "CMPIECCODE": [
+                      ""
+                    ],
+                    "EXCISEASSESSEETYPE": [
+                      ""
+                    ],
+                    "EXCISECOMMISSIONERATE": [
+                      ""
+                    ],
+                    "EXCISERANGECODE": [
+                      ""
+                    ],
+                    "EXCISEDIVISIONCODE": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKCODE": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKNAME": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKADDR": [
+                      ""
+                    ],
+                    "STREGNUMBER": [
+                      ""
+                    ],
+                    "STASSESSEECODE": [
+                      ""
+                    ],
+                    "STORGTYPE": [
+                      ""
+                    ],
+                    "STMAJORSERVICE": [
+                      ""
+                    ],
+                    "STDIVISIONCODE": [
+                      ""
+                    ],
+                    "STDIVISIONNAME": [
+                      ""
+                    ],
+                    "STRANGECODE": [
+                      ""
+                    ],
+                    "STRANGENAME": [
+                      ""
+                    ],
+                    "STCOMMRTCODE": [
+                      ""
+                    ],
+                    "STCOMMRTNAME": [
+                      ""
+                    ],
+                    "STFOCALBANKCODE": [
+                      ""
+                    ],
+                    "STFOCALBANKNAME": [
+                      ""
+                    ],
+                    "STFOCALBANKADDR": [
+                      ""
+                    ],
+                    "STADJEXPENSES": [
+                      ""
+                    ],
+                    "STLARGETAXPAYERUNIT": [
+                      ""
+                    ],
+                    "STPREMISESCODENO": [
+                      ""
+                    ],
+                    "SERVICETAXLIABILITYTYPE": [
+                      ""
+                    ],
+                    "REVCHARGETYPE": [
+                      ""
+                    ],
+                    "DEDUCTORWARD": [
+                      ""
+                    ],
+                    "DEDUCTORSTATUS": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONNAME": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONDESIG": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONFATHERNAME": [
+                      ""
+                    ],
+                    "HEADOFFICETANUMBER": [
+                      ""
+                    ],
+                    "TDSDEDUCTORTYPE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPAN": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEFLATNO": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPREMISES": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEROAD": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEAREA": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLECITY": [
+                      ""
+                    ],
+                    "PRIORPERSONRESPONSIBLESTATE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPINCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEMOBILE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLESTDCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPHONE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEEMAIL": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTSTDCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTPHONE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTEMAIL": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTMOBILE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTSTDCODE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTPHONE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTEMAIL": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTMOBILE": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONPAN": [
+                      ""
+                    ],
+                    "DEDUCTORBRANCH": [
+                      ""
+                    ],
+                    "COMPANYFBTASSESSEETYPE": [
+                      ""
+                    ],
+                    "COMPANYFBTASSESSEECATEGORY": [
+                      "Default"
+                    ],
+                    "CMPPFCODE": [
+                      ""
+                    ],
+                    "CMPPFACCOUNTGROUPCODE": [
+                      ""
+                    ],
+                    "CMPPFSECURITYCODE": [
+                      ""
+                    ],
+                    "CMPESICODE": [
+                      ""
+                    ],
+                    "CMPESIBRANCHOFFICE": [
+                      ""
+                    ],
+                    "CMPESIWORKINGDAYS": [
+                      ""
+                    ],
+                    "XBRLCIN": [
+                      ""
+                    ],
+                    "XBRLINDUSTRYTYPE": [
+                      ""
+                    ],
+                    "LBTREGNNO": [
+                      ""
+                    ],
+                    "LBTZONE": [
+                      ""
+                    ],
+                    "ECONOMICACTIVITYCODE": [
+                      ""
+                    ],
+                    "AUTHORISEDPERSONNAME": [
+                      ""
+                    ],
+                    "AUTHORISEDPERSONDESIGNATION": [
+                      ""
+                    ],
+                    "AUTHORISEDPLACE": [
+                      ""
+                    ],
+                    "CIRCLESECTOR": [
+                      ""
+                    ],
+                    "CIRCLEDIVISION": [
+                      ""
+                    ],
+                    "EXPORTIMPORTCODE": [
+                      ""
+                    ],
+                    "TAXAUTHORISEDPERSON": [
+                      ""
+                    ],
+                    "CIRCLEWARD": [
+                      ""
+                    ],
+                    "VATRETURNFORM": [
+                      ""
+                    ],
+                    "CMPVATPOSTBOXNO": [
+                      ""
+                    ],
+                    "CMPVATTOWN": [
+                      ""
+                    ],
+                    "CMPVATSTREET": [
+                      ""
+                    ],
+                    "CMPVATBUILDING": [
+                      ""
+                    ],
+                    "CMPAUTHORISEDPLACE": [
+                      ""
+                    ],
+                    "CMPCIRCLEWARD": [
+                      ""
+                    ],
+                    "CMPIMPORTEXPORTCODE": [
+                      ""
+                    ],
+                    "CMPCIRCLESECTOR": [
+                      ""
+                    ],
+                    "CMPCIRCLEDIVISION": [
+                      ""
+                    ],
+                    "TAXINVOICECODE": [
+                      ""
+                    ],
+                    "LINEOFBUSSINESS": [
+                      ""
+                    ],
+                    "CMPTRADENAME": [
+                      ""
+                    ],
+                    "CMPASSESSINGAUTHORITY": [
+                      ""
+                    ],
+                    "CMPSONDAUGHTER": [
+                      ""
+                    ],
+                    "CMPENTITLEMENTCERTIFICATENO": [
+                      ""
+                    ],
+                    "CMPDEALERSTATUS": [
+                      ""
+                    ],
+                    "CMPFAXNUMBER": [
+                      ""
+                    ],
+                    "BRANCHNAME2": [
+                      ""
+                    ],
+                    "CMPCOMPTAXSLNO": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONNAME": [
+                      ""
+                    ],
+                    "CMPTAXISSUEDPERSON": [
+                      ""
+                    ],
+                    "CMPTAXISSUEDDESIGNATION": [
+                      ""
+                    ],
+                    "CMPLUMPSUMPERMISSIONNO": [
+                      ""
+                    ],
+                    "CMPPROFTAXENROLNO": [
+                      ""
+                    ],
+                    "CMPPROFTAXREGNNO": [
+                      ""
+                    ],
+                    "CMPEXEMPTCERTIFICATENO": [
+                      ""
+                    ],
+                    "CORPORATEIDENTITYNO": [
+                      ""
+                    ],
+                    "BRANCHNAME": [
+                      ""
+                    ],
+                    "INTERSTATEOLDSTNUMBER": [
+                      ""
+                    ],
+                    "VATOLDTINNUMBER": [
+                      ""
+                    ],
+                    "VATDISTRICTNAME": [
+                      ""
+                    ],
+                    "CMPECOACTIVITYCODE": [
+                      ""
+                    ],
+                    "CMPAUTHPERSNNAME": [
+                      ""
+                    ],
+                    "CMPTAXAUTHPERSON": [
+                      ""
+                    ],
+                    "CMPAUTHPERSNDESGNATION": [
+                      ""
+                    ],
+                    "CMPTAXAUTHDESIGNATION": [
+                      ""
+                    ],
+                    "GSTREGISTRATIONNUMBER": [
+                      ""
+                    ],
+                    "GSTREGISTRATIONTYPE": [
+                      ""
+                    ],
+                    "CMPTYPEOFSUPPLY": [
+                      ""
+                    ],
+                    "COMPANYNAMENATIVE": [
+                      ""
+                    ],
+                    "COMPANYEMIRATENATIVE": [
+                      ""
+                    ],
+                    "COMPANYCOUNTRYNATIVE": [
+                      ""
+                    ],
+                    "GSTAPPLICABILITY": [
+                      ""
+                    ],
+                    "HSNAPPLICABILITY": [
+                      ""
+                    ],
+                    "EWAYBILLAPPLICABLETYPE": [
+                      "Value of Invoice"
+                    ],
+                    "GSTDOWNLOADAPPLFOR": [
+                      ""
+                    ],
+                    "VATDEALERTYPE": [
+                      "Regular"
+                    ],
+                    "CONNECTNAME": [
+                      "Vostech Solutions"
+                    ],
+                    "SMSSHORTCODE": [
+                      ""
+                    ],
+                    "SMSPREFIX": [
+                      ""
+                    ],
+                    "COMPANYCONTACTPERSON": [
+                      ""
+                    ],
+                    "COMPANYCONTACTNUMBER": [
+                      ""
+                    ],
+                    "COMPANYSMSNAME": [
+                      ""
+                    ],
+                    "LOGOPATH": [
+                      ""
+                    ],
+                    "STATENAME": [
+                      "Haryana"
+                    ],
+                    "PERSONRESPONSIBLESTATE": [
+                      ""
+                    ],
+                    "COMPANYCHEQUENAME": [
+                      ""
+                    ],
+                    "TDSNATUREOFPAYMENT": [
+                      ""
+                    ],
+                    "TCSNATUREOFGOOD": [
+                      ""
+                    ],
+                    "CRNUMBER": [
+                      ""
+                    ],
+                    "BRANCHCRNUMBER": [
+                      ""
+                    ],
+                    "SHOWBANKDETAILS": [
+                      "All Banks"
+                    ],
+                    "GENERATEBATCHESON": [
+                      ""
+                    ],
+                    "UPLOADLASTREFRESH": [
+                      ""
+                    ],
+                    "ADMINEMAILID": [
+                      ""
+                    ],
+                    "LASTWHATSAPPTEMPLATE": [
+                      ""
+                    ],
+                    "DOCUMENTKEY": [
+                      ""
+                    ],
+                    "ACCOUNTID": [
+                      ""
+                    ],
+                    "ISAGGREGATE": [
+                      "No"
+                    ],
+                    "INDIANVAT": [
+                      "No"
+                    ],
+                    "ISVATREGDDEALER": [
+                      "No"
+                    ],
+                    "ISVATCOMPOSITEDEALER": [
+                      "No"
+                    ],
+                    "ISDAYWISECASHAGGREGATE": [
+                      "No"
+                    ],
+                    "ITDEDUCTORTYPE": [
+                      "No"
+                    ],
+                    "ISAUDITWORKINGPAPERON": [
+                      "No"
+                    ],
+                    "ISAUDITCATEGORYON": [
+                      "No"
+                    ],
+                    "ISROUNDOFFEXCEON": [
+                      "No"
+                    ],
+                    "ISCSTWITHADDLTAX": [
+                      "Yes"
+                    ],
+                    "ISSALESTAXCESSON": [
+                      "No"
+                    ],
+                    "ISEXCISECLASSIFICATIONON": [
+                      "No"
+                    ],
+                    "STISSTLARGETAXPAYER": [
+                      "No"
+                    ],
+                    "STXISROUNDOFFAPPLICABLE": [
+                      "Yes"
+                    ],
+                    "SERVICETAXISSEZ": [
+                      "No"
+                    ],
+                    "STISMULTIUNIT": [
+                      "No"
+                    ],
+                    "STUSERDEFINEDCLASS": [
+                      "No"
+                    ],
+                    "STISINPUTSERVDISTRIBUTOR": [
+                      "No"
+                    ],
+                    "ISSTSTOCKITEMON": [
+                      "No"
+                    ],
+                    "ISREVERSEAPPLICABLE": [
+                      "No"
+                    ],
+                    "STISMONTHLYRETURNS": [
+                      "No"
+                    ],
+                    "DEDUCTORTYPE": [
+                      "No"
+                    ],
+                    "IGNOREITEXEMPTION": [
+                      "No"
+                    ],
+                    "IGNORETCSITEXEMPTION": [
+                      "No"
+                    ],
+                    "ISTDSSTOCKITEMON": [
+                      "No"
+                    ],
+                    "ISFBTSURCHARGEAPPLICABLE": [
+                      "No"
+                    ],
+                    "XBRLISCONSOLIDATEDREPTYPE": [
+                      "No"
+                    ],
+                    "ISLBTON": [
+                      "No"
+                    ],
+                    "ISVATCLASSON": [
+                      "No"
+                    ],
+                    "ISMRPON": [
+                      "No"
+                    ],
+                    "ISREVISEDANNEXUREON": [
+                      "No"
+                    ],
+                    "ENABLEVATONITEMRATE": [
+                      "No"
+                    ],
+                    "ENABLEVATONQUANTITY": [
+                      "No"
+                    ],
+                    "ISINZRBASICSERVICES": [
+                      "No"
+                    ],
+                    "ISDESIGNATEDZONE": [
+                      "No"
+                    ],
+                    "STMAINTAINSEPACCFOREXEMPT": [
+                      "No"
+                    ],
+                    "ISDEVICEDETAILSREQ": [
+                      "No"
+                    ],
+                    "CMPISUNDERNPVSCHEME": [
+                      "No"
+                    ],
+                    "RESETMANUALRECONSTATUS": [
+                      "No"
+                    ],
+                    "SENDEMPTYPRODDESCTOEINV": [
+                      "No"
+                    ],
+                    "AUTOSETOFFADVRCPTPYMTPREV": [
+                      "No"
+                    ],
+                    "ISGSTEINVINCLEWAYBILL": [
+                      "Yes"
+                    ],
+                    "PRINTEWAYBILL": [
+                      "No"
+                    ],
+                    "ISGSTR1DOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTR2ADOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTR2BDOWNLOADEXCLUDED": [
+                      "No"
+                    ],
+                    "ISGSTR3BDOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTRECOMPQRYINRPT": [
+                      "No"
+                    ],
+                    "ISSECURITYON": [
+                      "No"
+                    ],
+                    "ISACCOUNTINGON": [
+                      "Yes"
+                    ],
+                    "ISINVENTORYON": [
+                      "Yes"
+                    ],
+                    "ISINTEGRATED": [
+                      "Yes"
+                    ],
+                    "ISBILLWISEON": [
+                      "Yes"
+                    ],
+                    "ISALLBILLWISEON": [
+                      "No"
+                    ],
+                    "ISCOSTCENTRESON": [
+                      "No"
+                    ],
+                    "PREVISCOSTCATEGORYON": [
+                      "No"
+                    ],
+                    "PREVISSTOCKCATEGORYON": [
+                      "No"
+                    ],
+                    "ISBATCHWISEON": [
+                      "No"
+                    ],
+                    "ISPERISHABLEON": [
+                      "No"
+                    ],
+                    "PREVISMULTIGODOWNON": [
+                      "No"
+                    ],
+                    "PREVISMULTICURRENCYON": [
+                      "No"
+                    ],
+                    "PREVISINVOICINGON": [
+                      "Yes"
+                    ],
+                    "PREVISREVJRNLON": [
+                      "No"
+                    ],
+                    "ISREMINDERSON": [
+                      "No"
+                    ],
+                    "PREVISDCNOTEON": [
+                      "No"
+                    ],
+                    "PREVISREJECTIONON": [
+                      "No"
+                    ],
+                    "PREVISTRACKINGON": [
+                      "No"
+                    ],
+                    "ISEXCISEON": [
+                      "No"
+                    ],
+                    "ISCHQPRINTINGON": [
+                      "Yes"
+                    ],
+                    "DIFFACTUALQTY": [
+                      "No"
+                    ],
+                    "USEZEROENTRIES": [
+                      "No"
+                    ],
+                    "ADDLAMOUNT": [
+                      "No"
+                    ],
+                    "ISTALLYAUDITON": [
+                      "No"
+                    ],
+                    "PREVISBUDGETSON": [
+                      "No"
+                    ],
+                    "ISPAYROLLON": [
+                      "No"
+                    ],
+                    "ISTDSON": [
+                      "No"
+                    ],
+                    "ISSERVICETAXON": [
+                      "No"
+                    ],
+                    "ISJOBCOSTINGON": [
+                      "No"
+                    ],
+                    "ISTCSON": [
+                      "No"
+                    ],
+                    "ISEXCISEREPORTSON": [
+                      "No"
+                    ],
+                    "ISCOMPOSITEDEALER": [
+                      "No"
+                    ],
+                    "ISBOMON": [
+                      "No"
+                    ],
+                    "PREVISSALESORDERSON": [
+                      "No"
+                    ],
+                    "PREVISPURCORDERSON": [
+                      "No"
+                    ],
+                    "ISDISCOUNTSON": [
+                      "No"
+                    ],
+                    "CNOTEASINVOICE": [
+                      "No"
+                    ],
+                    "UKVATRETURNS": [
+                      "No"
+                    ],
+                    "USEPRICELEVELS": [
+                      "No"
+                    ],
+                    "ISINTERESTON": [
+                      "No"
+                    ],
+                    "ISADVINTERESTON": [
+                      "No"
+                    ],
+                    "PURCASINVOICE": [
+                      "Yes"
+                    ],
+                    "PREVUSEAUTOCOST": [
+                      "No"
+                    ],
+                    "DNOTEASINVOICE": [
+                      "No"
+                    ],
+                    "PREVPLASINCOMEEXPENSE": [
+                      "No"
+                    ],
+                    "ALLOWINMOBILE": [
+                      "No"
+                    ],
+                    "ISINDENTON": [
+                      "No"
+                    ],
+                    "ISFBTON": [
+                      "No"
+                    ],
+                    "ISEXCISEMFGRTRADERON": [
+                      "No"
+                    ],
+                    "ISSALESTAXON": [
+                      "No"
+                    ],
+                    "ISPAYROLLSTATON": [
+                      "No"
+                    ],
+                    "CONNECTCOMPANY": [
+                      "No"
+                    ],
+                    "CONNECTCOMPANYONLOAD": [
+                      "No"
+                    ],
+                    "ISENTRYTAXAPPLICABLE": [
+                      "No"
+                    ],
+                    "REVENUELEDFOROPBAL": [
+                      "No"
+                    ],
+                    "ENABLESMSACCESS": [
+                      "No"
+                    ],
+                    "ISRCPTSPYMTSON": [
+                      "No"
+                    ],
+                    "ISLOGOENABLED": [
+                      "No"
+                    ],
+                    "ISXBRLON": [
+                      "No"
+                    ],
+                    "ISPROPRIETORSHIP": [
+                      "No"
+                    ],
+                    "ISYEARWISE": [
+                      "No"
+                    ],
+                    "ISCMPLTUON": [
+                      "No"
+                    ],
+                    "ISGSTON": [
+                      "Yes"
+                    ],
+                    "ISGSTCLASSIFON": [
+                      "No"
+                    ],
+                    "DENYCONNECTCOMPANYTOBPS": [
+                      "No"
+                    ],
+                    "PROMPTONCONNECT": [
+                      "No"
+                    ],
+                    "TCSFOROTHERGOODS": [
+                      "No"
+                    ],
+                    "ISCONNECTONLOADDISABLED": [
+                      "No"
+                    ],
+                    "ISDEMOENVENABLED": [
+                      "No"
+                    ],
+                    "ISBROWSERDESKTOPVIEW": [
+                      "No"
+                    ],
+                    "ISEDITLOGON": [
+                      "No"
+                    ],
+                    "WASEDITLOGON": [
+                      "No"
+                    ],
+                    "ISPAYMENTREQUESTON": [
+                      "No"
+                    ],
+                    "DISABLEASKTALLY": [
+                      "No"
+                    ],
+                    "ISDISALLOWINEDUMODE": [
+                      "No"
+                    ],
+                    "ISMULTIADDRESSON": [
+                      "No"
+                    ],
+                    "ISEBANKINGON": [
+                      "No"
+                    ],
+                    "ISJOBWORKON": [
+                      "No"
+                    ],
+                    "PREVISMATERIALTRANSFERON": [
+                      "No"
+                    ],
+                    "ISCOSTTRACKINGON": [
+                      "No"
+                    ],
+                    "ENABLEPWDPOLICY": [
+                      "No"
+                    ],
+                    "RESTRICTPWDREUSE": [
+                      "No"
+                    ],
+                    "RESETPWDONFIRSTLOGIN": [
+                      "No"
+                    ],
+                    "ALLOWPWDRESET": [
+                      "No"
+                    ],
+                    "NOTIFYOFEXPIRY": [
+                      "No"
+                    ],
+                    "ISDEFPWDPOLICYALTERED": [
+                      "No"
+                    ],
+                    "ISBANKINGVCHMIGRATED": [
+                      "Yes"
+                    ],
+                    "ISBENEFICIARYCODEON": [
+                      "No"
+                    ],
+                    "ISTRANSFERMODEON": [
+                      "Yes"
+                    ],
+                    "ISBANKINGFORCCON": [
+                      "No"
+                    ],
+                    "ISIMPBANKDETAILSON": [
+                      "No"
+                    ],
+                    "ISAPPROVALON": [
+                      "No"
+                    ],
+                    "ISEXPORTONVCHCREATE": [
+                      "No"
+                    ],
+                    "ISEXPORTWITHERRORS": [
+                      "No"
+                    ],
+                    "ISRESETBANKSTATUS": [
+                      "No"
+                    ],
+                    "ISISOCURRENCYAPPLICABLE": [
+                      "No"
+                    ],
+                    "ISIGNOREWITHWARNINGS": [
+                      "No"
+                    ],
+                    "ISFIFOAPPLIED": [
+                      "Yes"
+                    ],
+                    "ISTRACKVOUCHERSON": [
+                      "No"
+                    ],
+                    "RESETTRACKEDCHANGES": [
+                      "No"
+                    ],
+                    "COMPANYNUMBER": [
+                      " 100001"
+                    ],
+                    "STATUTORYVERSION": [
+                      "0"
+                    ],
+                    "VATPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "CSTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "STPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "TDSPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "TCSPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "PFPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "PTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "ESIPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "FBTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "FBTYEARENDPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "STCRADJPERCENT": [
+                      "0"
+                    ],
+                    "CMPTAXAMOUNTTOLERENCE": [
+                      "0"
+                    ],
+                    "PWDLENGTH": [
+                      "0"
+                    ],
+                    "LETTERSINPWD": [
+                      "0"
+                    ],
+                    "NUMERALSINPWD": [
+                      "0"
+                    ],
+                    "SPCLCHARSINPWD": [
+                      "0"
+                    ],
+                    "PWDHISTORY": [
+                      "0"
+                    ],
+                    "PWDEXPIRY": [
+                      "0"
+                    ],
+                    "EXPIRYNOTIFPERIOD": [
+                      "0"
+                    ],
+                    "NACHVERSION": [
+                      "0"
+                    ],
+                    "EXCHANGEACTIVITYMASTERID": [
+                      "0"
+                    ],
+                    "EXCHANGEACTIVITYALTERID": [
+                      "0"
+                    ],
+                    "RETTRANSMASTERID": [
+                      " 4"
+                    ],
+                    "RETTRANSALTERID": [
+                      " 4"
+                    ],
+                    "CMPVCHSTATID": [
+                      " 3"
+                    ],
+                    "CMPRETSTATID": [
+                      "0"
+                    ],
+                    "CMPSUMTRANSSTATID": [
+                      "0"
+                    ],
+                    "MAXCASHVALUE": [
+                      ""
+                    ],
+                    "MINCASHVALUE": [
+                      ""
+                    ],
+                    "CMPESIELIGIBLEAMOUNT": [
+                      ""
+                    ],
+                    "CMPALLOWEDEXEMPTIONAMT": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTAMT": [
+                      ""
+                    ],
+                    "EWAYBILLINTERSTATETHRESHOLD": [
+                      "50000.00"
+                    ],
+                    "RTGSLIMIT": [
+                      ""
+                    ]
+                  },
+                  {
+                    "$": {
+                      "NAME": "Zorrofin_tally",
+                      "RESERVEDNAME": ""
+                    },
+                    "ENDINGAT": [
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "STARTINGFROM": [
+                      "20250401",
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "BOOKSFROM": [
+                      "20250401",
+                      {
+                        "_": "20250401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "VATAPPLDATE": [
+                      ""
+                    ],
+                    "COMPOSITEAPPLICABLEDATE": [
+                      ""
+                    ],
+                    "VATREGDATE": [
+                      ""
+                    ],
+                    "DEACTIVATEEXCISEFROM": [
+                      ""
+                    ],
+                    "STREGDATE": [
+                      ""
+                    ],
+                    "DEACTIVATESERVICETAXFROM": [
+                      ""
+                    ],
+                    "LBTREGNDATE": [
+                      ""
+                    ],
+                    "DEACTIVATEVATFROM": [
+                      ""
+                    ],
+                    "CMPVATTINVALIDTILL": [
+                      ""
+                    ],
+                    "CMPENTITLEMENTDATE": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXPIRYDATE": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTFROM": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTTO": [
+                      ""
+                    ],
+                    "VATREGISTRATIONDATE": [
+                      ""
+                    ],
+                    "CSTREGISTRATIONDATE": [
+                      ""
+                    ],
+                    "CSTAPPLDATE": [
+                      ""
+                    ],
+                    "GSTAPPLICABLEDATE": [
+                      ""
+                    ],
+                    "AUTOSETOFFADVRCPTPYMTFROMPREV": [
+                      ""
+                    ],
+                    "ONLINERECONAPPLICABLEFROM": [
+                      ""
+                    ],
+                    "AUDITEDUPTO": [
+                      "20250331"
+                    ],
+                    "FIFOAPPLICABLEFROM": [
+                      "20250401"
+                    ],
+                    "RETURNSSTARTFROM": [
+                      ""
+                    ],
+                    "NAME": [
+                      "Zorrofin_tally",
+                      {
+                        "_": "Zorrofin_tally",
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "BASICCOMPANYFORMALNAME": [
+                      "Zorrofin_tally"
+                    ],
+                    "GUID": [
+                      "ccdff4fa-623a-4116-a4db-b8d5488877e1",
+                      {
+                        "_": "ccdff4fa-623a-4116-a4db-b8d5488877e1",
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "EMAIL": [
+                      "koushikmandal@mobotics.in"
+                    ],
+                    "PRIORSTATENAME": [
+                      "West Bengal"
+                    ],
+                    "PINCODE": [
+                      "6296783642"
+                    ],
+                    "PHONENUMBER": [
+                      "629673642"
+                    ],
+                    "CMPEMPLOYERID": [
+                      ""
+                    ],
+                    "FAXNUMBER": [
+                      "355797597"
+                    ],
+                    "WEBSITE": [
+                      "www.zorrofin.in"
+                    ],
+                    "COUNTRYISDCODE": [
+                      "+91"
+                    ],
+                    "INCOMETAXNUMBER": [
+                      ""
+                    ],
+                    "SALESTAXNUMBER": [
+                      ""
+                    ],
+                    "INTERSTATESTNUMBER": [
+                      ""
+                    ],
+                    "TANUMBER": [
+                      ""
+                    ],
+                    "VATTINNUMBER": [
+                      ""
+                    ],
+                    "COMPOSITETIN": [
+                      ""
+                    ],
+                    "EECDEBTORS": [
+                      ""
+                    ],
+                    "EECCREDITORS": [
+                      ""
+                    ],
+                    "COUNTRYNAME": [
+                      "India"
+                    ],
+                    "VATPYMTPERIOD": [
+                      ""
+                    ],
+                    "CSTPYMTPERIOD": [
+                      ""
+                    ],
+                    "STPYMTPERIOD": [
+                      ""
+                    ],
+                    "TDSPYMTPERIOD": [
+                      ""
+                    ],
+                    "TCSPYMTPERIOD": [
+                      ""
+                    ],
+                    "PFPYMTPERIOD": [
+                      ""
+                    ],
+                    "PTPYMTPERIOD": [
+                      ""
+                    ],
+                    "ESIPYMTPERIOD": [
+                      ""
+                    ],
+                    "FBTPYMTPERIOD": [
+                      ""
+                    ],
+                    "FBTYEARENDPYMTPERIOD": [
+                      ""
+                    ],
+                    "ITDEDUCTORWARD": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONNAME": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONFATHERNAME": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONDESIG": [
+                      ""
+                    ],
+                    "TANREGNO": [
+                      ""
+                    ],
+                    "VATFILINGPERIODICITY": [
+                      ""
+                    ],
+                    "ITDEDUCTORBRANCH": [
+                      ""
+                    ],
+                    "EXCISEREGN": [
+                      ""
+                    ],
+                    "EXCISERANGE": [
+                      ""
+                    ],
+                    "EXCISERANGEADDRESS": [
+                      ""
+                    ],
+                    "EXCISEDIVISION": [
+                      ""
+                    ],
+                    "EXCISEDIVISIONADDRESS": [
+                      ""
+                    ],
+                    "CMPIECCODE": [
+                      ""
+                    ],
+                    "EXCISEASSESSEETYPE": [
+                      ""
+                    ],
+                    "EXCISECOMMISSIONERATE": [
+                      ""
+                    ],
+                    "EXCISERANGECODE": [
+                      ""
+                    ],
+                    "EXCISEDIVISIONCODE": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKCODE": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKNAME": [
+                      ""
+                    ],
+                    "EXCISEFOCALBANKADDR": [
+                      ""
+                    ],
+                    "STREGNUMBER": [
+                      ""
+                    ],
+                    "STASSESSEECODE": [
+                      ""
+                    ],
+                    "STORGTYPE": [
+                      ""
+                    ],
+                    "STMAJORSERVICE": [
+                      ""
+                    ],
+                    "STDIVISIONCODE": [
+                      ""
+                    ],
+                    "STDIVISIONNAME": [
+                      ""
+                    ],
+                    "STRANGECODE": [
+                      ""
+                    ],
+                    "STRANGENAME": [
+                      ""
+                    ],
+                    "STCOMMRTCODE": [
+                      ""
+                    ],
+                    "STCOMMRTNAME": [
+                      ""
+                    ],
+                    "STFOCALBANKCODE": [
+                      ""
+                    ],
+                    "STFOCALBANKNAME": [
+                      ""
+                    ],
+                    "STFOCALBANKADDR": [
+                      ""
+                    ],
+                    "STADJEXPENSES": [
+                      ""
+                    ],
+                    "STLARGETAXPAYERUNIT": [
+                      ""
+                    ],
+                    "STPREMISESCODENO": [
+                      ""
+                    ],
+                    "SERVICETAXLIABILITYTYPE": [
+                      ""
+                    ],
+                    "REVCHARGETYPE": [
+                      ""
+                    ],
+                    "DEDUCTORWARD": [
+                      ""
+                    ],
+                    "DEDUCTORSTATUS": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONNAME": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONDESIG": [
+                      ""
+                    ],
+                    "DEDUCTORRESPPERSONFATHERNAME": [
+                      ""
+                    ],
+                    "HEADOFFICETANUMBER": [
+                      ""
+                    ],
+                    "TDSDEDUCTORTYPE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPAN": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEFLATNO": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPREMISES": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEROAD": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEAREA": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLECITY": [
+                      ""
+                    ],
+                    "PRIORPERSONRESPONSIBLESTATE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPINCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEMOBILE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLESTDCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEPHONE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEEMAIL": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTSTDCODE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTPHONE": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTEMAIL": [
+                      ""
+                    ],
+                    "PERSONRESPONSIBLEALTMOBILE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTSTDCODE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTPHONE": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTEMAIL": [
+                      ""
+                    ],
+                    "DEDUCTORRESPONSIBLEALTMOBILE": [
+                      ""
+                    ],
+                    "ITDEDUCTORRESPPERSONPAN": [
+                      ""
+                    ],
+                    "DEDUCTORBRANCH": [
+                      ""
+                    ],
+                    "COMPANYFBTASSESSEETYPE": [
+                      ""
+                    ],
+                    "COMPANYFBTASSESSEECATEGORY": [
+                      "Default"
+                    ],
+                    "CMPPFCODE": [
+                      ""
+                    ],
+                    "CMPPFACCOUNTGROUPCODE": [
+                      ""
+                    ],
+                    "CMPPFSECURITYCODE": [
+                      ""
+                    ],
+                    "CMPESICODE": [
+                      ""
+                    ],
+                    "CMPESIBRANCHOFFICE": [
+                      ""
+                    ],
+                    "CMPESIWORKINGDAYS": [
+                      ""
+                    ],
+                    "XBRLCIN": [
+                      ""
+                    ],
+                    "XBRLINDUSTRYTYPE": [
+                      ""
+                    ],
+                    "LBTREGNNO": [
+                      ""
+                    ],
+                    "LBTZONE": [
+                      ""
+                    ],
+                    "ECONOMICACTIVITYCODE": [
+                      ""
+                    ],
+                    "AUTHORISEDPERSONNAME": [
+                      ""
+                    ],
+                    "AUTHORISEDPERSONDESIGNATION": [
+                      ""
+                    ],
+                    "AUTHORISEDPLACE": [
+                      ""
+                    ],
+                    "CIRCLESECTOR": [
+                      ""
+                    ],
+                    "CIRCLEDIVISION": [
+                      ""
+                    ],
+                    "EXPORTIMPORTCODE": [
+                      ""
+                    ],
+                    "TAXAUTHORISEDPERSON": [
+                      ""
+                    ],
+                    "CIRCLEWARD": [
+                      ""
+                    ],
+                    "VATRETURNFORM": [
+                      ""
+                    ],
+                    "CMPVATPOSTBOXNO": [
+                      ""
+                    ],
+                    "CMPVATTOWN": [
+                      ""
+                    ],
+                    "CMPVATSTREET": [
+                      ""
+                    ],
+                    "CMPVATBUILDING": [
+                      ""
+                    ],
+                    "CMPAUTHORISEDPLACE": [
+                      ""
+                    ],
+                    "CMPCIRCLEWARD": [
+                      ""
+                    ],
+                    "CMPIMPORTEXPORTCODE": [
+                      ""
+                    ],
+                    "CMPCIRCLESECTOR": [
+                      ""
+                    ],
+                    "CMPCIRCLEDIVISION": [
+                      ""
+                    ],
+                    "TAXINVOICECODE": [
+                      ""
+                    ],
+                    "LINEOFBUSSINESS": [
+                      ""
+                    ],
+                    "CMPTRADENAME": [
+                      ""
+                    ],
+                    "CMPASSESSINGAUTHORITY": [
+                      ""
+                    ],
+                    "CMPSONDAUGHTER": [
+                      ""
+                    ],
+                    "CMPENTITLEMENTCERTIFICATENO": [
+                      ""
+                    ],
+                    "CMPDEALERSTATUS": [
+                      ""
+                    ],
+                    "CMPFAXNUMBER": [
+                      ""
+                    ],
+                    "BRANCHNAME2": [
+                      ""
+                    ],
+                    "CMPCOMPTAXSLNO": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONNAME": [
+                      ""
+                    ],
+                    "CMPTAXISSUEDPERSON": [
+                      ""
+                    ],
+                    "CMPTAXISSUEDDESIGNATION": [
+                      ""
+                    ],
+                    "CMPLUMPSUMPERMISSIONNO": [
+                      ""
+                    ],
+                    "CMPPROFTAXENROLNO": [
+                      ""
+                    ],
+                    "CMPPROFTAXREGNNO": [
+                      ""
+                    ],
+                    "CMPEXEMPTCERTIFICATENO": [
+                      ""
+                    ],
+                    "CORPORATEIDENTITYNO": [
+                      ""
+                    ],
+                    "BRANCHNAME": [
+                      ""
+                    ],
+                    "INTERSTATEOLDSTNUMBER": [
+                      ""
+                    ],
+                    "VATOLDTINNUMBER": [
+                      ""
+                    ],
+                    "VATDISTRICTNAME": [
+                      ""
+                    ],
+                    "CMPECOACTIVITYCODE": [
+                      ""
+                    ],
+                    "CMPAUTHPERSNNAME": [
+                      ""
+                    ],
+                    "CMPTAXAUTHPERSON": [
+                      ""
+                    ],
+                    "CMPAUTHPERSNDESGNATION": [
+                      ""
+                    ],
+                    "CMPTAXAUTHDESIGNATION": [
+                      ""
+                    ],
+                    "GSTREGISTRATIONNUMBER": [
+                      ""
+                    ],
+                    "GSTREGISTRATIONTYPE": [
+                      ""
+                    ],
+                    "CMPTYPEOFSUPPLY": [
+                      ""
+                    ],
+                    "COMPANYNAMENATIVE": [
+                      ""
+                    ],
+                    "COMPANYEMIRATENATIVE": [
+                      ""
+                    ],
+                    "COMPANYCOUNTRYNATIVE": [
+                      ""
+                    ],
+                    "GSTAPPLICABILITY": [
+                      ""
+                    ],
+                    "HSNAPPLICABILITY": [
+                      ""
+                    ],
+                    "EWAYBILLAPPLICABLETYPE": [
+                      "Value of Invoice"
+                    ],
+                    "GSTDOWNLOADAPPLFOR": [
+                      ""
+                    ],
+                    "VATDEALERTYPE": [
+                      "Regular"
+                    ],
+                    "CONNECTNAME": [
+                      "Zorrofin_tally"
+                    ],
+                    "SMSSHORTCODE": [
+                      ""
+                    ],
+                    "SMSPREFIX": [
+                      ""
+                    ],
+                    "COMPANYCONTACTPERSON": [
+                      ""
+                    ],
+                    "COMPANYCONTACTNUMBER": [
+                      ""
+                    ],
+                    "COMPANYSMSNAME": [
+                      ""
+                    ],
+                    "LOGOPATH": [
+                      ""
+                    ],
+                    "STATENAME": [
+                      "West Bengal"
+                    ],
+                    "PERSONRESPONSIBLESTATE": [
+                      ""
+                    ],
+                    "COMPANYCHEQUENAME": [
+                      ""
+                    ],
+                    "TDSNATUREOFPAYMENT": [
+                      ""
+                    ],
+                    "TCSNATUREOFGOOD": [
+                      ""
+                    ],
+                    "CRNUMBER": [
+                      ""
+                    ],
+                    "BRANCHCRNUMBER": [
+                      ""
+                    ],
+                    "SHOWBANKDETAILS": [
+                      "All Banks"
+                    ],
+                    "GENERATEBATCHESON": [
+                      ""
+                    ],
+                    "UPLOADLASTREFRESH": [
+                      ""
+                    ],
+                    "ADMINEMAILID": [
+                      ""
+                    ],
+                    "LASTWHATSAPPTEMPLATE": [
+                      ""
+                    ],
+                    "DOCUMENTKEY": [
+                      ""
+                    ],
+                    "ACCOUNTID": [
+                      ""
+                    ],
+                    "ISAGGREGATE": [
+                      "No"
+                    ],
+                    "INDIANVAT": [
+                      "No"
+                    ],
+                    "ISVATREGDDEALER": [
+                      "No"
+                    ],
+                    "ISVATCOMPOSITEDEALER": [
+                      "No"
+                    ],
+                    "ISDAYWISECASHAGGREGATE": [
+                      "No"
+                    ],
+                    "ITDEDUCTORTYPE": [
+                      "No"
+                    ],
+                    "ISAUDITWORKINGPAPERON": [
+                      "No"
+                    ],
+                    "ISAUDITCATEGORYON": [
+                      "No"
+                    ],
+                    "ISROUNDOFFEXCEON": [
+                      "No"
+                    ],
+                    "ISCSTWITHADDLTAX": [
+                      "Yes"
+                    ],
+                    "ISSALESTAXCESSON": [
+                      "No"
+                    ],
+                    "ISEXCISECLASSIFICATIONON": [
+                      "No"
+                    ],
+                    "STISSTLARGETAXPAYER": [
+                      "No"
+                    ],
+                    "STXISROUNDOFFAPPLICABLE": [
+                      "Yes"
+                    ],
+                    "SERVICETAXISSEZ": [
+                      "No"
+                    ],
+                    "STISMULTIUNIT": [
+                      "No"
+                    ],
+                    "STUSERDEFINEDCLASS": [
+                      "No"
+                    ],
+                    "STISINPUTSERVDISTRIBUTOR": [
+                      "No"
+                    ],
+                    "ISSTSTOCKITEMON": [
+                      "No"
+                    ],
+                    "ISREVERSEAPPLICABLE": [
+                      "No"
+                    ],
+                    "STISMONTHLYRETURNS": [
+                      "No"
+                    ],
+                    "DEDUCTORTYPE": [
+                      "No"
+                    ],
+                    "IGNOREITEXEMPTION": [
+                      "No"
+                    ],
+                    "IGNORETCSITEXEMPTION": [
+                      "No"
+                    ],
+                    "ISTDSSTOCKITEMON": [
+                      "No"
+                    ],
+                    "ISFBTSURCHARGEAPPLICABLE": [
+                      "No"
+                    ],
+                    "XBRLISCONSOLIDATEDREPTYPE": [
+                      "No"
+                    ],
+                    "ISLBTON": [
+                      "No"
+                    ],
+                    "ISVATCLASSON": [
+                      "No"
+                    ],
+                    "ISMRPON": [
+                      "No"
+                    ],
+                    "ISREVISEDANNEXUREON": [
+                      "No"
+                    ],
+                    "ENABLEVATONITEMRATE": [
+                      "No"
+                    ],
+                    "ENABLEVATONQUANTITY": [
+                      "No"
+                    ],
+                    "ISINZRBASICSERVICES": [
+                      "No"
+                    ],
+                    "ISDESIGNATEDZONE": [
+                      "No"
+                    ],
+                    "STMAINTAINSEPACCFOREXEMPT": [
+                      "No"
+                    ],
+                    "ISDEVICEDETAILSREQ": [
+                      "No"
+                    ],
+                    "CMPISUNDERNPVSCHEME": [
+                      "No"
+                    ],
+                    "RESETMANUALRECONSTATUS": [
+                      "No"
+                    ],
+                    "SENDEMPTYPRODDESCTOEINV": [
+                      "No"
+                    ],
+                    "AUTOSETOFFADVRCPTPYMTPREV": [
+                      "No"
+                    ],
+                    "ISGSTEINVINCLEWAYBILL": [
+                      "Yes"
+                    ],
+                    "PRINTEWAYBILL": [
+                      "No"
+                    ],
+                    "ISGSTR1DOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTR2ADOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTR2BDOWNLOADEXCLUDED": [
+                      "No"
+                    ],
+                    "ISGSTR3BDOWNLOADEXCLUDED": [
+                      "Yes"
+                    ],
+                    "ISGSTRECOMPQRYINRPT": [
+                      "No"
+                    ],
+                    "ISSECURITYON": [
+                      "No"
+                    ],
+                    "ISACCOUNTINGON": [
+                      "Yes"
+                    ],
+                    "ISINVENTORYON": [
+                      "Yes"
+                    ],
+                    "ISINTEGRATED": [
+                      "Yes"
+                    ],
+                    "ISBILLWISEON": [
+                      "Yes"
+                    ],
+                    "ISALLBILLWISEON": [
+                      "No"
+                    ],
+                    "ISCOSTCENTRESON": [
+                      "No"
+                    ],
+                    "PREVISCOSTCATEGORYON": [
+                      "No"
+                    ],
+                    "PREVISSTOCKCATEGORYON": [
+                      "No"
+                    ],
+                    "ISBATCHWISEON": [
+                      "No"
+                    ],
+                    "ISPERISHABLEON": [
+                      "No"
+                    ],
+                    "PREVISMULTIGODOWNON": [
+                      "No"
+                    ],
+                    "PREVISMULTICURRENCYON": [
+                      "No"
+                    ],
+                    "PREVISINVOICINGON": [
+                      "Yes"
+                    ],
+                    "PREVISREVJRNLON": [
+                      "No"
+                    ],
+                    "ISREMINDERSON": [
+                      "No"
+                    ],
+                    "PREVISDCNOTEON": [
+                      "No"
+                    ],
+                    "PREVISREJECTIONON": [
+                      "No"
+                    ],
+                    "PREVISTRACKINGON": [
+                      "No"
+                    ],
+                    "ISEXCISEON": [
+                      "No"
+                    ],
+                    "ISCHQPRINTINGON": [
+                      "Yes"
+                    ],
+                    "DIFFACTUALQTY": [
+                      "No"
+                    ],
+                    "USEZEROENTRIES": [
+                      "No"
+                    ],
+                    "ADDLAMOUNT": [
+                      "No"
+                    ],
+                    "ISTALLYAUDITON": [
+                      "No"
+                    ],
+                    "PREVISBUDGETSON": [
+                      "No"
+                    ],
+                    "ISPAYROLLON": [
+                      "No"
+                    ],
+                    "ISTDSON": [
+                      "No"
+                    ],
+                    "ISSERVICETAXON": [
+                      "No"
+                    ],
+                    "ISJOBCOSTINGON": [
+                      "No"
+                    ],
+                    "ISTCSON": [
+                      "No"
+                    ],
+                    "ISEXCISEREPORTSON": [
+                      "No"
+                    ],
+                    "ISCOMPOSITEDEALER": [
+                      "No"
+                    ],
+                    "ISBOMON": [
+                      "No"
+                    ],
+                    "PREVISSALESORDERSON": [
+                      "No"
+                    ],
+                    "PREVISPURCORDERSON": [
+                      "No"
+                    ],
+                    "ISDISCOUNTSON": [
+                      "No"
+                    ],
+                    "CNOTEASINVOICE": [
+                      "No"
+                    ],
+                    "UKVATRETURNS": [
+                      "No"
+                    ],
+                    "USEPRICELEVELS": [
+                      "No"
+                    ],
+                    "ISINTERESTON": [
+                      "No"
+                    ],
+                    "ISADVINTERESTON": [
+                      "No"
+                    ],
+                    "PURCASINVOICE": [
+                      "Yes"
+                    ],
+                    "PREVUSEAUTOCOST": [
+                      "No"
+                    ],
+                    "DNOTEASINVOICE": [
+                      "No"
+                    ],
+                    "PREVPLASINCOMEEXPENSE": [
+                      "No"
+                    ],
+                    "ALLOWINMOBILE": [
+                      "No"
+                    ],
+                    "ISINDENTON": [
+                      "No"
+                    ],
+                    "ISFBTON": [
+                      "No"
+                    ],
+                    "ISEXCISEMFGRTRADERON": [
+                      "No"
+                    ],
+                    "ISSALESTAXON": [
+                      "No"
+                    ],
+                    "ISPAYROLLSTATON": [
+                      "No"
+                    ],
+                    "CONNECTCOMPANY": [
+                      "No"
+                    ],
+                    "CONNECTCOMPANYONLOAD": [
+                      "No"
+                    ],
+                    "ISENTRYTAXAPPLICABLE": [
+                      "No"
+                    ],
+                    "REVENUELEDFOROPBAL": [
+                      "No"
+                    ],
+                    "ENABLESMSACCESS": [
+                      "No"
+                    ],
+                    "ISRCPTSPYMTSON": [
+                      "No"
+                    ],
+                    "ISLOGOENABLED": [
+                      "No"
+                    ],
+                    "ISXBRLON": [
+                      "No"
+                    ],
+                    "ISPROPRIETORSHIP": [
+                      "No"
+                    ],
+                    "ISYEARWISE": [
+                      "No"
+                    ],
+                    "ISCMPLTUON": [
+                      "No"
+                    ],
+                    "ISGSTON": [
+                      "Yes"
+                    ],
+                    "ISGSTCLASSIFON": [
+                      "No"
+                    ],
+                    "DENYCONNECTCOMPANYTOBPS": [
+                      "No"
+                    ],
+                    "PROMPTONCONNECT": [
+                      "No"
+                    ],
+                    "TCSFOROTHERGOODS": [
+                      "No"
+                    ],
+                    "ISCONNECTONLOADDISABLED": [
+                      "No"
+                    ],
+                    "ISDEMOENVENABLED": [
+                      "No"
+                    ],
+                    "ISBROWSERDESKTOPVIEW": [
+                      "No"
+                    ],
+                    "ISEDITLOGON": [
+                      "No"
+                    ],
+                    "WASEDITLOGON": [
+                      "No"
+                    ],
+                    "ISPAYMENTREQUESTON": [
+                      "No"
+                    ],
+                    "DISABLEASKTALLY": [
+                      "No"
+                    ],
+                    "ISDISALLOWINEDUMODE": [
+                      "No"
+                    ],
+                    "ISMULTIADDRESSON": [
+                      "No"
+                    ],
+                    "ISEBANKINGON": [
+                      "No"
+                    ],
+                    "ISJOBWORKON": [
+                      "No"
+                    ],
+                    "PREVISMATERIALTRANSFERON": [
+                      "No"
+                    ],
+                    "ISCOSTTRACKINGON": [
+                      "No"
+                    ],
+                    "ENABLEPWDPOLICY": [
+                      "No"
+                    ],
+                    "RESTRICTPWDREUSE": [
+                      "No"
+                    ],
+                    "RESETPWDONFIRSTLOGIN": [
+                      "No"
+                    ],
+                    "ALLOWPWDRESET": [
+                      "No"
+                    ],
+                    "NOTIFYOFEXPIRY": [
+                      "No"
+                    ],
+                    "ISDEFPWDPOLICYALTERED": [
+                      "No"
+                    ],
+                    "ISBANKINGVCHMIGRATED": [
+                      "Yes"
+                    ],
+                    "ISBENEFICIARYCODEON": [
+                      "No"
+                    ],
+                    "ISTRANSFERMODEON": [
+                      "Yes"
+                    ],
+                    "ISBANKINGFORCCON": [
+                      "No"
+                    ],
+                    "ISIMPBANKDETAILSON": [
+                      "No"
+                    ],
+                    "ISAPPROVALON": [
+                      "No"
+                    ],
+                    "ISEXPORTONVCHCREATE": [
+                      "No"
+                    ],
+                    "ISEXPORTWITHERRORS": [
+                      "No"
+                    ],
+                    "ISRESETBANKSTATUS": [
+                      "No"
+                    ],
+                    "ISISOCURRENCYAPPLICABLE": [
+                      "No"
+                    ],
+                    "ISIGNOREWITHWARNINGS": [
+                      "No"
+                    ],
+                    "ISFIFOAPPLIED": [
+                      "Yes"
+                    ],
+                    "ISTRACKVOUCHERSON": [
+                      "No"
+                    ],
+                    "RESETTRACKEDCHANGES": [
+                      "No"
+                    ],
+                    "COMPANYNUMBER": [
+                      " 100000"
+                    ],
+                    "STATUTORYVERSION": [
+                      "0"
+                    ],
+                    "VATPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "CSTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "STPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "TDSPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "TCSPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "PFPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "PTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "ESIPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "FBTPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "FBTYEARENDPYMTDUEDATE": [
+                      "0"
+                    ],
+                    "STCRADJPERCENT": [
+                      "0"
+                    ],
+                    "CMPTAXAMOUNTTOLERENCE": [
+                      "0"
+                    ],
+                    "PWDLENGTH": [
+                      "0"
+                    ],
+                    "LETTERSINPWD": [
+                      "0"
+                    ],
+                    "NUMERALSINPWD": [
+                      "0"
+                    ],
+                    "SPCLCHARSINPWD": [
+                      "0"
+                    ],
+                    "PWDHISTORY": [
+                      "0"
+                    ],
+                    "PWDEXPIRY": [
+                      "0"
+                    ],
+                    "EXPIRYNOTIFPERIOD": [
+                      "0"
+                    ],
+                    "NACHVERSION": [
+                      "0"
+                    ],
+                    "EXCHANGEACTIVITYMASTERID": [
+                      "0"
+                    ],
+                    "EXCHANGEACTIVITYALTERID": [
+                      "0"
+                    ],
+                    "RETTRANSMASTERID": [
+                      "0"
+                    ],
+                    "RETTRANSALTERID": [
+                      "0"
+                    ],
+                    "CMPVCHSTATID": [
+                      "0"
+                    ],
+                    "CMPRETSTATID": [
+                      "0"
+                    ],
+                    "CMPSUMTRANSSTATID": [
+                      "0"
+                    ],
+                    "MAXCASHVALUE": [
+                      ""
+                    ],
+                    "MINCASHVALUE": [
+                      ""
+                    ],
+                    "CMPESIELIGIBLEAMOUNT": [
+                      ""
+                    ],
+                    "CMPALLOWEDEXEMPTIONAMT": [
+                      ""
+                    ],
+                    "CMPEXEMPTIONEXTENTAMT": [
+                      ""
+                    ],
+                    "EWAYBILLINTERSTATETHRESHOLD": [
+                      "50000.00"
+                    ],
+                    "RTGSLIMIT": [
+                      ""
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -25,6 +25,27 @@ export interface SyncSummary {
   skipped: number;
 }
 
+export interface SyncHistoryRow {
+  id: number;
+  sync_type: string;
+  entity_type: string;
+  status: string;
+  entity_count: number;
+  max_alter_id: string;
+  message: string;
+  summary?: string;
+  started_at: string;
+  completed_at?: string;
+}
+
+export interface LogRow {
+  id: number;
+  level: string;
+  message: string;
+  metadata?: string;
+  created_at: string;
+}
+
 export class DatabaseService {
   private db: sqlite3.Database | null = null;
   private dbPath: string;
@@ -148,18 +169,18 @@ export class DatabaseService {
     });
   }
 
-async logSyncStart(type: 'MANUAL' | 'BACKGROUND', entity: string): Promise<number> {
-  return new Promise((resolve, reject) => {
-    this.db!.run(
-      `INSERT INTO sync_history (sync_type, entity_type, status) VALUES (?, ?, 'STARTED') RETURNING id`,
-      [type, entity],
-      function (err: any, row: any) {
-        if (err) return reject(err);
-        resolve(row?.id);
-      }
-    );
-  });
-}
+  async logSyncStart(type: 'MANUAL' | 'BACKGROUND', entity: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.db!.run(
+        `INSERT INTO sync_history (sync_type, entity_type, status) VALUES (?, ?, 'STARTED') RETURNING id`,
+        [type, entity],
+        function (err: any, row: any) {
+          if (err) return reject(err);
+          resolve(row?.id);
+        }
+      );
+    });
+  }
 
   async logSyncEnd(id: number, status: 'SUCCESS' | 'FAILED', count: number, maxId?: string, msg?: string, summary?: any): Promise<void> {
     return new Promise((resolve) => {
@@ -210,5 +231,32 @@ async logSyncStart(type: 'MANUAL' | 'BACKGROUND', entity: string): Promise<numbe
 
   close(): void {
     this.db?.close();
+  }
+
+  // New methods for dashboard data fetch
+  async getSyncHistory(): Promise<SyncHistoryRow[]> {
+    return new Promise((resolve, reject) => {
+      this.db!.all(`SELECT * FROM sync_history ORDER BY started_at DESC LIMIT 100`, (err, rows: any[]) => {
+        if (err) return reject(err);
+        resolve(rows);
+      });
+    });
+  }
+
+  async getLogs(): Promise<LogRow[]> {
+    return new Promise((resolve, reject) => {
+      this.db!.all(`SELECT * FROM logs ORDER BY created_at DESC LIMIT 200`, (err, rows: any[]) => {
+        if (err) return reject(err);
+        resolve(rows);
+      });
+    });
+  }
+
+  async getLastSync(): Promise<{ last_successful_sync: string; last_max_alter_id: string } | null> {
+    return new Promise((resolve) => {
+      this.db!.get(`SELECT last_successful_sync, last_max_alter_id FROM last_sync WHERE id=1`, (err, row: any) => {
+        resolve(row || null);
+      });
+    });
   }
 }

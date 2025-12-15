@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoroflex Connect - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --primary: #667eea;
+      --primary-dark: #2b064f;
+      --success: #10b981;
+      --danger: #ef4444;
+      --gray-100: #f8fafc;
+      --gray-900: #0f172a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 2.5rem;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .header p { font-size: 1.2rem; opacity: 0.95; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--gray-900);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      padding: 0.6rem 1.2rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .status-connected { background: #d1fae5; color: var(--success); }
+    .status-disconnected { background: #fee2e2; color: var(--danger); }
+
+    .btn {
+      padding: 0.9rem 1.8rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
+      margin-right: 12px;
+      margin-top: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-primary:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(102,126,234,0.4); }
+
+    .btn-logout { background: var(--danger); color: white; }
+    .btn-logout:hover { background: #dc2626; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th { background: var(--gray-100); font-weight: 600; }
+
+    .success { color: var(--success); font-weight: 600; }
+    .error { color: var(--danger); font-weight: 600; }
+
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff4;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div class="header">
+      <h1>Zoroflex Connect</h1>
+      <p>Tally to Cloud Sync • Live Dashboard</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Connection & Profile</h2>
+        <p><strong>Email:</strong> <span id="email">-</span></p>
+        <p><strong>Biller ID:</strong> <span id="billerId">-</span></p>
+        <p><strong>Organization:</strong> <span id="org">-</span></p>
+        <p><strong>Status:</strong> <span id="status" class="status-badge status-connected">Connected</span></p>
+        <p><strong>Last Sync:</strong> <span id="lastSync">Never</span></p>
+
+        <button id="syncBtn" class="btn btn-primary">Manual Sync</button>
+        <button id="logoutBtn" class="btn btn-logout">Logout</button>
+      </div>
+
+      <div class="card">
+        <h2>Recent Sync History</h2>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Entity</th>
+              <th>Status</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align:center; padding:40px; color:#94a3b8;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2025 Zoroflex Solutions • Version 1.0.0 • Running smoothly
+    </div>
+  </div>
+
+  <script>
+    // Simple vanilla JS dashboard – no React needed, no Babel, no React needed
+    const emailEl = document.getElementById('email');
+    const billerIdEl = document.getElementById('billerId');
+    const orgEl = document.getElementById('org');
+    const statusEl = document.getElementById('status');
+    const lastSyncEl = document.getElementById('lastSync');
+    const syncBtn = document.getElementById('syncBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const tbody = document.querySelector('#historyTable tbody');
+
+    const loadData = async () => {
+      try {
+        const profile = await window.electronAPI.getProfile();
+        const last = await window.electronAPI.getLastSync();
+        const history = await window.electronAPI.getSyncHistory();
+
+        if (profile) {
+          emailEl.textContent = profile.email;
+          billerIdEl.textContent = profile.biller_id || 'N/A';
+          orgEl.textContent = profile.organization?.name || 'Not synced';
+        }
+
+        if (last?.last_successful_sync && last.last_successful_sync !== '1970-01-01') {
+          lastSyncEl.textContent = new Date(last.last_successful_sync).toLocaleString();
+        }
+
+        tbody.innerHTML = '';
+        if (history?.length > 0) {
+          history.slice(0, 15).forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${new Date(row.started_at).toLocaleString()}</td>
+              <td>${row.sync_type}</td>
+              <td>${row.entity_type}</td>
+              <td class="${row.status === 'SUCCESS' ? 'success' : 'error'}">${row.status}</td>
+              <td>${row.entity_count}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#94a3b8;">No sync history yet</td></tr>';
+        }
+      } catch (err) {
+        console.error('Load data error:', err);
+        tbody.innerHTML = '<tr><td colspan="5" style="color:red;">Failed to load data</td></tr>';
+      }
+    };
+
+    syncBtn.onclick = async () => {
+      syncBtn.disabled = true;
+      syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
+      await window.electronAPI.manualSync();
+      setTimeout(() => {
+        loadData();
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = 'Manual Sync';
+      }, 1500);
+    };
+
+    logoutBtn.onclick = async () => {
+      if (confirm('Are you sure you want to logout?')) {
+        await window.electronAPI.logout();
+      }
+    };
+
+    // Auto load on start
+    window.addEventListener('DOMContentLoaded', loadData);
+
+    // Listen for real-time updates from main process
+    window.electronAPI?.onSyncStarted?.(() => {
+      statusEl.textContent = 'Syncing...';
+      statusEl.className = 'status-badge status-connected';
+    });
+
+    window.electronAPI?.onSyncCompleted?.(() => {
+      loadData();
+      statusEl.textContent = 'Connected';
+    });
+
+    window.electronAPI?.onProfileData?.((_, data) => loadData());
+  </script>
+</body>
+</html>

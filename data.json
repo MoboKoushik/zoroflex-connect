@@ -1,0 +1,821 @@
+[
+  {
+    "$Name": "DeducteeType"
+  },
+  {
+    "$Name": "State"
+  },
+  {
+    "$Name": "TaxUnit"
+  },
+  {
+    "$Name": "Company"
+  },
+  {
+    "$Name": "Ledger"
+  },
+  {
+    "$Name": "CostCategory"
+  },
+  {
+    "$Name": "Godown"
+  },
+  {
+    "$Name": "StockGroup"
+  },
+  {
+    "$Name": "StockCategory"
+  },
+  {
+    "$Name": "StockItem"
+  },
+  {
+    "$Name": "VoucherType"
+  },
+  {
+    "$Name": "TDSRate"
+  },
+  {
+    "$Name": "TaxClassification"
+  },
+  {
+    "$Name": "STCategory"
+  },
+  {
+    "$Name": "FBTCategory"
+  },
+  {
+    "$Name": "FBTAssesseeType"
+  },
+  {
+    "$Name": "TariffClassification"
+  },
+  {
+    "$Name": "ExciseDutyClassification"
+  },
+  {
+    "$Name": "AdjustmentClassification"
+  },
+  {
+    "$Name": "LBTClassification"
+  },
+  {
+    "$Name": "GSTClassification"
+  },
+  {
+    "$Name": "Groups"
+  },
+  {
+    "$Name": "AttendanceTypes"
+  },
+  {
+    "$Name": "MerchantProfiles"
+  },
+  {
+    "$Name": "STXPyblBillCategory"
+  },
+  {
+    "$Name": "ListofLedgers"
+  },
+  {
+    "$Name": "ServiceTaxCategory"
+  },
+  {
+    "$Name": "TCSRate"
+  },
+  {
+    "$Name": "CompanyOperations"
+  },
+  {
+    "$Name": "SOStockGroupDueOnly"
+  },
+  {
+    "$Name": "POStockGroupDueOnly"
+  },
+  {
+    "$Name": "MultiGodown"
+  },
+  {
+    "$Name": "MultiStockCategory"
+  },
+  {
+    "$Name": "MultiStockItem"
+  },
+  {
+    "$Name": "MultiEmpCategory"
+  },
+  {
+    "$Name": "MultiStockGroup"
+  },
+  {
+    "$Name": "MultiCostCategory"
+  },
+  {
+    "$Name": "LedgerCostBreakup"
+  },
+  {
+    "$Name": "MonthlyLedgerExtractBrowser"
+  },
+  {
+    "$Name": "SOStockItem"
+  },
+  {
+    "$Name": "SOLedgerBrowser"
+  },
+  {
+    "$Name": "POStockItem"
+  },
+  {
+    "$Name": "POLedgerBrowser"
+  },
+  {
+    "$Name": "ItemMovementAnalysis"
+  },
+  {
+    "$Name": "CompanyAlter"
+  },
+  {
+    "$Name": "ListofMerchantProfiles"
+  },
+  {
+    "$Name": "ListofUserDefClasfn"
+  },
+  {
+    "$Name": "ListofExciseTariffClassification"
+  },
+  {
+    "$Name": "STXCategoryMaster"
+  },
+  {
+    "$Name": "LedgerVouchers"
+  },
+  {
+    "$Name": "CostCentreBreakUp"
+  },
+  {
+    "$Name": "LedgerOutstandings"
+  },
+  {
+    "$Name": "LedgerInterest"
+  },
+  {
+    "$Name": "SOStockCategory"
+  },
+  {
+    "$Name": "SOStockGroup"
+  },
+  {
+    "$Name": "POStockCategory"
+  },
+  {
+    "$Name": "POStockGroup"
+  },
+  {
+    "$Name": "CategoryAnalysis"
+  },
+  {
+    "$Name": "MovementAnalysis"
+  },
+  {
+    "$Name": "PTComputationExtract"
+  },
+  {
+    "$Name": "PTComputation"
+  },
+  {
+    "$Name": "PTComputationMthlyExtract"
+  },
+  {
+    "$Name": "ITSalaryProjectEmpColl"
+  },
+  {
+    "$Name": "ITR1EmpDispColl"
+  },
+  {
+    "$Name": "TDSCategoryOutstandings"
+  },
+  {
+    "$Name": "TDSLedgerOutstandings"
+  },
+  {
+    "$Name": "Employees"
+  },
+  {
+    "$Name": "CollecteeType"
+  },
+  {
+    "$Name": "setreorder"
+  },
+  {
+    "$Name": "VoucherTypePSR"
+  },
+  {
+    "$Name": "TDSNOPRate"
+  },
+  {
+    "$Name": "TCSLedgerOutstandings"
+  },
+  {
+    "$Name": "BankLedgerVouchers"
+  },
+  {
+    "$Name": "CashLedgerVouchers"
+  },
+  {
+    "$Name": "PayHead"
+  },
+  {
+    "$Name": "STXCategory"
+  },
+  {
+    "$Name": "ListofGSTRegistrations"
+  },
+  {
+    "$Name": "PrintLedgerOutstandings"
+  },
+  {
+    "$Name": "OtherVoucherType"
+  },
+  {
+    "$Name": "DBTLedgerTrend"
+  },
+  {
+    "$Name": "DBTStockItemTrend"
+  },
+  {
+    "$Name": "DBTStockGroupTrend"
+  },
+  {
+    "$Name": "DBTStockCategoryTrend"
+  },
+  {
+    "$Name": "DBTLedgerComparison"
+  },
+  {
+    "$Name": "DBTCostCategoryComparison"
+  },
+  {
+    "$Name": "DBTStockItemComparison"
+  },
+  {
+    "$Name": "DBTStockCategoryComparison"
+  },
+  {
+    "$Name": "DBTGodownComparison"
+  },
+  {
+    "$Name": "DBTStockGroupComparison"
+  },
+  {
+    "$Name": "DBTCostCentreRanking"
+  },
+  {
+    "$Name": "DBTStockGroupRanking"
+  },
+  {
+    "$Name": "DBTStockCategoryRanking"
+  },
+  {
+    "$Name": "DBTStockGroupSODueRanking"
+  },
+  {
+    "$Name": "DBTStockGroupPODueRanking"
+  },
+  {
+    "$Name": "DBTStockCategorySODueRanking"
+  },
+  {
+    "$Name": "DBTStockCategoryPODueRanking"
+  },
+  {
+    "$Name": "CMPTaxAuditFeatures"
+  },
+  {
+    "$Name": "TNetSingleLedger"
+  },
+  {
+    "$Name": "CompanyFeatures"
+  },
+  {
+    "$Name": "PayrollVoucherTypes"
+  },
+  {
+    "$Name": "VchStockItem"
+  },
+  {
+    "$Name": "STXInputCrCategoryList"
+  },
+  {
+    "$Name": "STXInputCrPartyList"
+  },
+  {
+    "$Name": "LedgerValidationMGroupForGST"
+  },
+  {
+    "$Name": "ListofMSMEPartyLedgers"
+  },
+  {
+    "$Name": "LedgerUnderMGroupForMSME"
+  },
+  {
+    "$Name": "ListofMSMEForm1Ledgers"
+  },
+  {
+    "$Name": "TDSPartyOutstandings"
+  },
+  {
+    "$Name": "MonthlyTDSLedger"
+  },
+  {
+    "$Name": "ListofTDSNoPPartyLedgers"
+  },
+  {
+    "$Name": "TransferVchStockJrnl"
+  },
+  {
+    "$Name": "LedgerUnderMGroupForGVAT"
+  },
+  {
+    "$Name": "CMPTallyNetFeature"
+  },
+  {
+    "$Name": "LedgerUnderMGroup"
+  },
+  {
+    "$Name": "ListofAllLedgers"
+  },
+  {
+    "$Name": "TDSRatesForLedMst"
+  },
+  {
+    "$Name": "FLTVoucherTypeColl"
+  },
+  {
+    "$Name": "AllTaxClassification"
+  },
+  {
+    "$Name": "AllADJclassification"
+  },
+  {
+    "$Name": "ListofCostCategories"
+  },
+  {
+    "$Name": "PayrollVchCategories"
+  },
+  {
+    "$Name": "PayrollCategories"
+  },
+  {
+    "$Name": "NonRevenueCategory"
+  },
+  {
+    "$Name": "ListofAttendanceTypes"
+  },
+  {
+    "$Name": "AllCostCentre"
+  },
+  {
+    "$Name": "ListofStockGroups"
+  },
+  {
+    "$Name": "ListofStockCategories"
+  },
+  {
+    "$Name": "ListofStockItems"
+  },
+  {
+    "$Name": "PriceList"
+  },
+  {
+    "$Name": "ListofGodowns"
+  },
+  {
+    "$Name": "StockableGodown"
+  },
+  {
+    "$Name": "TCSRatesForLedMst"
+  },
+  {
+    "$Name": "TCSRealisationNOG"
+  },
+  {
+    "$Name": "GetGSTINLedgerUnderMGroupForGST"
+  },
+  {
+    "$Name": "ReservedVoucherTypes"
+  },
+  {
+    "$Name": "ListofCMPMerchantProfiles"
+  },
+  {
+    "$Name": "SalaryEmployeesColl"
+  },
+  {
+    "$Name": "ExciseDutyClassificationList"
+  },
+  {
+    "$Name": "LedgerUnderExpGroup"
+  },
+  {
+    "$Name": "LedgerUnderTDSDutyGroup"
+  },
+  {
+    "$Name": "LedgerUnderPartyGroup"
+  },
+  {
+    "$Name": "MonthlyTCSLedger"
+  },
+  {
+    "$Name": "TCSNOPRate"
+  },
+  {
+    "$Name": "StateAndCountry"
+  },
+  {
+    "$Name": "JCGodownSummary"
+  },
+  {
+    "$Name": "CAListOfLedgers"
+  },
+  {
+    "$Name": "EditLogMasterColl"
+  },
+  {
+    "$Name": "EditLogLedgerColl"
+  },
+  {
+    "$Name": "EditLogStockItemColl"
+  },
+  {
+    "$Name": "EditLogGroupColl"
+  },
+  {
+    "$Name": "MonthlyLedger"
+  },
+  {
+    "$Name": "LedgerUnderBankAccGroup"
+  },
+  {
+    "$Name": "LedgerUnderBankGroups"
+  },
+  {
+    "$Name": "PRSalWagePymtEmpColl"
+  },
+  {
+    "$Name": "GratuityPayrollCategories"
+  },
+  {
+    "$Name": "IncomeTaxClassificationList"
+  },
+  {
+    "$Name": "ITComputationEmpDispColl"
+  },
+  {
+    "$Name": "ITSingleEmpPerquisitesDispColl"
+  },
+  {
+    "$Name": "ITChapterVIAInvesmtsEmpDispColl"
+  },
+  {
+    "$Name": "ITChapterVIAOthersEmpDispColl"
+  },
+  {
+    "$Name": "ITEmpOtherIncomeColl"
+  },
+  {
+    "$Name": "ITEmpReleifColl"
+  },
+  {
+    "$Name": "ITAdvanceTaxEmployeeColl"
+  },
+  {
+    "$Name": "ITPrevEmployerTaxColl"
+  },
+  {
+    "$Name": "ITPrevEmployerTaxCollwithParent"
+  },
+  {
+    "$Name": "ITOtherSalaryTDSColl"
+  },
+  {
+    "$Name": "ITSelfAssmntTaxEmployeeColl"
+  },
+  {
+    "$Name": "ITDefineExemptionEmpDispColl"
+  },
+  {
+    "$Name": "ITOverrideEmpDispColl"
+  },
+  {
+    "$Name": "ITPrevEmplyrIncomeDispColl"
+  },
+  {
+    "$Name": "ITPrevEmplyrIncomeDispCollwithParent"
+  },
+  {
+    "$Name": "IncomeTaxSlabList"
+  },
+  {
+    "$Name": "PFForm5Employees"
+  },
+  {
+    "$Name": "PFForm5ExportEmployees"
+  },
+  {
+    "$Name": "PFForm10Employees"
+  },
+  {
+    "$Name": "PFForm10ExportEmployees"
+  },
+  {
+    "$Name": "PTComputationMthly"
+  },
+  {
+    "$Name": "ListofPrimaryVoucherTypes"
+  },
+  {
+    "$Name": "LedgerUnderCENVATGroup"
+  },
+  {
+    "$Name": "LedgerUnderExpensesGroup"
+  },
+  {
+    "$Name": "LedgerUnderPartyCrDrGroup"
+  },
+  {
+    "$Name": "LedgerUnderExciseDutyGroup"
+  },
+  {
+    "$Name": "STXLedgerUnderServGroup"
+  },
+  {
+    "$Name": "LedgerUnderSTXDutyGroup"
+  },
+  {
+    "$Name": "STXLedgerUnderPartyCrDrGroup"
+  },
+  {
+    "$Name": "LedUnderSalesIncGroup"
+  },
+  {
+    "$Name": "LedUnderPurcExpGroup"
+  },
+  {
+    "$Name": "LedgerUnderVATDutyGroup"
+  },
+  {
+    "$Name": "LedWithVATApplicable"
+  },
+  {
+    "$Name": "ListOfSTLedgers"
+  },
+  {
+    "$Name": "LedgerUnderTCSDutyGroup"
+  },
+  {
+    "$Name": "LedgerUnderTCSPartyGrp"
+  },
+  {
+    "$Name": "LedgerUnderTCSParty"
+  },
+  {
+    "$Name": "LISTofGSTRCPartyLedgers"
+  },
+  {
+    "$Name": "epayListofLedgers"
+  },
+  {
+    "$Name": "STXMigBillsCollection"
+  },
+  {
+    "$Name": "STXMigBillsCollection1"
+  },
+  {
+    "$Name": "ListofEmployeeCategories"
+  },
+  {
+    "$Name": "ListofPayHeads"
+  },
+  {
+    "$Name": "WAGrpLedgerOutstandingSrc"
+  },
+  {
+    "$Name": "CAVoucherType"
+  },
+  {
+    "$Name": "F10CAVoucherType"
+  },
+  {
+    "$Name": "CAMerchantProfile"
+  },
+  {
+    "$Name": "CAITOverrideEmpDispColl"
+  },
+  {
+    "$Name": "CAITOverrideEmpDispCollWithCategory"
+  },
+  {
+    "$Name": "CAITPrevEmployerTaxColl"
+  },
+  {
+    "$Name": "CAITPrevEmployerTaxCollwithParent"
+  },
+  {
+    "$Name": "CAITPrevEmplyrIncomeDispColl"
+  },
+  {
+    "$Name": "CAITPrevEmplyrIncomeDispCollwithParent"
+  },
+  {
+    "$Name": "CAGSTClassification"
+  },
+  {
+    "$Name": "CATDSRate"
+  },
+  {
+    "$Name": "CATCSRate"
+  },
+  {
+    "$Name": "CAVATClassification"
+  },
+  {
+    "$Name": "CATaxUnit"
+  },
+  {
+    "$Name": "CAExciseDutyClassification"
+  },
+  {
+    "$Name": "CAExciseTariffClassification"
+  },
+  {
+    "$Name": "CASTXCategoryMaster"
+  },
+  {
+    "$Name": "CompanyAlterLogo"
+  },
+  {
+    "$Name": "SimpleCompanies"
+  },
+  {
+    "$Name": "CompanyOperationsAccts"
+  },
+  {
+    "$Name": "CompanyOperationsInv"
+  },
+  {
+    "$Name": "CompanyOperationsStat"
+  },
+  {
+    "$Name": "StatCompanyOperations"
+  },
+  {
+    "$Name": "CompanyOperationsUsersandPassword"
+  },
+  {
+    "$Name": "UserRolesCompanyOperations"
+  },
+  {
+    "$Name": "PasswordPolicyCompanyList"
+  },
+  {
+    "$Name": "CompanySecurityOperations"
+  },
+  {
+    "$Name": "CompanyOnlineAccessOperations"
+  },
+  {
+    "$Name": "CompanyEditLogOperations"
+  },
+  {
+    "$Name": "UniqueStockItem"
+  },
+  {
+    "$Name": "ListofVchGSTRegistrations"
+  },
+  {
+    "$Name": "ListofVchGSTRegistrationsSrc"
+  },
+  {
+    "$Name": "LedgerUnderMGroupForGST"
+  },
+  {
+    "$Name": "ListofGSTPartyLedgers"
+  },
+  {
+    "$Name": "JOBStockableGodown"
+  },
+  {
+    "$Name": "ImporterStockableGodown"
+  },
+  {
+    "$Name": "MfgrStockableGodownTop"
+  },
+  {
+    "$Name": "MfgrStockableGodown"
+  },
+  {
+    "$Name": "VoucherCostCategory"
+  },
+  {
+    "$Name": "GSTRCAdvPymtListofStockItems"
+  },
+  {
+    "$Name": "GSTRCAdvPymtRevCharListofStockItems"
+  },
+  {
+    "$Name": "GSTRCAdvPymtListofLedgers"
+  },
+  {
+    "$Name": "GSTRCAdvPymtRevCharListofLedgers"
+  },
+  {
+    "$Name": "OtherVoucherTypeRemote"
+  },
+  {
+    "$Name": "OtherVoucherTypeExplode"
+  },
+  {
+    "$Name": "TCSCategoriesRealzMore"
+  },
+  {
+    "$Name": "MultiVoucherType"
+  },
+  {
+    "$Name": "TDSReconcileLedgers"
+  },
+  {
+    "$Name": "CompanyVouchers"
+  },
+  {
+    "$Name": "ListofAdvOpnBalGSTRegistrations"
+  },
+  {
+    "$Name": "StockableManufacturerGodown"
+  },
+  {
+    "$Name": "ListofPurcTaxStockItems"
+  },
+  {
+    "$Name": "VCHTariffClassification"
+  },
+  {
+    "$Name": "LBTClassificationMultiConfig"
+  },
+  {
+    "$Name": "LBTClassificationMapping"
+  },
+  {
+    "$Name": "ListofClassifications"
+  },
+  {
+    "$Name": "STXInActCategoryMaster"
+  },
+  {
+    "$Name": "StockableDealerGodown"
+  },
+  {
+    "$Name": "StockableExciseMfgrGodown"
+  },
+  {
+    "$Name": "ExciseMfgrExcisableItemList"
+  },
+  {
+    "$Name": "StockableTraderGodown"
+  },
+  {
+    "$Name": "STXCatTrTemp"
+  },
+  {
+    "$Name": "STXPartyTrTemp"
+  },
+  {
+    "$Name": "STXBillCategoryList"
+  },
+  {
+    "$Name": "STXBillPartyList"
+  },
+  {
+    "$Name": "STXLedger"
+  },
+  {
+    "$Name": "STXPyblBillListOfParty"
+  },
+  {
+    "$Name": "STXPyblRecptCategory"
+  },
+  {
+    "$Name": "STXPyblRecptParty"
+  },
+  {
+    "$Name": "TNetTDSExpenseLedger"
+  },
+  {
+    "$Name": "SASalWagePymtEmpColl"
+  },
+  {
+    "$Name": "GSTExtractVoucherType"
+  },
+  {
+    "$Name": "TSPL_TC_FSBankLedgers"
+  }
+]
