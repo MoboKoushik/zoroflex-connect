@@ -23,7 +23,7 @@
                   "0"
                 ],
                 "LEDGER": [
-                  "0"
+                  "49"
                 ],
                 "COSTCATEGORY": [
                   "0"
@@ -32,7 +32,7 @@
                   "0"
                 ],
                 "GODOWN": [
-                  "0"
+                  "2"
                 ],
                 "STOCKGROUP": [
                   "0"
@@ -41,13 +41,13 @@
                   "0"
                 ],
                 "STOCKITEM": [
-                  "0"
+                  "2"
                 ],
                 "VOUCHERTYPE": [
                   "0"
                 ],
                 "CURRENCY": [
-                  "0"
+                  "12"
                 ],
                 "UNIT": [
                   "0"
@@ -107,7 +107,7 @@
                   "0"
                 ],
                 "TAXUNIT": [
-                  "0"
+                  "6"
                 ],
                 "RETURNMASTER": [
                   "0"
@@ -116,10 +116,10 @@
                   "0"
                 ],
                 "VOUCHERNUMBERSERIES": [
-                  "0"
+                  "14"
                 ],
                 "VOUCHER": [
-                  "0"
+                  "21"
                 ]
               }
             ]
@@ -132,314 +132,7 @@
                 "$": {
                   "ISMSTDEPTYPE": "Yes",
                   "MSTDEPTYPE": "8"
-                },
-                "LEDGER": [
-                  {
-                    "$": {
-                      "NAME": "Ankit Enterprises",
-                      "RESERVEDNAME": ""
-                    },
-                    "ADDRESS.LIST": [
-                      {
-                        "$": {
-                          "TYPE": "String"
-                        },
-                        "ADDRESS": [
-                          {
-                            "_": "SARAI, Haryana",
-                            "$": {
-                              "TYPE": "String"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "EMAIL": [
-                      {
-                        "_": "ajolly@serviceats.com",
-                        "$": {
-                          "TYPE": "String"
-                        }
-                      }
-                    ],
-                    "EMAILCC": [
-                      {
-                        "_": "info@zorrofin.com",
-                        "$": {
-                          "TYPE": "String"
-                        }
-                      }
-                    ],
-                    "LEDGERPHONE": [
-                      {
-                        "_": "0129664455",
-                        "$": {
-                          "TYPE": "String"
-                        }
-                      }
-                    ],
-                    "LEDGERCONTACT": [
-                      {
-                        "_": "Ankit Jolly",
-                        "$": {
-                          "TYPE": "String"
-                        }
-                      }
-                    ],
-                    "LEDGERMOBILE": [
-                      {
-                        "_": "9898989898",
-                        "$": {
-                          "TYPE": "String"
-                        }
-                      }
-                    ],
-                    "ALTERID": [
-                      {
-                        "_": " 239",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "MASTERID": [
-                      {
-                        "_": " 209",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "CLOSINGBALANCE": [
-                      {
-                        "_": "-70014.40",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "OPENINGBALANCE": [
-                      {
-                        "_": "-7000.00",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "LANGUAGENAME.LIST": [
-                      {
-                        "NAME.LIST": [
-                          {
-                            "$": {
-                              "TYPE": "String"
-                            },
-                            "NAME": [
-                              "Ankit Enterprises"
-                            ]
-                          }
-                        ],
-                        "LANGUAGEID": [
-                          {
-                            "_": " 1033",
-                            "$": {
-                              "TYPE": "Number"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "BANKALLOCATIONS.LIST": [
-                      "     "
-                    ]
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company   Test 001",
-                      "RESERVEDNAME": ""
-                    },
-                    "ALTERID": [
-                      {
-                        "_": " 225",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "MASTERID": [
-                      {
-                        "_": " 217",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "CLOSINGBALANCE": [
-                      {
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "OPENINGBALANCE": [
-                      {
-                        "_": "0.00",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "LANGUAGENAME.LIST": [
-                      {
-                        "NAME.LIST": [
-                          {
-                            "$": {
-                              "TYPE": "String"
-                            },
-                            "NAME": [
-                              "Company   Test 001"
-                            ]
-                          }
-                        ],
-                        "LANGUAGEID": [
-                          {
-                            "_": " 1033",
-                            "$": {
-                              "TYPE": "Number"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "BANKALLOCATIONS.LIST": [
-                      "     "
-                    ]
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company Test 002",
-                      "RESERVEDNAME": ""
-                    },
-                    "ALTERID": [
-                      {
-                        "_": " 226",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "MASTERID": [
-                      {
-                        "_": " 218",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "CLOSINGBALANCE": [
-                      {
-                        "_": "-3000.00",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "OPENINGBALANCE": [
-                      {
-                        "_": "-3000.00",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "LANGUAGENAME.LIST": [
-                      {
-                        "NAME.LIST": [
-                          {
-                            "$": {
-                              "TYPE": "String"
-                            },
-                            "NAME": [
-                              "Company Test 002"
-                            ]
-                          }
-                        ],
-                        "LANGUAGEID": [
-                          {
-                            "_": " 1033",
-                            "$": {
-                              "TYPE": "Number"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "BANKALLOCATIONS.LIST": [
-                      "     "
-                    ]
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company Test 003",
-                      "RESERVEDNAME": ""
-                    },
-                    "ALTERID": [
-                      {
-                        "_": " 230",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "MASTERID": [
-                      {
-                        "_": " 220",
-                        "$": {
-                          "TYPE": "Number"
-                        }
-                      }
-                    ],
-                    "CLOSINGBALANCE": [
-                      {
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "OPENINGBALANCE": [
-                      {
-                        "_": "0.00",
-                        "$": {
-                          "TYPE": "Amount"
-                        }
-                      }
-                    ],
-                    "LANGUAGENAME.LIST": [
-                      {
-                        "NAME.LIST": [
-                          {
-                            "$": {
-                              "TYPE": "String"
-                            },
-                            "NAME": [
-                              "Company Test 003"
-                            ]
-                          }
-                        ],
-                        "LANGUAGEID": [
-                          {
-                            "_": " 1033",
-                            "$": {
-                              "TYPE": "Number"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "BANKALLOCATIONS.LIST": [
-                      "     "
-                    ]
-                  }
-                ]
+                }
               }
             ]
           }

@@ -1,9 +1,19 @@
 import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
+import { DatabaseService } from '../../database/database.service';
 
-export async function fetchCurrentCompany() {
-    const xmlRequest = `
+const db = new DatabaseService();
+
+const ENTITY_TYPE = 'ORGANIZATION';
+
+export async function fetchCurrentCompany(): Promise<Record<string, any> | null> {
+    const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
+
+    try {
+        db.log('INFO', 'Fetching current company from Tally');
+
+        const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <VERSION>1</VERSION>
@@ -22,7 +32,6 @@ export async function fetchCurrentCompany() {
             <TYPE>Company</TYPE>
             <BELONGSTO>Yes</BELONGSTO>
             <NATIVEMETHOD>*</NATIVEMETHOD>
-            <!-- Explicitly fetch the Tally Serial Number (License ID) -->
             <NATIVEMETHOD>TallySerialNumber</NATIVEMETHOD>
             <NATIVEMETHOD>TallyLicenseID</NATIVEMETHOD>
             <NATIVEMETHOD>SerialNumber</NATIVEMETHOD>
@@ -34,38 +43,36 @@ export async function fetchCurrentCompany() {
   </BODY>
 </ENVELOPE>`.trim();
 
-    try {
         const response = await axios.post('http://localhost:9000', xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' }
+            headers: { 'Content-Type': 'text/xml' },
+            timeout: 15000
         });
 
         const parsed = await parseStringPromise(response.data);
 
-        // Save raw response for debugging
+        fs.mkdirSync('./dump/company', { recursive: true });
         const rawFile = './dump/company/current_company_raw.json';
         fs.writeFileSync(rawFile, JSON.stringify(parsed, null, 2), 'utf8');
 
-        // Extract the current company (only one due to BELONGSTO>Yes)
         const collection = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0];
         const companiesXml = collection?.COMPANY || [];
 
         if (companiesXml.length === 0) {
-            console.log('No company is currently loaded in Tally Prime.');
+            const message = 'No company is currently loaded in Tally Prime.';
+            db.log('WARN', message);
+            await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, message);
             return null;
         }
 
         const companyInfo = companiesXml[0];
-
         const currentCompany: Record<string, any> = {};
 
-        // Handle attributes (rare for Company object, but kept for completeness)
         if (companyInfo.$) {
             Object.keys(companyInfo.$).forEach(attrKey => {
                 currentCompany[attrKey.toUpperCase()] = companyInfo.$[attrKey];
             });
         }
 
-        // Handle child elements and lists
         Object.keys(companyInfo).forEach(key => {
             if (key === '$') return;
             const value = companyInfo[key];
@@ -91,19 +98,31 @@ export async function fetchCurrentCompany() {
             }
         });
 
-        currentCompany.TALLY_LICENSE_ID = 
-            currentCompany.TALLYSERIALNUMBER || 
-            currentCompany.SERIALNUMBER || 
-            currentCompany.TALLYLICENSEID || 
-            currentCompany.LICENSEID || 
+        currentCompany.TALLY_LICENSE_ID =
+            currentCompany.TALLYSERIALNUMBER ||
+            currentCompany.SERIALNUMBER ||
+            currentCompany.TALLYLICENSEID ||
+            currentCompany.LICENSEID ||
             '';
 
         const fileName = './dump/company/current_company.json';
         fs.writeFileSync(fileName, JSON.stringify(currentCompany, null, 2), 'utf8');
 
+        db.log('INFO', 'Current company fetched successfully', {
+            company_name: currentCompany.NAME,
+            tally_id: currentCompany.BASICCOMPANYFORMALNAME || currentCompany.NAME,
+            license_id: currentCompany.TALLY_LICENSE_ID
+        });
+
+        await db.logSyncEnd(runId, 'SUCCESS', 1, 0, undefined, 'Company data fetched');
+        await db.updateLastSuccessfulSync();
+
         return currentCompany;
+
     } catch (error: any) {
-        console.error('Error fetching current company:', error?.message || error);
+        const errorMsg = error?.message || 'Unknown error while fetching company';
+        db.log('ERROR', 'Failed to fetch current company', { error: errorMsg });
+        await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, errorMsg);
         throw error;
     }
 }

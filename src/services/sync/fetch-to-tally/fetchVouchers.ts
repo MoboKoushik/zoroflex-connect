@@ -3,7 +3,18 @@ import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
 import { DatabaseService } from '../../database/database.service';
 
-const databaseService = new DatabaseService();
+const db = new DatabaseService();
+
+const ENTITY_TYPE = 'VOUCHER';
+const CUSTOMER_MAP_ENTITY = 'CUSTOMER_MAP';
+const BATCH_SIZE = 20;
+const API_KEY = '7061797A6F72726F74616C6C79';
+
+// API Endpoints
+const INVOICE_API = 'http://localhost:3000/invoice/tally/create';
+const RECEIPT_API = 'http://localhost:3000/billers/tally/payment';
+const JV_API = 'http://localhost:3000/ledgers/tally/jv-entries';
+
 export const customerMasterIdMap = new Map<string, string>();
 
 
@@ -103,8 +114,6 @@ const getReceiptBillDetails = (partyLedger: any, receiptAmount: number) => {
       ).toFixed(2)
     }));
   }
-
-  // 🔴 No bill allocation → Unallocated
   return [
     {
       bill_id: 'Unallocated',
@@ -272,14 +281,17 @@ export async function syncLedgersAndBuildMap(): Promise<void> {
   }
 }
 
-export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> {
+export async function syncVouchers(): Promise<void> {
+  const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
+  let successCount = { invoice: 0, receipt: 0, jv: 0 };
+  let failedCount = { invoice: 0, receipt: 0, jv: 0 };
   let newMaxAlterId = '0';
 
   try {
-    const lastMaxVoucherAlterId = '1'// await databaseService.getVoucherMaxAlterId();
-    const cleanLastAlterId = (lastMaxVoucherAlterId || '0').trim();
+    const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
+    db.log('INFO', 'Voucher sync started', { from_alter_id: lastAlterId });
 
-    console.log(`Starting incremental AR voucher sync from AlterID > ${cleanLastAlterId}`);
+    console.log(`Starting incremental AR voucher sync from AlterID > ${lastAlterId}`);
 
     const xmlRequest = `
 <ENVELOPE>
@@ -293,7 +305,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
     <DESC>
       <STATICVARIABLES>
         <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVLastMaxAlterID>${cleanLastAlterId}</SVLastMaxAlterID>
+        <SVLastMaxAlterID>${lastAlterId}</SVLastMaxAlterID>
       </STATICVARIABLES>
       <TDL>
         <TDLMESSAGE>
@@ -353,8 +365,8 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
     let vouchersXml = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
 
     if (vouchersXml.length === 0) {
-      console.log('No new/changed vouchers since last sync.');
-      await databaseService.updateLastSuccessfulSync();
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, lastAlterId, 'No new vouchers');
+      db.log('INFO', 'No new vouchers found');
       return;
     }
 
@@ -381,13 +393,12 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
 
     if (arVouchersXml.length === 0) {
       console.log('No AR related vouchers in this batch.');
-      let highest = parseInt(cleanLastAlterId || '0', 10);
+      let highest = parseInt(lastAlterId || '0', 10);
       for (const voucher of vouchersXml) {
         const alterIdNum = parseInt(getText(voucher, 'ALTERID').replace(/\s+/g, '') || '0', 10);
         if (alterIdNum > highest) highest = alterIdNum;
       }
-      // await databaseService.updateVoucherMaxAlterId(highest.toString());
-      // await databaseService.updateLastSuccessfulSync();
+      newMaxAlterId = highest.toString();
       return;
     }
 
@@ -397,7 +408,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
       jv_entry: []
     };
 
-    let highestAlterId = parseInt(cleanLastAlterId || '0', 10);
+    let highestAlterId = parseInt(lastAlterId || '0', 10);
 
     for (const voucher of arVouchersXml) {
       const voucherType = getText(voucher, 'VOUCHERTYPENAME').toLowerCase();
@@ -472,7 +483,6 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
               parseFloat(getText(i, 'AMOUNT').replace(/,/g, '') || '0')
             );
 
-            // ✅ Rate calculation fallback
             const rateFromTally = parseFloat(getText(i, 'RATE').replace(/,/g, '') || '0');
             const rate = rateFromTally > 0
               ? rateFromTally
@@ -550,7 +560,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
         );
 
         transformedObj = {
-          receipt_id: invoiceId, // Voucher MasterID
+          receipt_id: invoiceId,
           receipt_number: getText(voucher, 'VOUCHERNUMBER'),
           receipt_date: formatTallyDate(issueDate),
           customer_name: partyLedger,
@@ -574,7 +584,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
           transation_id: `Vd${invoiceId}`,
           biller_id: billerId,
           voucher_number: getText(voucher, 'VOUCHERNUMBER'),
-          ref_number: '', // optional
+          ref_number: '',
           date: formatTallyDate(issueDate),
           ref_date: formatTallyDate(issueDate),
           narration: getText(voucher, 'NARRATION'),
@@ -587,71 +597,59 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
 
     newMaxAlterId = highestAlterId.toString();
 
-    // Save transformed
     fs.writeFileSync('./dump/voucher/grouped_vouchers.json', JSON.stringify(groupedVouchers, null, 2));
     console.log(`Processed ${arVouchersXml.length} AR vouchers into groups: Invoice=${groupedVouchers.invoice.length}, Receipt=${groupedVouchers.receipt.length}, JV=${groupedVouchers.jv_entry.length} (highest AlterID: ${newMaxAlterId})`);
 
-    // Batch send (uncomment when ready)
-    const apiKey = '7061797A6F72726F74616C6C79';
+    const sendBatch = async (items: any[], apiUrl: string, type: 'invoice' | 'receipt' | 'jv') => {
+      for (let i = 0; i < items.length; i += BATCH_SIZE) {
+        const batch = items.slice(i, i + BATCH_SIZE);
+        const payload: any = {};
+        if (type === 'invoice') payload.invoice = batch;
+        else if (type === 'receipt') payload.receipt = batch;
+        else payload.jv_entry = batch;
 
-    // // Invoice/Credit Note
-    // if (groupedVouchers.invoice.length > 0) {
-    //   for (let i = 0; i < groupedVouchers.invoice.length; i += batchSize) {
-    //     const batch = groupedVouchers.invoice.slice(i, i + batchSize);
-    //     const payload = { invoice: batch };
-    //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/invoice/tally/create', payload, {
-    //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
-    //       });
-    //       console.log(`Invoice batch ${Math.floor(i / batchSize) + 1} sent`);
-    //     } catch (err: any) {
-    //       console.error('Invoice batch failed:', err.response?.data || err.message);
-    //       fs.writeFileSync(`./dump/voucher/failed_invoice_batch_${i}.json`, JSON.stringify(payload, null, 2));
-    //     }
-    //   }
-    // }
+        try {
+          await axios.post(apiUrl, payload, {
+            headers: { 'API-KEY': API_KEY, 'Content-Type': 'application/json' },
+            timeout: 30000
+          });
+          successCount[type] += batch.length;
+          db.log('INFO', `${type.charAt(0).toUpperCase() + type.slice(1)} batch synced`, { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+        } catch (err: any) {
+          failedCount[type] += batch.length;
+          const errMsg = err.response?.data || err.message;
+          db.log('ERROR', `${type} batch failed`, { error: errMsg });
+          fs.writeFileSync(`./dump/voucher/failed_${type}_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
+        }
+      }
+    };
 
-    // // Receipt
-    // if (groupedVouchers.receipt.length > 0) {
-    //   for (let i = 0; i < groupedVouchers.receipt.length; i += batchSize) {
-    //     const batch = groupedVouchers.receipt.slice(i, i + batchSize);
-    //     const payload = { receipt: batch };
-    //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/billers/tally/payment', payload, {
-    //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
-    //       });
-    //       console.log(`Receipt batch ${Math.floor(i / batchSize) + 1} sent`);
-    //     } catch (err: any) {
-    //       console.error('Receipt batch failed:', err.response?.data || err.message);
-    //       fs.writeFileSync(`./dump/voucher/failed_receipt_batch_${i}.json`, JSON.stringify(payload, null, 2));
-    //     }
-    //   }
-    // }
+    await Promise.all([
+      sendBatch(groupedVouchers.invoice, INVOICE_API, 'invoice'),
+      sendBatch(groupedVouchers.receipt, RECEIPT_API, 'receipt'),
+      sendBatch(groupedVouchers.jv_entry, JV_API, 'jv')
+    ]);
 
-    // // JV Entry
-    // if (groupedVouchers.jv_entry.length > 0) {
-    //   for (let i = 0; i < groupedVouchers.jv_entry.length; i += batchSize) {
-    //     const batch = groupedVouchers.jv_entry.slice(i, i + batchSize);
-    //     const payload = { jv_entry: batch };
-    //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/ledgers/tally/jv-entries', payload, {
-    //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
-    //       });
-    //       console.log(`JV batch ${Math.floor(i / batchSize) + 1} sent`);
-    //     } catch (err: any) {
-    //       console.error('JV batch failed:', err.response?.data || err.message);
-    //       fs.writeFileSync(`./dump/voucher/failed_jv_batch_${i}.json`, JSON.stringify(payload, null, 2));
-    //     }
-    //   }
-    // }
+    const totalSuccess = successCount.invoice + successCount.receipt + successCount.jv;
+    const totalFailed = failedCount.invoice + failedCount.receipt + failedCount.jv;
+    const status = totalFailed === 0 ? 'SUCCESS' : (totalSuccess > 0 ? 'PARTIAL' : 'FAILED');
 
-    // await databaseService.updateVoucherMaxAlterId(newMaxAlterId);
-    // await databaseService.updateLastSuccessfulSync();
-    console.log(`AR voucher sync completed. New max AlterID: ${newMaxAlterId}`);
+    if (totalSuccess > 0) {
+      await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+    }
+
+    await db.logSyncEnd(runId, status, totalSuccess, totalFailed, newMaxAlterId, `${totalSuccess} synced`, {
+      invoice: { success: successCount.invoice, failed: failedCount.invoice },
+      receipt: { success: successCount.receipt, failed: failedCount.receipt },
+      jv: { success: successCount.jv, failed: failedCount.jv }
+    });
+    await db.updateLastSuccessfulSync();
+
+    db.log('INFO', 'Voucher sync completed', { totalSuccess, totalFailed, highest_alter_id: newMaxAlterId });
 
   } catch (error: any) {
-    console.error('AR voucher sync failed:', error?.message || error);
-    databaseService.log('ERROR', 'AR voucher sync failed', { error: error?.message });
+    await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, error.message);
+    db.log('ERROR', 'Voucher sync crashed', { error: error.message });
     throw error;
   }
 }

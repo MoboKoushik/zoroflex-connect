@@ -1,22 +1,54 @@
+// src/services/customer/syncCustomers.service.ts
+
 import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
 import { DatabaseService } from '../../database/database.service';
 
+const db = new DatabaseService();
 
-// Inject or instantiate DatabaseService (e.g., singleton or passed in)
-const databaseService = new DatabaseService();
+const ENTITY_TYPE = 'CUSTOMER';
+const API_URL = 'http://localhost:3000/customer/tally/create';
+const API_KEY = '7061797A6F72726F74616C6C79';
+const BATCH_SIZE = 20;
 
-// Safe text extraction
+interface Customer {
+  name: string;
+  contact_person: string;
+  email: string;
+  email_cc: string;
+  phone: string;
+  mobile: string;
+  whatsapp_number: string;
+  company_name: string;
+  additional_address_lines: string[];
+  customer_id: string;
+  biller_id: string;
+  gstin: string;
+  gst_registration_type: string;
+  gst_state: string;
+  bank_details: Array<{
+    bank_name: string;
+    account_number: string;
+    ifsc_code: string;
+    branch: string;
+  }>;
+  opening_balance: number;
+  current_balance: number;
+  current_balance_at: string;
+  invoice_details: any[];
+}
+
+
 const getText = (obj: any, key: string): string => {
   const value = obj?.[key]?.[0];
-  if (!value) return 'NAN';
-  return (typeof value === 'string' ? value.trim() : value._?.trim() || 'NAN');
+  if (!value) return '';
+  return (typeof value === 'string' ? value.trim() : value._?.trim() || '');
 };
 
 const getAddresses = (addressList: any[]): { company_name: string; additional_address: string[] } => {
   if (!Array.isArray(addressList) || addressList.length === 0) {
-    return { company_name: 'NAN', additional_address: [] };
+    return { company_name: '', additional_address: [] };
   }
   const lines: string[] = [];
   addressList.forEach(block => {
@@ -28,31 +60,33 @@ const getAddresses = (addressList: any[]): { company_name: string; additional_ad
     }
   });
   return {
-    company_name: lines[0] || 'NAN',
+    company_name: lines[0] || '',
     additional_address: lines.slice(1)
   };
 };
 
-const getBankDetails = (bankList: any[]): any[] => {
+const getBankDetails = (bankList: any[]): Customer['bank_details'] => {
   if (!Array.isArray(bankList) || bankList.length === 0) return [];
   return bankList.map(bank => ({
-    bank_name: getText(bank, 'BANKNAME') || 'NAN',
-    account_number: getText(bank, 'ACCOUNTNUMBER') || 'NAN',
-    ifsc_code: getText(bank, 'IFSCCODE') || 'NAN',
-    branch: getText(bank, 'BRANCHNAME') || 'NAN'
+    bank_name: getText(bank, 'BANKNAME') || '',
+    account_number: getText(bank, 'ACCOUNTNUMBER') || '',
+    ifsc_code: getText(bank, 'IFSCCODE') || '',
+    branch: getText(bank, 'BRANCHNAME') || ''
   }));
 };
 
-export async function fetchAllLedgers(batchSize: number = 50): Promise<void> {
+export async function syncCustomers(): Promise<void> {
+  const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
+  let successCount = 0;
+  let failedCount = 0;
   let newMaxAlterId = '0';
 
   try {
-    const lastMaxAlterId = '1' // await databaseService.getGlobalMaxAlterId();
-    const cleanLastAlterId = (lastMaxAlterId || '0').trim();
+    const lastMaxAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
+    const cleanLastAlterId = lastMaxAlterId.trim();
 
-    console.log(`Starting incremental customer sync from AlterID > ${cleanLastAlterId}`);
+    db.log('INFO', 'Customer sync started', { from_alter_id: cleanLastAlterId });
 
-    // Critical: Use $$Number on BOTH sides for reliable numeric comparison
     const xmlRequest = `
 <ENVELOPE>
   <HEADER>
@@ -90,8 +124,6 @@ export async function fetchAllLedgers(batchSize: number = 50): Promise<void> {
             <NATIVEMETHOD>MasterID</NATIVEMETHOD>
             <NATIVEMETHOD>AlterID</NATIVEMETHOD>
           </COLLECTION>
-
-          <!-- Proven working formula: Numeric comparison with $$Number -->
           <SYSTEM TYPE="Formulae" NAME="IncrementalFilter">
             $$Number:$AlterID > $$Number:##SVLastMaxAlterID
           </SYSTEM>
@@ -99,38 +131,37 @@ export async function fetchAllLedgers(batchSize: number = 50): Promise<void> {
       </TDL>
     </DESC>
   </BODY>
-</ENVELOPE>
-`.trim();
+</ENVELOPE>`.trim();
 
     const response = await axios.post('http://localhost:9000', xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
+      headers: { 'Content-Type': 'text/xml' }
     });
 
     const parsed = await parseStringPromise(response.data);
     fs.mkdirSync('./dump/customer', { recursive: true });
-    fs.writeFileSync('./dump/customer/raw_incremental_response.json', JSON.stringify(parsed, null, 2));
+    fs.writeFileSync('./dump/customer/raw_response.json', JSON.stringify(parsed, null, 2));
 
     const ledgersXml = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
 
     if (ledgersXml.length === 0) {
-      console.log('No new/changed customers since last sync.');
-      await databaseService.updateLastSuccessfulSync(); // Optional: update timestamp
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, cleanLastAlterId, 'No new customers');
+      db.log('INFO', 'No new/updated customers found');
       return;
     }
 
-    const customersForAPI: any[] = [];
-    let highestAlterId = parseInt(lastMaxAlterId || '0');
+    const customers: Customer[] = [];
+    let highestAlterId = parseInt(cleanLastAlterId || '0', 10);
 
     for (const ledger of ledgersXml) {
       const alterIdStr = getText(ledger, 'ALTERID');
-      const alterId = parseInt(alterIdStr || '0');
+      const alterId = parseInt(alterIdStr || '0', 10);
       if (alterId > highestAlterId) highestAlterId = alterId;
 
       const addressInfo = getAddresses(ledger['ADDRESS.LIST'] || []);
       const bankDetails = getBankDetails(ledger['BANKALLOCATIONS.LIST'] || []);
 
-      const customer = {
-        name: getText(ledger, 'NAME') || ledger?.$?.NAME || 'NAN',
+      const customer: Customer = {
+        name: getText(ledger, 'NAME') || ledger?.$?.NAME || '',
         contact_person: getText(ledger, 'LEDGERCONTACT'),
         email: getText(ledger, 'EMAIL'),
         email_cc: getText(ledger, 'EMAILCC'),
@@ -151,43 +182,51 @@ export async function fetchAllLedgers(batchSize: number = 50): Promise<void> {
         invoice_details: []
       };
 
-      customersForAPI.push(customer);
+      customers.push(customer);
     }
 
     newMaxAlterId = highestAlterId.toString();
 
-    // Save transformed
-    fs.writeFileSync('./dump/customer/transformed_incremental_customers.json', JSON.stringify(customersForAPI, null, 2));
-    console.log(`Fetched ${customersForAPI.length} changed/new customers (highest AlterID: ${newMaxAlterId})`);
+    fs.writeFileSync('./dump/customer/transformed_customers.json', JSON.stringify(customers, null, 2));
+    db.log('INFO', 'Customers transformed', { count: customers.length, highest_alter_id: newMaxAlterId });
 
-    // Send in batches
-    // const apiUrl = 'https://uatarmapi.a10s.in/customer/tally/create';
-    // const apiKey = '7061797A6F72726F74616C6C79';
+    for (let i = 0; i < customers.length; i += BATCH_SIZE) {
+      const batch = customers.slice(i, i + BATCH_SIZE);
+      const payload = { customer: batch };
 
-    // for (let i = 0; i < customersForAPI.length; i += batchSize) {
-    //     const batch = customersForAPI.slice(i, i + batchSize);
-    //     const payload = { customer: batch };
+      try {
+        await axios.post(API_URL, payload, {
+          headers: {
+            'API-KEY': API_KEY,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
+        successCount += batch.length;
+        db.log('INFO', 'Customer batch synced successfully', { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+      } catch (err: any) {
+        failedCount += batch.length;
+        const errorMsg = err.response?.data || err.message || 'Unknown error';
+        db.log('ERROR', 'Customer batch failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
+        fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
+      }
+    }
 
-    //     try {
-    //         await axios.post(apiUrl, payload, {
-    //             headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
-    //         });
-    //         console.log(`Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(customersForAPI.length / batchSize)} sent`);
-    //     } catch (err: any) {
-    //         console.error('Batch failed:', err.response?.data || err.message);
-    //         fs.writeFileSync(`./dump/customer/failed_batch_${i}.json`, JSON.stringify(payload, null, 2));
-    //     }
-    // }
+    const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
+    const summary = { success: successCount, failed: failedCount, total: customers.length };
 
-    // SUCCESS: Update last_max_alter_id
-    await databaseService.updateGlobalMaxAlterId(newMaxAlterId);
-    await databaseService.updateLastSuccessfulSync();
-    console.log(`Incremental sync completed. New max_alter_id saved: ${newMaxAlterId}`);
+    if (successCount > 0) {
+      await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+    }
+
+    await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`, summary);
+    await db.updateLastSuccessfulSync();
+
+    db.log('INFO', 'Customer sync completed', summary);
 
   } catch (error: any) {
-    console.error('Incremental customer sync failed:', error?.message || error);
-    databaseService.log('ERROR', 'Customer incremental sync failed', { error: error?.message });
-    // Do NOT update max_alter_id on failure
+    await db.logSyncEnd(runId, 'FAILED', successCount, failedCount, undefined, error.message || 'Unknown error');
+    db.log('ERROR', 'Customer sync crashed', { error: error.message });
     throw error;
   }
 }
