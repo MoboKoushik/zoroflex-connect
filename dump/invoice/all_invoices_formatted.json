@@ -1,0 +1,366 @@
+{
+  "invoice": [
+    {
+      "invoice_id": "Tally 1001",
+      "invoice_number": "1",
+      "voucher_type": "sales",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "-271.40"
+        },
+        {
+          "Ledger_Name": "Colletion Services",
+          "Amount": "230.00"
+        },
+        {
+          "Ledger_Name": "CGST",
+          "Amount": "20.70"
+        },
+        {
+          "Ledger_Name": "SGST",
+          "Amount": "20.70"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "PENCIL",
+          "Quantity": " 23 NO.",
+          "AltQuantity": " 23 NO.",
+          "Rate": "10.00/NO.",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "230.00",
+          "GST_perc": "",
+          "Discount": "0",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 11001",
+      "invoice_number": "2",
+      "voucher_type": "sales",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "-73575.00"
+        },
+        {
+          "Ledger_Name": "Infrastructure-IT",
+          "Amount": "67500.00"
+        },
+        {
+          "Ledger_Name": "CGST",
+          "Amount": "6075.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "Laptop",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "67500.00",
+          "GST_perc": "",
+          "Discount": "0",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 9001",
+      "invoice_number": "1",
+      "voucher_type": "sales",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "6000.00"
+        },
+        {
+          "Ledger_Name": "Cash",
+          "Amount": "-6000.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "",
+          "GST_perc": "",
+          "Discount": "",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 5001",
+      "invoice_number": "1",
+      "voucher_type": "credit_note",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "2432.00"
+        },
+        {
+          "Ledger_Name": "Infrastructure-IT",
+          "Amount": "-2432.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "2",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "Laptop",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "-2432.00",
+          "GST_perc": "",
+          "Discount": "0",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 6001",
+      "invoice_number": "2",
+      "voucher_type": "credit_note",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "100.00"
+        },
+        {
+          "Ledger_Name": "Colletion Services",
+          "Amount": "-100.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "1",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "Laptop",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "-100.00",
+          "GST_perc": "",
+          "Discount": "0",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 7001",
+      "invoice_number": "1",
+      "voucher_type": "sales",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Discount Given",
+          "Amount": "-300.00"
+        },
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "300.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "",
+          "GST_perc": "",
+          "Discount": "",
+          "Batch_Allocation": []
+        }
+      ]
+    },
+    {
+      "invoice_id": "Tally 8001",
+      "invoice_number": "2",
+      "voucher_type": "sales",
+      "issue_date": "01-04-2025",
+      "due_date": "",
+      "customer_id": "",
+      "status": "",
+      "type": "simple",
+      "total": 0,
+      "balance": 0,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "shyam nagar",
+      "state": "delhi",
+      "country": "india",
+      "company_name": "Ankit Enterprises",
+      "bill_details": [
+        {
+          "bill_id": "N/A",
+          "bill_amount": "0"
+        }
+      ],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": "2000.00"
+        },
+        {
+          "Ledger_Name": "Cash",
+          "Amount": "-2000.00"
+        }
+      ],
+      "Inventory_Entries": true,
+      "Order_NUmber": "",
+      "Delivery_note_no": "",
+      "Inventory_Details": [
+        {
+          "StockItem_Name": "",
+          "Quantity": "",
+          "AltQuantity": "",
+          "Rate": "",
+          "UOM": "",
+          "AlterbativeUnit": "",
+          "Amount": "",
+          "GST_perc": "",
+          "Discount": "",
+          "Batch_Allocation": []
+        }
+      ]
+    }
+  ]
+}

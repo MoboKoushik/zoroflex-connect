@@ -1,0 +1,206 @@
+{
+  "invoice": [
+    {
+      "invoice_id": "Tally11",
+      "invoice_number": "2",
+      "voucher_type": "invoice",
+      "issue_date": "20250401",
+      "due_date": "NAN",
+      "customer_id": "2",
+      "status": "NAN",
+      "type": "simple",
+      "total": -73575,
+      "balance": -73575,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "NAN",
+      "state": "NAN",
+      "country": "india",
+      "company_name": "NAN",
+      "Ewaybill_Num": "NAN",
+      "Date": "20250401",
+      "DispatchFrom ": "NAN",
+      "Dispatchto": "NAN",
+      "TransporatName": "NAN",
+      "TransporatId": "NAN",
+      "Mode": "NAN",
+      "LadingNo": "NAN",
+      "LadingDate": "NAN",
+      "Vehicle_number": "NAN",
+      "Vehicle_type": "NAN",
+      "Acknowledge_No": "NAN",
+      "Ack_Date": "NAN",
+      "IRN": "NAN",
+      "BilltoPlace": "NAN",
+      "Ship to Place": "NAN",
+      "bill_details": [],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": -73575
+        },
+        {
+          "Ledger_Name": "Infrastructure-IT",
+          "Amount": 67500
+        },
+        {
+          "Ledger_Name": "CGST",
+          "Amount": 6075
+        }
+      ],
+      "Inventory_Entries": false,
+      "Order_NUmber": "NAN",
+      "Delivery_note_no": "NAN",
+      "Inventory_Details": []
+    },
+    {
+      "invoice_id": "Tally5",
+      "invoice_number": "1",
+      "voucher_type": "credit_note",
+      "issue_date": "20250401",
+      "due_date": "NAN",
+      "customer_id": "4",
+      "status": "NAN",
+      "type": "simple",
+      "total": 2432,
+      "balance": 2432,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "NAN",
+      "state": "NAN",
+      "country": "india",
+      "company_name": "NAN",
+      "Ewaybill_Num": "NAN",
+      "Date": "20250401",
+      "DispatchFrom ": "NAN",
+      "Dispatchto": "NAN",
+      "TransporatName": "NAN",
+      "TransporatId": "NAN",
+      "Mode": "NAN",
+      "LadingNo": "NAN",
+      "LadingDate": "NAN",
+      "Vehicle_number": "NAN",
+      "Vehicle_type": "NAN",
+      "Acknowledge_No": "NAN",
+      "Ack_Date": "NAN",
+      "IRN": "NAN",
+      "BilltoPlace": "NAN",
+      "Ship to Place": "NAN",
+      "bill_details": [],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": 2432
+        },
+        {
+          "Ledger_Name": "Infrastructure-IT",
+          "Amount": -2432
+        }
+      ],
+      "Inventory_Entries": false,
+      "Order_NUmber": "NAN",
+      "Delivery_note_no": "NAN",
+      "Inventory_Details": []
+    },
+    {
+      "invoice_id": "Tally6",
+      "invoice_number": "2",
+      "voucher_type": "credit_note",
+      "issue_date": "20250401",
+      "due_date": "NAN",
+      "customer_id": "5",
+      "status": "NAN",
+      "type": "simple",
+      "total": 100,
+      "balance": 100,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "address": "NAN",
+      "state": "NAN",
+      "country": "india",
+      "company_name": "NAN",
+      "Ewaybill_Num": "NAN",
+      "Date": "20250401",
+      "DispatchFrom ": "NAN",
+      "Dispatchto": "NAN",
+      "TransporatName": "NAN",
+      "TransporatId": "NAN",
+      "Mode": "NAN",
+      "LadingNo": "NAN",
+      "LadingDate": "NAN",
+      "Vehicle_number": "NAN",
+      "Vehicle_type": "NAN",
+      "Acknowledge_No": "NAN",
+      "Ack_Date": "NAN",
+      "IRN": "NAN",
+      "BilltoPlace": "NAN",
+      "Ship to Place": "NAN",
+      "bill_details": [],
+      "Ledger_Entries": [
+        {
+          "Ledger_Name": "Ankit Enterprises",
+          "Amount": 100
+        },
+        {
+          "Ledger_Name": "Colletion Services",
+          "Amount": -100
+        }
+      ],
+      "Inventory_Entries": false,
+      "Order_NUmber": "NAN",
+      "Delivery_note_no": "NAN",
+      "Inventory_Details": []
+    }
+  ],
+  "receipt": [
+    {
+      "receipt_id": "9",
+      "receipt_number": "1",
+      "receipt_date": "20250401",
+      "customer_name": "Ankit Enterprises",
+      "customer_id": "3",
+      "receipt_amount": 6000,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "transaction_type": "NAN",
+      "bill_details": []
+    },
+    {
+      "receipt_id": "8",
+      "receipt_number": "2",
+      "receipt_date": "20250401",
+      "customer_name": "Ankit Enterprises",
+      "customer_id": "7",
+      "receipt_amount": 2000,
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "transaction_type": "NAN",
+      "bill_details": []
+    }
+  ],
+  "jv_entry": [
+    {
+      "entry_type": "JVENTRY",
+      "transation_id": "Vd7",
+      "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+      "voucher_number": "1",
+      "ref_number": "NAN",
+      "date": "20250401",
+      "ref_date": "20250401",
+      "narration": "Being discount given",
+      "ledger_entries": [
+        {
+          "customer_id": "6",
+          "conversation_rate": 84,
+          "company_name": "Discount Given",
+          "amount": 300,
+          "currency": "INR",
+          "invoice_details": []
+        },
+        {
+          "customer_id": "6",
+          "conversation_rate": 84,
+          "company_name": "Ankit Enterprises",
+          "amount": 300,
+          "currency": "INR",
+          "invoice_details": []
+        }
+      ]
+    }
+  ]
+}

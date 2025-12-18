@@ -3,13 +3,16 @@ import * as path from 'path';
 import axios from 'axios';
 import { DatabaseService } from '../services/database/database.service'; // Adjust path as per your structure
 import { SyncService } from '../services/sync/sync.service';
+import { OrganizationService } from '../services/sync/send-to-platfrom/organization.service';
+
 
 let tray: Tray | null = null;
 let loginWindow: BrowserWindow | null = null;
 let dashboardWindow: BrowserWindow | null = null; // New: Dashboard window
 
 const dbService = new DatabaseService();
-const syncService = new SyncService(dbService);
+const organizationService = new OrganizationService(dbService);
+const syncService = new SyncService(dbService, organizationService);
 
 ipcMain.on('login-success', async () => {
   console.log('login-success event received → Starting background mode & loading dashboard');
@@ -46,7 +49,7 @@ app.whenReady().then(async () => {
     console.log('Profile found → Starting in background + dashboard');
     app.setLoginItemSettings({ openAtLogin: true });
     createTrayAndStartSync(profile);
-    // createDashboardWindow(profile); // Load dashboard if profile exists
+    createDashboardWindow(profile); // Load dashboard if profile exists
   } else {
     console.log('No profile → Opening login');
     createLoginWindow();
@@ -69,13 +72,18 @@ function createLoginWindow(): void {
     title: 'Zoroflex Connect - Login',
     icon: path.join(__dirname, '../../assets/icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, './preload/login-preload.js'), // Adjust if separate
+      preload: path.join(__dirname, '../renderer/login/preload.js'), // Adjust if separate
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  loginWindow.loadFile(path.join(__dirname, './renderer/login/login.html'));
+  loginWindow.loadFile(path.join(__dirname, '../renderer/login/login.html'));
+
+  // Open DevTools automatically in development
+  loginWindow.webContents.once('did-finish-load', () => {
+    loginWindow?.webContents.openDevTools({ mode: 'detach' }); // or 'right', 'bottom', etc.
+  });
 
   loginWindow.once('ready-to-show', () => {
     loginWindow?.show();
@@ -108,14 +116,14 @@ function createDashboardWindow(profile: any): void {
     title: 'Zoroflex Connect - Dashboard',
     icon: iconPath,
     webPreferences: {
-      preload: path.join(__dirname, './preload/dashboard-preload.js'),
+      preload: path.join(__dirname, '../preload/dashboard-preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
   // Load the dashboard HTML (which renders React Dashboard)
-  dashboardWindow.loadFile(path.join(__dirname, './renderer/dashboard/index.html'));
+  dashboardWindow.loadFile(path.join(__dirname, '../renderer/dashboard/index.html'));
 
   // Pass profile data via IPC once loaded
   dashboardWindow.webContents.once('did-finish-load', () => {
@@ -228,8 +236,8 @@ function createTrayAndStartSync(profile: any): void {
   tray.setToolTip('Zoroflex Connect - Connected');
 
   const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Open Dashboard', 
+    {
+      label: 'Open Dashboard',
       click: () => {
         if (dashboardWindow) {
           if (dashboardWindow.isVisible()) {

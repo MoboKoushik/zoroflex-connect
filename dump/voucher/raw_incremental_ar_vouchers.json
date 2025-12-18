@@ -130,35 +130,10 @@
             "COLLECTION": [
               {
                 "$": {
-                  "ISMSTDEPTYPE": "Yes",
-                  "MSTDEPTYPE": "8"
-                },
-                "LEDGER": [
-                  {
-                    "$": {
-                      "NAME": "Ankit Enterprises",
-                      "RESERVEDNAME": ""
-                    }
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company   Test 001",
-                      "RESERVEDNAME": ""
-                    }
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company Test 002",
-                      "RESERVEDNAME": ""
-                    }
-                  },
-                  {
-                    "$": {
-                      "NAME": "Company Test 003",
-                      "RESERVEDNAME": ""
-                    }
-                  }
-                ]
+                  "ISCMPDEPTYPE": "Yes",
+                  "CMPLOCUS": "4",
+                  "CMPDEPTYPE": "64"
+                }
               }
             ]
           }

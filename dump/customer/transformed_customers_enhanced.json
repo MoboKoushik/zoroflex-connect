@@ -1,0 +1,114 @@
+[
+  {
+    "name": "NAN",
+    "contact_person": "Ankit Jolly",
+    "email": "ajolly@serviceats.com",
+    "email_cc": "info@zorrofin.com",
+    "phone": "0129664455",
+    "mobile": "9898989898",
+    "whatsapp_number": "9898989898",
+    "company_name": "SARAI, Haryana",
+    "additional_address_lines": [],
+    "customer_id": "209",
+    "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+    "gstin": "NAN",
+    "gst_registration_type": "NAN",
+    "gst_state": "NAN",
+    "bank_details": [
+      {
+        "bank_name": "NAN",
+        "account_number": "NAN",
+        "ifsc_code": "NAN",
+        "branch": "NAN"
+      }
+    ],
+    "opening_balance": -7000,
+    "current_balance": -70014.4,
+    "current_balance_at": "2025-12-16 14:11:57",
+    "invoice_details": []
+  },
+  {
+    "name": "NAN",
+    "contact_person": "NAN",
+    "email": "NAN",
+    "email_cc": "NAN",
+    "phone": "NAN",
+    "mobile": "NAN",
+    "whatsapp_number": "NAN",
+    "company_name": "NAN",
+    "additional_address_lines": [],
+    "customer_id": "217",
+    "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+    "gstin": "NAN",
+    "gst_registration_type": "NAN",
+    "gst_state": "NAN",
+    "bank_details": [
+      {
+        "bank_name": "NAN",
+        "account_number": "NAN",
+        "ifsc_code": "NAN",
+        "branch": "NAN"
+      }
+    ],
+    "opening_balance": 0,
+    "current_balance": null,
+    "current_balance_at": "2025-12-16 14:11:57",
+    "invoice_details": []
+  },
+  {
+    "name": "NAN",
+    "contact_person": "NAN",
+    "email": "NAN",
+    "email_cc": "NAN",
+    "phone": "NAN",
+    "mobile": "NAN",
+    "whatsapp_number": "NAN",
+    "company_name": "NAN",
+    "additional_address_lines": [],
+    "customer_id": "218",
+    "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+    "gstin": "NAN",
+    "gst_registration_type": "NAN",
+    "gst_state": "NAN",
+    "bank_details": [
+      {
+        "bank_name": "NAN",
+        "account_number": "NAN",
+        "ifsc_code": "NAN",
+        "branch": "NAN"
+      }
+    ],
+    "opening_balance": -3000,
+    "current_balance": -3000,
+    "current_balance_at": "2025-12-16 14:11:57",
+    "invoice_details": []
+  },
+  {
+    "name": "NAN",
+    "contact_person": "NAN",
+    "email": "NAN",
+    "email_cc": "NAN",
+    "phone": "NAN",
+    "mobile": "NAN",
+    "whatsapp_number": "NAN",
+    "company_name": "NAN",
+    "additional_address_lines": [],
+    "customer_id": "220",
+    "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
+    "gstin": "NAN",
+    "gst_registration_type": "NAN",
+    "gst_state": "NAN",
+    "bank_details": [
+      {
+        "bank_name": "NAN",
+        "account_number": "NAN",
+        "ifsc_code": "NAN",
+        "branch": "NAN"
+      }
+    ],
+    "opening_balance": 0,
+    "current_balance": null,
+    "current_balance_at": "2025-12-16 14:11:57",
+    "invoice_details": []
+  }
+]
