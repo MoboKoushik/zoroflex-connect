@@ -63,16 +63,20 @@ function createLoginWindow(): void {
   }
 
   loginWindow = new BrowserWindow({
-    width: 380,
-    height: 280,
+    width: 420,
+    height: 380,
+    minWidth: 400,
+    minHeight: 380,
     show: false,
     frame: true,
     resizable: false,
     maximizable: false,
     title: 'Zoroflex Connect - Login',
     icon: path.join(__dirname, '../../assets/icon.png'),
+    backgroundColor: '#ffffff',
+    titleBarStyle: 'default',
     webPreferences: {
-      preload: path.join(__dirname, '../renderer/login/preload.js'), // Adjust if separate
+      preload: path.join(__dirname, '../renderer/login/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -80,10 +84,12 @@ function createLoginWindow(): void {
 
   loginWindow.loadFile(path.join(__dirname, '../renderer/login/login.html'));
 
-  // Open DevTools automatically in development
-  loginWindow.webContents.once('did-finish-load', () => {
-    loginWindow?.webContents.openDevTools({ mode: 'detach' }); // or 'right', 'bottom', etc.
-  });
+  // Open DevTools automatically only in development mode
+  if (!app.isPackaged) {
+    loginWindow.webContents.once('did-finish-load', () => {
+      loginWindow?.webContents.openDevTools({ mode: 'detach' });
+    });
+  }
 
   loginWindow.once('ready-to-show', () => {
     loginWindow?.show();
@@ -107,14 +113,18 @@ function createDashboardWindow(profile: any): void {
     : path.join(__dirname, '../../assets/icon.png');
 
   dashboardWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
+    minWidth: 1000,
+    minHeight: 700,
     show: false, // Start hidden; show on tray click
     frame: true,
     resizable: true,
     maximizable: true,
     title: 'Zoroflex Connect - Dashboard',
     icon: iconPath,
+    backgroundColor: '#f0f4ff',
+    titleBarStyle: 'default',
     webPreferences: {
       preload: path.join(__dirname, '../preload/dashboard-preload.js'),
       contextIsolation: true,
@@ -142,7 +152,7 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
   console.log('Login attempt:', credentials.email);
 
   try {
-    const { data } = await axios.post('https://uatarmapi.a10s.in/billers/tally/login', credentials, {
+    const { data } = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
       timeout: 15000,
     });
 

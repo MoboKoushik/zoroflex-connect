@@ -55,6 +55,10 @@
       "assets/**/*",
       "package.json"
     ],
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
     "extraResources": [
       {
         "from": "assets/",
@@ -82,17 +86,19 @@
       "icon": "assets/icon.ico"
     },
     "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowElevation": true,
-      "allowToChangeInstallationDirectory": false,
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "menuCategory": false,
+      "perMachine": false,
+      "allowElevation": true
     },
-    "asarUnpack": [
-      "**/*.node",
-      "**/*.dll"
-    ],
     "forceCodeSigning": false,
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"

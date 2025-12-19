@@ -660,7 +660,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
     //     const batch = groupedVouchers.invoice.slice(i, i + batchSize);
     //     const payload = { invoice: batch };
     //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/invoice/tally/create', payload, {
+    //       await axios.post('http://localhost:3000/invoice/tally/create', payload, {
     //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
     //       });
     //       console.log(`Invoice batch ${Math.floor(i / batchSize) + 1} sent`);
@@ -677,7 +677,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
     //     const batch = groupedVouchers.receipt.slice(i, i + batchSize);
     //     const payload = { receipt: batch };
     //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/billers/tally/payment', payload, {
+    //       await axios.post('http://localhost:3000/billers/tally/payment', payload, {
     //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
     //       });
     //       console.log(`Receipt batch ${Math.floor(i / batchSize) + 1} sent`);
@@ -694,7 +694,7 @@ export async function syncCustomersToAPI(batchSize: number = 50): Promise<void> 
     //     const batch = groupedVouchers.jv_entry.slice(i, i + batchSize);
     //     const payload = { jv_entry: batch };
     //     try {
-    //       await axios.post('https://uatarmapi.a10s.in/ledgers/tally/jv-entries', payload, {
+    //       await axios.post('http://localhost:3000/ledgers/tally/jv-entries', payload, {
     //         headers: { 'API-KEY': apiKey, 'Content-Type': 'application/json' },
     //       });
     //       console.log(`JV batch ${Math.floor(i / batchSize) + 1} sent`);
