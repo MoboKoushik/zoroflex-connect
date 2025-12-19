@@ -37,10 +37,10 @@ export class SyncService {
       }
 
       this.dbService.log('INFO', 'Starting customer sync');
-      await syncCustomers();
+      await syncCustomers(profile);
 
       this.dbService.log('INFO', 'Starting voucher sync (Invoice, Receipt, Journal)');
-      await syncVouchers();
+      await syncVouchers(profile);
 
 
       await this.dbService.updateLastSuccessfulSync();

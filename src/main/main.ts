@@ -142,7 +142,7 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
   console.log('Login attempt:', credentials.email);
 
   try {
-    const { data } = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
+    const { data } = await axios.post('https://uatarm.a10s.in/billers/tally/login', credentials, {
       timeout: 15000,
     });
 

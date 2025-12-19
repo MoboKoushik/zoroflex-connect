@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
-import { DatabaseService } from '../../database/database.service';
+import { DatabaseService, UserProfile } from '../../database/database.service';
 
 const db = new DatabaseService();
 
@@ -11,9 +11,9 @@ const BATCH_SIZE = 20;
 const API_KEY = '7061797A6F72726F74616C6C79';
 
 // API Endpoints
-const INVOICE_API = 'http://localhost:3000/invoice/tally/create';
-const RECEIPT_API = 'http://localhost:3000/billers/tally/payment';
-const JV_API = 'http://localhost:3000/ledgers/tally/jv-entries';
+const INVOICE_API = 'https://uatarm.a10s.in/invoice/tally/create';
+const RECEIPT_API = 'https://uatarm.a10s.in/billers/tally/payment';
+const JV_API = 'https://uatarm.a10s.in/ledgers/tally/jv-entries';
 
 export const customerMasterIdMap = new Map<string, string>();
 
@@ -281,7 +281,7 @@ export async function syncLedgersAndBuildMap(): Promise<void> {
   }
 }
 
-export async function syncVouchers(): Promise<void> {
+export async function syncVouchers(profile: UserProfile): Promise<void> {
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
   let successCount = { invoice: 0, receipt: 0, jv: 0 };
   let failedCount = { invoice: 0, receipt: 0, jv: 0 };
@@ -442,7 +442,7 @@ export async function syncVouchers(): Promise<void> {
       const partyLedger = getText(voucher, 'PARTYLEDGERNAME');
       const invoiceId = getText(voucher, 'MASTERID');
       const issueDate = getText(voucher, 'DATE');
-      const billerId = 'a6ca7e76-34b7-40db-85e4-481ccc5f662f';
+      const billerId = profile?.biller_id || '';
       const address = getText(voucher, 'ADDRESS') || '';
       const state = getText(voucher, 'STATE') || '';
       const country = 'india';

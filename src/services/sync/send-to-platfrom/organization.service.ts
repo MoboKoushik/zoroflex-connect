@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { DatabaseService, UserProfile } from '../../database/database.service';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://uatarm.a10s.in';
 const API_KEY = '7061797A6F72726F74616C6C79';
 const ENTITY_TYPE = 'ORGANIZATION';
 

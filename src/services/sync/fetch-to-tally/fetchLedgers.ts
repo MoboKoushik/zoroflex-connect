@@ -3,12 +3,12 @@
 import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
-import { DatabaseService } from '../../database/database.service';
+import { DatabaseService, UserProfile } from '../../database/database.service';
 
 const db = new DatabaseService();
 
 const ENTITY_TYPE = 'CUSTOMER';
-const API_URL = 'http://localhost:3000/customer/tally/create';
+const API_URL = 'https://uatarm.a10s.in/customer/tally/create';
 const API_KEY = '7061797A6F72726F74616C6C79';
 const BATCH_SIZE = 20;
 
@@ -75,7 +75,7 @@ const getBankDetails = (bankList: any[]): Customer['bank_details'] => {
   }));
 };
 
-export async function syncCustomers(): Promise<void> {
+export async function syncCustomers(profile: UserProfile): Promise<void> {
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
   let successCount = 0;
   let failedCount = 0;
@@ -171,7 +171,7 @@ export async function syncCustomers(): Promise<void> {
         company_name: addressInfo.company_name,
         additional_address_lines: addressInfo.additional_address,
         customer_id: getText(ledger, 'MASTERID'),
-        biller_id: 'a6ca7e76-34b7-40db-85e4-481ccc5f662f',
+        biller_id: profile?.biller_id || '',
         gstin: getText(ledger, 'PARTYGSTIN'),
         gst_registration_type: getText(ledger, 'GSTREGISTRATIONTYPE'),
         gst_state: getText(ledger, 'LEDGERSTATE'),
