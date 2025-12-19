@@ -8,7 +8,7 @@ import { DatabaseService, UserProfile } from '../../database/database.service';
 const db = new DatabaseService();
 
 const ENTITY_TYPE = 'CUSTOMER';
-const API_URL = 'https://uatarm.a10s.in/customer/tally/create';
+const API_URL = 'https://uatarmapi.a10s.in/customer/tally/create';
 const API_KEY = '7061797A6F72726F74616C6C79';
 const BATCH_SIZE = 20;
 

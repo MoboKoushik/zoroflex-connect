@@ -23,7 +23,7 @@
                   "0"
                 ],
                 "LEDGER": [
-                  "49"
+                  "0"
                 ],
                 "COSTCATEGORY": [
                   "0"
@@ -32,7 +32,7 @@
                   "0"
                 ],
                 "GODOWN": [
-                  "2"
+                  "0"
                 ],
                 "STOCKGROUP": [
                   "0"
@@ -41,13 +41,13 @@
                   "0"
                 ],
                 "STOCKITEM": [
-                  "2"
+                  "0"
                 ],
                 "VOUCHERTYPE": [
                   "0"
                 ],
                 "CURRENCY": [
-                  "12"
+                  "0"
                 ],
                 "UNIT": [
                   "0"
@@ -107,7 +107,7 @@
                   "0"
                 ],
                 "TAXUNIT": [
-                  "6"
+                  "0"
                 ],
                 "RETURNMASTER": [
                   "0"
@@ -116,10 +116,10 @@
                   "0"
                 ],
                 "VOUCHERNUMBERSERIES": [
-                  "14"
+                  "0"
                 ],
                 "VOUCHER": [
-                  "21"
+                  "0"
                 ]
               }
             ]

@@ -10,7 +10,7 @@
     "dev": "npm run build && electron .",
     "start": "npm run build && electron .",
     "package": "npm run build && electron-builder",
-    "package-win": "npm run build && electron-builder --win --config.asarUnpack=\"**/*.node\" -c.forceCodeSigning=false",
+    "package-win": "npm run build && electron-builder --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
@@ -65,7 +65,20 @@
       }
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "assets/icon.ico"
     },
     "nsis": {
@@ -77,8 +90,12 @@
       "createStartMenuShortcut": true
     },
     "asarUnpack": [
-      "**/*.node"
+      "**/*.node",
+      "**/*.dll"
     ],
-    "forceCodeSigning": false
+    "forceCodeSigning": false,
+    "electronDownload": {
+      "mirror": "https://npmmirror.com/mirrors/electron/"
+    }
   }
 }
