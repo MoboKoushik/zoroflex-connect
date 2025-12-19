@@ -25,15 +25,47 @@ export class SyncService {
     try {
       this.dbService.log('INFO', `${type} sync initiated`);
 
+      // Fetch current company data from Tally
+      const companyData = await fetchCurrentCompany();
+      if (!companyData) {
+        this.dbService.log('ERROR', 'No company data received from Tally');
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // Get updated profile with organization data
       const prof = await this.dbService.getProfile();
+
+      console.log('Fetched Company Data from Tally:', companyData);
+      console.log('User Profile:', prof);
+      
+      // Validate organization ID matches COMPANYNUMBER if both exist
+      const profileOrganizationId = prof?.organization?.organization_id?.trim() || '';
+      const tallyCompanyNumber = (companyData.COMPANYNUMBER || '').trim();
+
+      // If organization_id exists in profile, it must match COMPANYNUMBER from Tally
+      if (profileOrganizationId && tallyCompanyNumber) {
+        if (profileOrganizationId !== tallyCompanyNumber) {
+          const errorMessage = 'Please select your company in Tally Prime software';
+          this.dbService.log('ERROR', errorMessage, {
+            profile_organization_id: profileOrganizationId,
+            tally_company_number: tallyCompanyNumber
+          });
+          throw new Error(errorMessage);
+        }
+      } else if (profileOrganizationId && !tallyCompanyNumber) {
+        // If profile has organization_id but Tally doesn't have COMPANYNUMBER
+        const errorMessage = 'Please select your company in Tally Prime software';
+        this.dbService.log('ERROR', errorMessage, {
+          profile_organization_id: profileOrganizationId,
+          tally_company_number: 'missing'
+        });
+        throw new Error(errorMessage);
+      }
+
+      // Sync organization if needed (first time or manual sync)
       if (type === 'MANUAL' || !prof?.organization?.synced_at) {
         this.dbService.log('INFO', 'Syncing organization data');
-        const companyData = await fetchCurrentCompany();
-        if (companyData) {
-          await this.organizationService.syncOrganization(profile, companyData);
-        } else {
-          this.dbService.log('WARN', 'No company data received from Tally – skipping organization sync');
-        }
+        await this.organizationService.syncOrganization(profile, companyData);
       }
 
       this.dbService.log('INFO', 'Starting customer sync');

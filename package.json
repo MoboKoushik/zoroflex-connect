@@ -88,7 +88,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
@@ -97,7 +97,8 @@
       "runAfterFinish": true,
       "menuCategory": false,
       "perMachine": false,
-      "allowElevation": true
+      "allowElevation": true,
+      "include": "installer.nsh"
     },
     "forceCodeSigning": false,
     "electronDownload": {

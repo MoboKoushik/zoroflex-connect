@@ -1,15 +1,17 @@
 [
   {
-    "name": "Ankit Enterprises",
-    "contact_person": "Ankit Jolly",
-    "email": "ajolly@serviceats.com",
-    "email_cc": "info@zorrofin.com",
-    "phone": "0129664455",
-    "mobile": "9898989898",
-    "whatsapp_number": "9898989898",
-    "company_name": "SARAI, Haryana",
-    "additional_address_lines": [],
-    "customer_id": "209",
+    "name": "Company Test 3",
+    "contact_person": "",
+    "email": "",
+    "email_cc": "",
+    "phone": "",
+    "mobile": "",
+    "whatsapp_number": "",
+    "company_name": "SARAI",
+    "additional_address_lines": [
+      "FARIDABAD, HARYANA"
+    ],
+    "customer_id": "208",
     "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
     "gstin": "",
     "gst_registration_type": "",
@@ -22,13 +24,13 @@
         "branch": ""
       }
     ],
-    "opening_balance": -7000,
-    "current_balance": -159724.4,
-    "current_balance_at": "2025-12-18 15:47:36",
+    "opening_balance": 0,
+    "current_balance": 0,
+    "current_balance_at": "2025-12-19 16:11:44",
     "invoice_details": []
   },
   {
-    "name": "Company   Test 001",
+    "name": "Siddhi Solutions",
     "contact_person": "",
     "email": "",
     "email_cc": "",
@@ -51,12 +53,12 @@
       }
     ],
     "opening_balance": 0,
-    "current_balance": 0,
-    "current_balance_at": "2025-12-18 15:47:36",
+    "current_balance": 100000,
+    "current_balance_at": "2025-12-19 16:11:44",
     "invoice_details": []
   },
   {
-    "name": "Company Test 002",
+    "name": "Sneha Enterprises",
     "contact_person": "",
     "email": "",
     "email_cc": "",
@@ -78,13 +80,13 @@
         "branch": ""
       }
     ],
-    "opening_balance": -3000,
-    "current_balance": -3000,
-    "current_balance_at": "2025-12-18 15:47:36",
+    "opening_balance": 0,
+    "current_balance": 2345,
+    "current_balance_at": "2025-12-19 16:11:44",
     "invoice_details": []
   },
   {
-    "name": "Company Test 003",
+    "name": "Urvashi B2B Solutions",
     "contact_person": "",
     "email": "",
     "email_cc": "",
@@ -93,7 +95,7 @@
     "whatsapp_number": "",
     "company_name": "",
     "additional_address_lines": [],
-    "customer_id": "220",
+    "customer_id": "219",
     "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
     "gstin": "",
     "gst_registration_type": "",
@@ -107,36 +109,8 @@
       }
     ],
     "opening_balance": 0,
-    "current_balance": 0,
-    "current_balance_at": "2025-12-18 15:47:36",
-    "invoice_details": []
-  },
-  {
-    "name": "Customer Test 004",
-    "contact_person": "Koushik Mandal",
-    "email": "koushikmandal@mobotics.in",
-    "email_cc": "",
-    "phone": "8848735",
-    "mobile": "64645656",
-    "whatsapp_number": "64645656",
-    "company_name": "Gosaba, South 24 Pgs, West Bengal",
-    "additional_address_lines": [],
-    "customer_id": "221",
-    "biller_id": "a6ca7e76-34b7-40db-85e4-481ccc5f662f",
-    "gstin": "",
-    "gst_registration_type": "",
-    "gst_state": "",
-    "bank_details": [
-      {
-        "bank_name": "",
-        "account_number": "",
-        "ifsc_code": "",
-        "branch": ""
-      }
-    ],
-    "opening_balance": -5000,
-    "current_balance": -5000,
-    "current_balance_at": "2025-12-18 15:47:36",
+    "current_balance": 5000,
+    "current_balance_at": "2025-12-19 16:11:44",
     "invoice_details": []
   }
 ]
