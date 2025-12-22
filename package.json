@@ -1,5 +1,5 @@
 {
-  "name": "zoroflex-connect",
+  "name": "zorrofin-connect",
   "version": "1.0.0",
   "description": "Electron app to sync Tally data to Nest backend",
   "main": "dist/main/main.js",
@@ -46,7 +46,7 @@
   },
   "build": {
     "appId": "com.zoroflex.connect",
-    "productName": "Zoroflex Connect",
+    "productName": "ZorrofinConnect",
     "directories": {
       "output": "release"
     },
