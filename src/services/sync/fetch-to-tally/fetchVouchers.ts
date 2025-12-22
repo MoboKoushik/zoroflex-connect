@@ -11,9 +11,9 @@ const BATCH_SIZE = 20;
 const API_KEY = '7061797A6F72726F74616C6C79';
 
 // API Endpoints
-const INVOICE_API = 'http://localhost:3000/invoice/tally/create';
-const RECEIPT_API = 'http://localhost:3000/billers/tally/payment';
-const JV_API = 'http://localhost:3000/ledgers/tally/jv-entries';
+const INVOICE_API = 'https://uatarmapi.a10s.in/invoice/tally/create';
+const RECEIPT_API = 'https://uatarmapi.a10s.in/billers/tally/payment';
+const JV_API = 'https://uatarmapi.a10s.in/ledgers/tally/jv-entries';
 
 export const customerMasterIdMap = new Map<string, string>();
 

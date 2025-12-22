@@ -34,9 +34,6 @@ export class SyncService {
 
       // Get updated profile with organization data
       const prof = await this.dbService.getProfile();
-
-      console.log('Fetched Company Data from Tally:', companyData);
-      console.log('User Profile:', prof);
       
       // Validate organization ID matches COMPANYNUMBER if both exist
       const profileOrganizationId = prof?.organization?.organization_id?.trim() || '';
