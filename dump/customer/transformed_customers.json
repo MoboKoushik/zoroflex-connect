@@ -24,7 +24,7 @@
     ],
     "opening_balance": -7000,
     "current_balance": -159724.4,
-    "current_balance_at": "2025-12-22 15:14:18",
+    "current_balance_at": "2025-12-22 16:32:02",
     "invoice_details": []
   },
   {
@@ -52,7 +52,7 @@
     ],
     "opening_balance": 0,
     "current_balance": 0,
-    "current_balance_at": "2025-12-22 15:14:18",
+    "current_balance_at": "2025-12-22 16:32:02",
     "invoice_details": []
   },
   {
@@ -80,7 +80,7 @@
     ],
     "opening_balance": -3000,
     "current_balance": -3000,
-    "current_balance_at": "2025-12-22 15:14:18",
+    "current_balance_at": "2025-12-22 16:32:02",
     "invoice_details": []
   },
   {
@@ -108,7 +108,7 @@
     ],
     "opening_balance": 0,
     "current_balance": 0,
-    "current_balance_at": "2025-12-22 15:14:18",
+    "current_balance_at": "2025-12-22 16:32:02",
     "invoice_details": []
   },
   {
@@ -136,7 +136,7 @@
     ],
     "opening_balance": -5000,
     "current_balance": -5000,
-    "current_balance_at": "2025-12-22 15:14:18",
+    "current_balance_at": "2025-12-22 16:32:02",
     "invoice_details": []
   }
 ]

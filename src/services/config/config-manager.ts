@@ -1,8 +1,9 @@
 import Store from 'electron-store';
 import { SyncConfig } from '../../types';
+import { getDefaultApiUrl } from './api-url-helper';
 
 const defaultConfig: SyncConfig = {
-  nestBackendUrl: '',
+  nestBackendUrl: getDefaultApiUrl(),
   apiKey: '',
   tallyUrl: 'http://localhost:9000',
   syncIntervals: {
@@ -44,7 +45,9 @@ export class ConfigManager {
    * Get Nest backend URL
    */
   getNestBackendUrl(): string {
-    return this.store.get('nestBackendUrl', '');
+    const url = this.store.get('nestBackendUrl', '');
+    // If empty, return default based on environment
+    return url || getDefaultApiUrl();
   }
 
   /**

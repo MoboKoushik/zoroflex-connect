@@ -10,6 +10,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSyncHistory: () => ipcRenderer.invoke('get-sync-history'),
   getLogs: () => ipcRenderer.invoke('get-logs'),
   getLastSync: () => ipcRenderer.invoke('get-last-sync'),
+  // API Logs
+  getApiLogs: (filters?: any) => ipcRenderer.invoke('get-api-logs', filters),
+  // Tally Voucher Logs
+  getTallyVoucherLogs: (filters?: any) => ipcRenderer.invoke('get-tally-voucher-logs', filters),
+  // Settings
+  getSetting: (key: string) => ipcRenderer.invoke('get-setting', key),
+  setSetting: (key: string, value: string) => ipcRenderer.invoke('set-setting', key, value),
+  getAllSettings: () => ipcRenderer.invoke('get-all-settings'),
+  // Log management
+  clearLogs: (logType: 'system' | 'api' | 'voucher') => ipcRenderer.invoke('clear-logs', logType),
+  // Sound
+  playSound: (soundType: string) => ipcRenderer.invoke('play-sound', soundType),
+  // Recent Sync History
+  getRecentSyncHistory: () => ipcRenderer.invoke('get-recent-sync-history'),
+  getSyncRecordDetails: (syncHistoryId: number, filters?: any) => ipcRenderer.invoke('get-sync-record-details', syncHistoryId, filters),
+  getVoucherSyncSummary: () => ipcRenderer.invoke('get-voucher-sync-summary'),
   // Window controls
   minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window-maximize'),

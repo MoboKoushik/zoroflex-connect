@@ -4,6 +4,8 @@ import axios from 'axios';
 import { DatabaseService } from '../services/database/database.service'; // Adjust path as per your structure
 import { SyncService } from '../services/sync/sync.service';
 import { OrganizationService } from '../services/sync/send-to-platfrom/organization.service';
+import { ApiLoggerService } from '../services/api/api-logger.service';
+import { getApiUrl, getDefaultApiUrl } from '../services/config/api-url-helper';
 
 
 let tray: Tray | null = null;
@@ -13,6 +15,10 @@ let dashboardWindow: BrowserWindow | null = null; // New: Dashboard window
 const dbService = new DatabaseService();
 const organizationService = new OrganizationService(dbService);
 const syncService = new SyncService(dbService, organizationService);
+const apiLogger = new ApiLoggerService(dbService);
+
+// Setup API logging interceptor
+apiLogger.setupInterceptor(axios);
 
 ipcMain.on('login-success', async () => {
   console.log('login-success event received → Starting background mode & loading dashboard');
@@ -42,6 +48,14 @@ ipcMain.on('login-success', async () => {
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
+
+  // Initialize API endpoint setting if not exists
+  const existingApiEndpoint = await dbService.getSetting('apiEndpoint');
+  if (!existingApiEndpoint) {
+    const defaultUrl = getDefaultApiUrl();
+    await dbService.setSetting('apiEndpoint', defaultUrl);
+    console.log('Initialized API endpoint setting with default:', defaultUrl);
+  }
 
   const profile = await dbService.getProfile().catch(() => null);
 
@@ -160,7 +174,8 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
   console.log('Login attempt:', credentials.email);
 
   try {
-    const { data } = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
+    const apiUrl = await getApiUrl(dbService);
+    const { data } = await axios.post(`${apiUrl}/billers/tally/login`, credentials, {
       timeout: 15000,
     });
 
@@ -241,6 +256,55 @@ ipcMain.handle('get-logs', async () => {
 
 ipcMain.handle('get-last-sync', async () => {
   return await dbService.getLastSync();
+});
+
+// API Logs handlers
+ipcMain.handle('get-api-logs', async (event, filters?: any) => {
+  return await dbService.getApiLogs(filters);
+});
+
+// Tally Voucher Logs handlers
+ipcMain.handle('get-tally-voucher-logs', async (event, filters?: any) => {
+  return await dbService.getTallyVoucherLogs(filters);
+});
+
+// Settings handlers
+ipcMain.handle('get-setting', async (event, key: string) => {
+  return await dbService.getSetting(key);
+});
+
+ipcMain.handle('set-setting', async (event, key: string, value: string) => {
+  await dbService.setSetting(key, value);
+  return { success: true };
+});
+
+ipcMain.handle('get-all-settings', async () => {
+  return await dbService.getAllSettings();
+});
+
+// Log export/clear handlers
+ipcMain.handle('clear-logs', async (event, logType: 'system' | 'api' | 'voucher') => {
+  await dbService.clearLogs(logType);
+  return { success: true };
+});
+
+// Sound handler (optional - can be implemented in renderer)
+ipcMain.handle('play-sound', async (event, soundType: string) => {
+  // Sound will be handled in renderer via Web Audio API
+  return { success: true };
+});
+
+// Recent Sync History handlers
+ipcMain.handle('get-recent-sync-history', async () => {
+  return await dbService.getRecentSyncHistoryGrouped();
+});
+
+ipcMain.handle('get-sync-record-details', async (event, syncHistoryId: number, filters?: any) => {
+  return await dbService.getSyncRecordDetails(syncHistoryId, filters);
+});
+
+ipcMain.handle('get-voucher-sync-summary', async () => {
+  return await dbService.getVoucherSyncSummary();
 });
 
 // Window control handlers

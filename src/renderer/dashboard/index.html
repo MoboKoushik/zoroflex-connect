@@ -4,31 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zorrofin Connect - Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
       /* ========================================
-       CSS Variables - Desktop Color Palette
+       CSS Variables - Modern Desktop Color Palette
        ======================================== */
       :root {
         --primary: #0078d4;
         --primary-dark: #106ebe;
+        --primary-light: #deecf9;
         --success: #107c10;
+        --success-light: #dff6dd;
         --danger: #d13438;
+        --danger-light: #fde7e9;
         --warning: #ffaa44;
-        --bg-main: #ffffff;
-        --bg-sidebar: #f8f9fa;
+        --warning-light: #fff4e5;
+        --bg-main: #fafafa;
+        --bg-sidebar: #ffffff;
         --bg-hover: #f3f3f3;
         --bg-card: #ffffff;
         --border-color: #e1e1e1;
         --text-primary: #323130;
         --text-secondary: #605e5c;
-        --border-radius: 2px;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
         --status-success-bg: #dff6dd;
-        --status-success-border: #dff6dd;
+        --status-success-border: #107c10;
         --status-warning-bg: #fff4e5;
-        --status-warning-border: #fff4e5;
+        --status-warning-border: #ffaa44;
         --status-danger-bg: #fde7e9;
-        --status-danger-border: #fde7e9;
+        --status-danger-border: #d13438;
         --btn-logout-hover: #fef6f6;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       /* Dark Mode Variables */
@@ -36,17 +48,20 @@
         --bg-main: #1e1e1e;
         --bg-sidebar: #252526;
         --bg-hover: #2d2d30;
-        --bg-card: #252526;
+        --bg-card: #2d2d30;
         --border-color: #3e3e42;
         --text-primary: #cccccc;
         --text-secondary: #858585;
         --status-success-bg: #1e4620;
-        --status-success-border: #1e4620;
+        --status-success-border: #107c10;
         --status-warning-bg: #4a3a1f;
-        --status-warning-border: #4a3a1f;
+        --status-warning-border: #ffaa44;
         --status-danger-bg: #4a1e1e;
-        --status-danger-border: #4a1e1e;
+        --status-danger-border: #d13438;
         --btn-logout-hover: #3a1e1e;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
       }
 
       /* ========================================
@@ -230,6 +245,7 @@
         cursor: pointer;
         transition: background-color 0.15s ease;
         border-left: 3px solid transparent;
+        user-select: none;
       }
 
       .nav-item:hover {
@@ -254,6 +270,61 @@
         align-items: center;
         justify-content: center;
         font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .nav-item.has-submenu {
+        justify-content: space-between;
+      }
+
+      .nav-chevron {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease;
+        font-size: 10px;
+        color: var(--text-secondary);
+      }
+
+      .nav-item.expanded .nav-chevron {
+        transform: rotate(90deg);
+      }
+
+      .nav-submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: var(--bg-sidebar);
+      }
+
+      .nav-item.expanded + .nav-submenu {
+        max-height: 500px;
+      }
+
+      .nav-submenu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px 8px 44px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .nav-submenu-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .nav-submenu-item.active {
+        background: rgba(0, 120, 212, 0.1);
+        border-left-color: var(--primary);
+        color: var(--primary);
+        font-weight: 500;
       }
 
       .sidebar-footer {
@@ -479,6 +550,14 @@
         background: var(--bg-hover);
       }
 
+      tbody tr.clickable {
+        cursor: pointer;
+      }
+
+      tbody tr.clickable:hover {
+        background: var(--bg-hover);
+      }
+
       tbody tr:last-child td {
         border-bottom: none;
       }
@@ -577,6 +656,30 @@
         border-color: var(--status-danger-border);
       }
 
+      .status-info {
+        background: var(--status-success-bg);
+        color: var(--primary);
+        border-color: var(--status-success-border);
+      }
+
+      .status-warn {
+        background: var(--status-warning-bg);
+        color: var(--warning);
+        border-color: var(--status-warning-border);
+      }
+
+      .status-error {
+        background: var(--status-danger-bg);
+        color: var(--danger);
+        border-color: var(--status-danger-border);
+      }
+
+      .status-debug {
+        background: var(--bg-hover);
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+      }
+
       /* ========================================
        Pagination
        ======================================== */
@@ -635,10 +738,345 @@
       }
 
       /* ========================================
+       Content Views
+       ======================================== */
+      .content-view {
+        display: none;
+      }
+
+      .content-view.active {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* ========================================
+       Filter Panel
+       ======================================== */
+      .filter-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        margin-bottom: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 150px;
+      }
+
+      .filter-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .filter-input,
+      .filter-select {
+        padding: 6px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 13px;
+        font-family: inherit;
+      }
+
+      .filter-input:focus,
+      .filter-select:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+        border-color: var(--primary);
+      }
+
+      .filter-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+      }
+
+      /* ========================================
+       Modal System
+       ======================================== */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        animation: modalSlideIn 0.2s ease;
+        overflow: hidden;
+      }
+
+      .modal.small {
+        width: 400px;
+      }
+
+      .modal.medium {
+        width: 600px;
+      }
+
+      .modal.large {
+        width: 900px;
+      }
+
+      .modal-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+
+      .modal-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .modal-close {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+
+      .modal-close:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .modal-body {
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .modal-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      /* ========================================
+       API Log Detail Modal
+       ======================================== */
+      .api-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        height: 500px;
+      }
+
+      .api-detail-panel {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+      }
+
+      .api-detail-header {
+        padding: 10px 12px;
+        background: var(--bg-hover);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .api-detail-content {
+        flex: 1;
+        overflow: auto;
+        padding: 12px;
+        font-family: "Consolas", "Monaco", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.6;
+        background: var(--bg-main);
+      }
+
+      .json-key {
+        color: var(--primary);
+      }
+
+      .json-string {
+        color: var(--success);
+      }
+
+      .json-number {
+        color: var(--warning);
+      }
+
+      .json-boolean {
+        color: var(--danger);
+      }
+
+      /* ========================================
+       Settings Page
+       ======================================== */
+      .settings-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .settings-section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .settings-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .settings-row:last-child {
+        border-bottom: none;
+      }
+
+      .settings-label {
+        font-size: 13px;
+        color: var(--text-primary);
+      }
+
+      .settings-description {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+      }
+
+      .settings-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toggle-switch {
+        width: 40px;
+        height: 20px;
+        background: var(--border-color);
+        border-radius: 10px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .toggle-switch.active {
+        background: var(--primary);
+      }
+
+      .toggle-switch::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s ease;
+      }
+
+      .toggle-switch.active::after {
+        transform: translateX(20px);
+      }
+
+      /* ========================================
        Utilities
        ======================================== */
       .hidden {
         display: none;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .empty-state-text {
+        font-size: 13px;
       }
     </style>
   </head>
@@ -657,7 +1095,7 @@
             title="Toggle dark/light mode"
             aria-label="Toggle theme"
           >
-            <span id="themeIcon">🌙</span>
+            <span id="themeIcon"><i class="fas fa-moon"></i></span>
           </button>
           <div class="window-controls">
             <button
@@ -715,17 +1153,36 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
           <nav class="nav-section">
-            <div class="nav-item active">
-              <span class="nav-icon">📊</span>
+            <div class="nav-item active" data-view="dashboard">
+              <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
               <span>Dashboard</span>
             </div>
-            <div class="nav-item">
-              <span class="nav-icon">⚙️</span>
+            <div class="nav-item" data-view="settings">
+              <span class="nav-icon"><i class="fas fa-cog"></i></span>
               <span>Settings</span>
             </div>
-            <div class="nav-item">
-              <span class="nav-icon">📋</span>
-              <span>Logs</span>
+            <div class="nav-item has-submenu" id="logsNavItem">
+              <span style="display: flex; align-items: center; gap: 12px">
+                <span class="nav-icon"><i class="fas fa-list-alt"></i></span>
+                <span>Logs</span>
+              </span>
+              <span class="nav-chevron">▶</span>
+            </div>
+            <div class="nav-submenu">
+              <div class="nav-submenu-item" data-view="system-logs">
+                <span class="nav-icon"><i class="fas fa-server"></i></span>
+                <span>System Logs</span>
+              </div>
+              <div class="nav-submenu-item" data-view="api-logs">
+                <span class="nav-icon"><i class="fas fa-globe"></i></span>
+                <span>API Logs</span>
+              </div>
+              <div class="nav-submenu-item" data-view="voucher-logs">
+                <span class="nav-icon"
+                  ><i class="fas fa-file-invoice"></i
+                ></span>
+                <span>Tally Voucher Logs</span>
+              </div>
             </div>
           </nav>
 
@@ -740,101 +1197,519 @@
 
         <!-- Main Content Area -->
         <main class="content-area">
-          <div class="content-scroll">
-            <!-- Statistics Cards -->
-            <div class="stats-container">
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon">📊</div>
-                  <div class="stat-card-label">Total Syncs</div>
+          <!-- Dashboard View -->
+          <div class="content-view active" id="dashboardView">
+            <div class="content-scroll">
+              <!-- Statistics Cards -->
+              <div class="stats-container">
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div class="stat-card-icon">
+                      <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-card-label">Total Syncs</div>
+                  </div>
+                  <div class="stat-card-value" id="statTotal">0</div>
+                  <div class="stat-card-desc">All time sync operations</div>
                 </div>
-                <div class="stat-card-value" id="statTotal">0</div>
-                <div class="stat-card-desc">All time sync operations</div>
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div
+                      class="stat-card-icon"
+                      style="
+                        background: var(--success-light);
+                        color: var(--success);
+                      "
+                    >
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-card-label">Successful</div>
+                  </div>
+                  <div class="stat-card-value" id="statSuccessful">0</div>
+                  <div class="stat-card-desc">Completed successfully</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div
+                      class="stat-card-icon"
+                      style="
+                        background: var(--danger-light);
+                        color: var(--danger);
+                      "
+                    >
+                      <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-card-label">Failed</div>
+                  </div>
+                  <div class="stat-card-value" id="statFailed">0</div>
+                  <div class="stat-card-desc">Errors or failures</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div
+                      class="stat-card-icon"
+                      style="
+                        background: var(--warning-light);
+                        color: var(--warning);
+                      "
+                    >
+                      <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-card-label">Today's Syncs</div>
+                  </div>
+                  <div class="stat-card-value" id="statToday">0</div>
+                  <div class="stat-card-desc">Syncs performed today</div>
+                </div>
               </div>
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon">✅</div>
-                  <div class="stat-card-label">Successful</div>
+
+              <!-- Connection Status Panel -->
+              <div class="connection-panel">
+                <h2 class="panel-title">Connection Status</h2>
+                <div class="info-row">
+                  <span class="info-label">Email</span>
+                  <span class="info-value" id="email">-</span>
                 </div>
-                <div class="stat-card-value" id="statSuccessful">0</div>
-                <div class="stat-card-desc">Completed successfully</div>
+                <div class="info-row">
+                  <span class="info-label">Biller ID</span>
+                  <span class="info-value" id="billerId">-</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Organization</span>
+                  <span class="info-value" id="org">Not synced</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Sync Status</span>
+                  <span id="status" class="status-badge status-connected"
+                    >Connected</span
+                  >
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Last Sync</span>
+                  <span class="info-value" id="lastSync">Never</span>
+                </div>
+                <div class="btn-group">
+                  <button id="syncBtn" class="btn btn-primary">
+                    Manual Sync
+                  </button>
+                </div>
               </div>
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon">❌</div>
-                  <div class="stat-card-label">Failed</div>
+
+              <!-- Recent Sync History Panel -->
+              <div class="history-panel">
+                <h2 class="panel-title">Recent Sync History</h2>
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="recentSyncHistoryTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 200px">Entity Name</th>
+                          <th style="width: 100px">Total Records</th>
+                          <th style="width: 120px">Successfully Synced</th>
+                          <th style="width: 80px">Failed</th>
+                          <th style="width: 150px">Last Sync Time</th>
+                          <th style="width: 100px">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="recentSyncHistoryTableBody">
+                        <!-- Populated by JS -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div class="stat-card-value" id="statFailed">0</div>
-                <div class="stat-card-desc">Errors or failures</div>
               </div>
-              <div class="stat-card">
-                <div class="stat-card-header">
-                  <div class="stat-card-icon">📅</div>
-                  <div class="stat-card-label">Today's Syncs</div>
+
+              <!-- Voucher Sync Summary Panel -->
+              <div class="history-panel" style="margin-top: 16px">
+                <h2 class="panel-title">Voucher Sync Summary</h2>
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="voucherSummaryTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 150px">Voucher Type</th>
+                          <th style="width: 120px">Total Attempted</th>
+                          <th style="width: 120px">Successfully Synced</th>
+                          <th style="width: 80px">Failed</th>
+                        </tr>
+                      </thead>
+                      <tbody id="voucherSummaryTableBody">
+                        <!-- Populated by JS -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div class="stat-card-value" id="statToday">0</div>
-                <div class="stat-card-desc">Syncs performed today</div>
               </div>
             </div>
+          </div>
 
-            <!-- Connection Status Panel -->
-            <div class="connection-panel">
-              <h2 class="panel-title">Connection Status</h2>
-              <div class="info-row">
-                <span class="info-label">Email</span>
-                <span class="info-value" id="email">-</span>
+          <!-- Settings View -->
+          <div class="content-view" id="settingsView">
+            <div class="content-scroll">
+              <div class="settings-section">
+                <h2 class="settings-section-title">Appearance</h2>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Theme</div>
+                    <div class="settings-description">
+                      Choose light or dark theme
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <select id="themeSelect" class="filter-select">
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                      <option value="auto">Auto (System)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div class="info-row">
-                <span class="info-label">Biller ID</span>
-                <span class="info-value" id="billerId">-</span>
+
+              <div class="settings-section">
+                <h2 class="settings-section-title">Sounds</h2>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Enable Sound Effects</div>
+                    <div class="settings-description">
+                      Play sounds for dialogs and actions
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <div class="toggle-switch" id="soundToggle"></div>
+                  </div>
+                </div>
               </div>
-              <div class="info-row">
-                <span class="info-label">Organization</span>
-                <span class="info-value" id="org">Not synced</span>
+
+              <div class="settings-section">
+                <h2 class="settings-section-title">Sync</h2>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">
+                      Auto-sync Interval (minutes)
+                    </div>
+                    <div class="settings-description">
+                      How often to automatically sync data
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <input
+                      type="number"
+                      id="syncInterval"
+                      class="filter-input"
+                      min="1"
+                      max="1440"
+                      value="15"
+                      style="width: 80px"
+                    />
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Background Sync</div>
+                    <div class="settings-description">
+                      Enable automatic background synchronization
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <div
+                      class="toggle-switch active"
+                      id="backgroundSyncToggle"
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <div class="info-row">
-                <span class="info-label">Sync Status</span>
-                <span id="status" class="status-badge status-connected"
-                  >Connected</span
-                >
+
+              <div class="settings-section">
+                <h2 class="settings-section-title">API</h2>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">API Endpoint</div>
+                    <div class="settings-description">
+                      Base URL for API requests
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <input
+                      type="text"
+                      id="apiEndpoint"
+                      class="filter-input"
+                      value=""
+                      placeholder="Loading..."
+                      style="width: 250px"
+                      readonly
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Request Timeout (seconds)</div>
+                    <div class="settings-description">
+                      Maximum time to wait for API responses
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <input
+                      type="number"
+                      id="apiTimeout"
+                      class="filter-input"
+                      min="5"
+                      max="300"
+                      value="30"
+                      style="width: 80px"
+                    />
+                  </div>
+                </div>
               </div>
-              <div class="info-row">
-                <span class="info-label">Last Sync</span>
-                <span class="info-value" id="lastSync">Never</span>
+
+              <div class="settings-section">
+                <h2 class="settings-section-title">Logs</h2>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Log Retention (days)</div>
+                    <div class="settings-description">
+                      How long to keep log entries
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <input
+                      type="number"
+                      id="logRetention"
+                      class="filter-input"
+                      min="1"
+                      max="365"
+                      value="30"
+                      style="width: 80px"
+                    />
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-label">Max Log Entries</div>
+                    <div class="settings-description">
+                      Maximum number of log entries to store
+                    </div>
+                  </div>
+                  <div class="settings-control">
+                    <input
+                      type="number"
+                      id="maxLogEntries"
+                      class="filter-input"
+                      min="100"
+                      max="100000"
+                      value="10000"
+                      style="width: 100px"
+                    />
+                  </div>
+                </div>
               </div>
-              <div class="btn-group">
-                <button id="syncBtn" class="btn btn-primary">
-                  Manual Sync
-                </button>
+
+              <div class="settings-section">
+                <h2 class="settings-section-title">Export & Clear</h2>
+                <div class="btn-group" style="margin-top: 0">
+                  <button class="btn btn-primary" id="exportLogsBtn">
+                    Export All Logs
+                  </button>
+                  <button class="btn btn-logout" id="clearAllLogsBtn">
+                    Clear All Logs
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
 
-            <!-- Sync History Panel -->
-            <div class="history-panel">
-              <h2 class="panel-title">Recent Sync History</h2>
-              <div class="table-container">
-                <div class="table-wrapper">
-                  <table id="historyTable">
-                    <thead>
-                      <tr>
-                        <th>Time</th>
-                        <th>Type</th>
-                        <th>Entity</th>
-                        <th>Status</th>
-                        <th>Success</th>
-                        <th>Failed</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <!-- Populated by JS -->
-                    </tbody>
-                  </table>
+          <!-- System Logs View -->
+          <div class="content-view" id="systemLogsView">
+            <div class="content-scroll">
+              <div class="filter-panel">
+                <div class="filter-group">
+                  <label class="filter-label">Level</label>
+                  <select id="systemLogLevelFilter" class="filter-select">
+                    <option value="">All Levels</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARN">WARN</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="DEBUG">DEBUG</option>
+                  </select>
                 </div>
-                <div class="pagination" id="pagination"></div>
+                <div class="filter-group" style="flex: 1; min-width: 200px">
+                  <label class="filter-label">Search</label>
+                  <input
+                    type="text"
+                    id="systemLogSearch"
+                    class="filter-input"
+                    placeholder="Search messages..."
+                  />
+                </div>
+                <div class="filter-actions">
+                  <button class="btn btn-primary" id="systemLogRefreshBtn">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="history-panel">
+                <h2 class="panel-title">System Logs</h2>
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="systemLogsTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 150px">Time</th>
+                          <th style="width: 80px">Level</th>
+                          <th>Message</th>
+                        </tr>
+                      </thead>
+                      <tbody id="systemLogsTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- API Logs View -->
+          <div class="content-view" id="apiLogsView">
+            <div class="content-scroll">
+              <div class="filter-panel">
+                <div class="filter-group">
+                  <label class="filter-label">Status</label>
+                  <select id="apiLogStatusFilter" class="filter-select">
+                    <option value="">All</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="ERROR">Error</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label">From Date</label>
+                  <input type="date" id="apiLogFromDate" class="filter-input" />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label">To Date</label>
+                  <input type="date" id="apiLogToDate" class="filter-input" />
+                </div>
+                <div class="filter-group" style="flex: 1; min-width: 200px">
+                  <label class="filter-label">Endpoint</label>
+                  <input
+                    type="text"
+                    id="apiLogEndpointFilter"
+                    class="filter-input"
+                    placeholder="Filter by endpoint..."
+                  />
+                </div>
+                <div class="filter-actions">
+                  <button class="btn btn-primary" id="apiLogRefreshBtn">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="history-panel">
+                <h2 class="panel-title">API Logs</h2>
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="apiLogsTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 150px">Time</th>
+                          <th style="width: 80px">Method</th>
+                          <th>Endpoint</th>
+                          <th style="width: 80px">Status</th>
+                          <th style="width: 100px">Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody id="apiLogsTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tally Voucher Logs View -->
+          <div class="content-view" id="voucherLogsView">
+            <div class="content-scroll">
+              <div class="filter-panel">
+                <div class="filter-group">
+                  <label class="filter-label">Voucher Type</label>
+                  <select id="voucherTypeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="sales">Sales</option>
+                    <option value="credit_note">Credit Note</option>
+                    <option value="receipt">Receipt</option>
+                    <option value="RECEIPT">Receipt (Alt)</option>
+                    <option value="jv_entry">Journal Entry</option>
+                    <option value="JVENTRY">Journal Entry (Alt)</option>
+                    <option value="JV">Journal (Alt)</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label">Status</label>
+                  <select id="voucherStatusFilter" class="filter-select">
+                    <option value="">All</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="FAILED">Failed</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label">From Date</label>
+                  <input
+                    type="date"
+                    id="voucherFromDate"
+                    class="filter-input"
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label">To Date</label>
+                  <input type="date" id="voucherToDate" class="filter-input" />
+                </div>
+                <div class="filter-group" style="flex: 1; min-width: 200px">
+                  <label class="filter-label">Search</label>
+                  <input
+                    type="text"
+                    id="voucherSearch"
+                    class="filter-input"
+                    placeholder="Voucher number or party..."
+                  />
+                </div>
+                <div class="filter-actions">
+                  <button class="btn btn-primary" id="voucherLogRefreshBtn">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="history-panel">
+                <h2 class="panel-title">Tally Voucher Logs</h2>
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="voucherLogsTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 100px">Date</th>
+                          <th style="width: 120px">Voucher Number</th>
+                          <th style="width: 100px">Type</th>
+                          <th>Party</th>
+                          <th style="width: 100px">Amount</th>
+                          <th style="width: 80px">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="voucherLogsTableBody"></tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </main>
+      </div>
+
+      <!-- Modal Overlay -->
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal medium" id="modal">
+          <div class="modal-header">
+            <span class="modal-title" id="modalTitle">Modal Title</span>
+            <button class="modal-close" id="modalClose">×</button>
+          </div>
+          <div class="modal-body" id="modalBody"></div>
+          <div class="modal-footer" id="modalFooter"></div>
+        </div>
       </div>
     </div>
 
@@ -878,7 +1753,10 @@
 
         // Update icon
         if (themeIcon) {
-          themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+          themeIcon.innerHTML =
+            theme === "dark"
+              ? '<i class="fas fa-sun"></i>'
+              : '<i class="fas fa-moon"></i>';
         }
       };
 
@@ -994,15 +1872,11 @@
       const logoutBtn = document.getElementById("sidebarLogoutBtn");
       const sidebarEmailEl = document.getElementById("sidebarEmail");
       const sidebarOrgEl = document.getElementById("sidebarOrg");
-      const tbody = document.querySelector("#historyTable tbody");
-      const paginationEl = document.getElementById("pagination");
       const statTotalEl = document.getElementById("statTotal");
       const statSuccessfulEl = document.getElementById("statSuccessful");
       const statFailedEl = document.getElementById("statFailed");
       const statTodayEl = document.getElementById("statToday");
 
-      const ROWS_PER_PAGE = 10;
-      let currentPage = 1;
       let historyData = [];
 
       const formatDate = (dateStr) => {
@@ -1028,82 +1902,28 @@
       };
 
       const updateStatistics = (history) => {
+        if (!history || history.length === 0) {
+          statTotalEl.textContent = "0";
+          statSuccessfulEl.textContent = "0";
+          statFailedEl.textContent = "0";
+          statTodayEl.textContent = "0";
+          return;
+        }
+
         const total = history.length;
         const successful = history.filter((h) => h.status === "SUCCESS").length;
         const failed = history.filter(
-          (h) => h.status === "ERROR" || (h.failed_count && h.failed_count > 0)
+          (h) =>
+            h.status === "FAILED" ||
+            h.status === "ERROR" ||
+            (h.failed_count && h.failed_count > 0)
         ).length;
         const today = history.filter((h) => isToday(h.started_at)).length;
 
-        statTotalEl.textContent = total;
-        statSuccessfulEl.textContent = successful;
-        statFailedEl.textContent = failed;
-        statTodayEl.textContent = today;
-      };
-
-      const renderTable = (page) => {
-        tbody.innerHTML = "";
-        const start = (page - 1) * ROWS_PER_PAGE;
-        const end = start + ROWS_PER_PAGE;
-        const pageData = historyData.slice(start, end);
-
-        if (pageData.length > 0) {
-          pageData.forEach((row) => {
-            const tr = document.createElement("tr");
-            const statusClass =
-              row.status === "SUCCESS"
-                ? "success"
-                : row.status === "PARTIAL"
-                ? "partial"
-                : "error";
-            tr.innerHTML = `
-            <td>${formatDate(row.started_at)}</td>
-            <td>${row.sync_type}</td>
-            <td>${row.entity_type}</td>
-            <td class="${statusClass}">${row.status}</td>
-            <td>${row.entity_count || 0}</td>
-            <td>${row.failed_count || 0}</td>
-          `;
-            tbody.appendChild(tr);
-          });
-        } else {
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">No sync activity yet</td></tr>';
-        }
-
-        // Pagination controls
-        paginationEl.innerHTML = "";
-        const totalPages = Math.ceil(historyData.length / ROWS_PER_PAGE);
-        if (totalPages <= 1) return;
-
-        const prevBtn = document.createElement("button");
-        prevBtn.textContent = "Previous";
-        prevBtn.disabled = page === 1;
-        prevBtn.onclick = () => {
-          currentPage--;
-          renderTable(currentPage);
-        };
-        paginationEl.appendChild(prevBtn);
-
-        for (let i = 1; i <= totalPages; i++) {
-          const btn = document.createElement("button");
-          btn.textContent = i;
-          btn.classList.toggle("active", i === page);
-          btn.onclick = () => {
-            currentPage = i;
-            renderTable(currentPage);
-          };
-          paginationEl.appendChild(btn);
-        }
-
-        const nextBtn = document.createElement("button");
-        nextBtn.textContent = "Next";
-        nextBtn.disabled = page === totalPages;
-        nextBtn.onclick = () => {
-          currentPage++;
-          renderTable(currentPage);
-        };
-        paginationEl.appendChild(nextBtn);
+        if (statTotalEl) statTotalEl.textContent = total;
+        if (statSuccessfulEl) statSuccessfulEl.textContent = successful;
+        if (statFailedEl) statFailedEl.textContent = failed;
+        if (statTodayEl) statTodayEl.textContent = today;
       };
 
       const loadData = async () => {
@@ -1119,27 +1939,26 @@
             const email = profile.email || "-";
             const org = profile.organization?.name || "Not synced";
 
-            emailEl.textContent = email;
-            sidebarEmailEl.textContent = email;
-            billerIdEl.textContent = profile.biller_id || "N/A";
-            orgEl.textContent = org;
-            sidebarOrgEl.textContent = org;
+            if (emailEl) emailEl.textContent = email;
+            if (sidebarEmailEl) sidebarEmailEl.textContent = email;
+            if (billerIdEl) billerIdEl.textContent = profile.biller_id || "N/A";
+            if (orgEl) orgEl.textContent = org;
+            if (sidebarOrgEl) sidebarOrgEl.textContent = org;
           }
 
           // Last Sync
-          lastSyncEl.textContent = formatDate(lastSync?.last_successful_sync);
+          if (lastSyncEl) {
+            lastSyncEl.textContent = formatDate(lastSync?.last_successful_sync);
+          }
 
-          // History with pagination
-          historyData = history || [];
-          currentPage = 1;
-          renderTable(currentPage);
+          // History data for statistics
+          historyData = Array.isArray(history) ? history : [];
 
           // Update statistics
           updateStatistics(historyData);
         } catch (err) {
           console.error("Dashboard load error:", err);
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load data</td></tr>';
+          updateStatistics([]);
         }
       };
 
@@ -1156,6 +1975,8 @@
         } finally {
           setTimeout(() => {
             loadData();
+            loadRecentSyncHistory();
+            loadVoucherSummary();
             syncBtn.disabled = false;
             syncBtn.innerHTML = "Manual Sync";
             statusEl.textContent = "Connected";
@@ -1171,8 +1992,335 @@
         }
       };
 
+      // ========================================
+      // Recent Sync History
+      // ========================================
+      async function loadRecentSyncHistory() {
+        try {
+          const recentHistory = await window.electronAPI.getRecentSyncHistory();
+          console.log("Recent sync history loaded:", recentHistory);
+
+          const tbody = document.getElementById("recentSyncHistoryTableBody");
+
+          if (!tbody) {
+            console.error("Recent sync history table body not found");
+            return;
+          }
+
+          tbody.innerHTML = "";
+
+          if (!recentHistory || recentHistory.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon"><i class="fas fa-inbox"></i></div><div class="empty-state-text">No sync history available. Run a sync to see data here.</div></td></tr>';
+            return;
+          }
+
+          console.log("Rendering recent history items:", recentHistory.length);
+
+          recentHistory.forEach((item) => {
+            if (!item) return;
+            const tr = document.createElement("tr");
+            tr.classList.add("clickable");
+            const statusClass =
+              item.status === "SUCCESS"
+                ? "success"
+                : item.status === "PARTIAL"
+                ? "partial"
+                : "error";
+
+            tr.innerHTML = `
+              <td>${escapeHtml(item.entityName || "N/A")}</td>
+              <td>${item.totalRecords || 0}</td>
+              <td>${item.successCount || 0}</td>
+              <td>${item.failedCount || 0}</td>
+              <td>${formatDate(item.lastSyncTime)}</td>
+              <td><span class="${statusClass}">${
+              item.status || "UNKNOWN"
+            }</span></td>
+            `;
+
+            tr.addEventListener("click", () => {
+              showSyncDetails(
+                item.syncHistoryId,
+                item.entityType,
+                item.entityName
+              );
+            });
+
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load recent sync history:", err);
+          const tbody = document.getElementById("recentSyncHistoryTableBody");
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load sync history</td></tr>';
+          }
+        }
+      }
+
+      // ========================================
+      // Voucher Sync Summary
+      // ========================================
+      async function loadVoucherSummary() {
+        try {
+          const summary = await window.electronAPI.getVoucherSyncSummary();
+          console.log("Voucher summary loaded:", summary);
+
+          const tbody = document.getElementById("voucherSummaryTableBody");
+
+          if (!tbody) {
+            console.error("Voucher summary table body not found");
+            return;
+          }
+
+          tbody.innerHTML = "";
+
+          if (!summary || typeof summary !== "object") {
+            tbody.innerHTML =
+              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No voucher sync data available</div></td></tr>';
+            return;
+          }
+
+          const voucherTypes = Object.keys(summary);
+
+          if (voucherTypes.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No voucher sync data available. Run a voucher sync to see data here.</div></td></tr>';
+            return;
+          }
+
+          // Sort voucher types for consistent display
+          const sortedTypes = voucherTypes.sort();
+
+          sortedTypes.forEach((type) => {
+            const data = summary[type];
+            if (!data) return;
+
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+              <td>${escapeHtml(type)}</td>
+              <td>${data.totalAttempted || 0}</td>
+              <td>${data.successCount || 0}</td>
+              <td>${data.failedCount || 0}</td>
+            `;
+
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load voucher summary:", err);
+          const tbody = document.getElementById("voucherSummaryTableBody");
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="color:var(--danger); text-align:center;">Failed to load voucher summary</td></tr>';
+          }
+        }
+      }
+
+      // ========================================
+      // Sync Details Modal
+      // ========================================
+      async function showSyncDetails(syncHistoryId, entityType, entityName) {
+        try {
+          // Load sync history record for summary
+          const syncHistory = await window.electronAPI.getSyncHistory();
+          const syncRecord = syncHistory.find((h) => h.id === syncHistoryId);
+
+          if (!syncRecord) {
+            alert("Sync record not found");
+            return;
+          }
+
+          // Load individual record details
+          const recordDetails = await window.electronAPI.getSyncRecordDetails(
+            syncHistoryId
+          );
+
+          // Build summary section
+          const summaryHtml = `
+            <div style="padding: 16px; background: var(--bg-hover); border-radius: var(--border-radius); margin-bottom: 16px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Entity Name</div>
+                  <div style="font-size: 14px; font-weight: 600;">${escapeHtml(
+                    entityName
+                  )}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Last Sync</div>
+                  <div style="font-size: 14px;">${formatDate(
+                    syncRecord.completed_at || syncRecord.started_at
+                  )}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Total Records</div>
+                  <div style="font-size: 14px; font-weight: 600;">${
+                    (syncRecord.entity_count || 0) +
+                    (syncRecord.failed_count || 0)
+                  }</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Status</div>
+                  <div><span class="${
+                    syncRecord.status === "SUCCESS"
+                      ? "success"
+                      : syncRecord.status === "PARTIAL"
+                      ? "partial"
+                      : "error"
+                  }">${syncRecord.status}</span></div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Successfully Synced</div>
+                  <div style="font-size: 14px; color: var(--success); font-weight: 600;">${
+                    syncRecord.entity_count || 0
+                  }</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Failed</div>
+                  <div style="font-size: 14px; color: var(--danger); font-weight: 600;">${
+                    syncRecord.failed_count || 0
+                  }</div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Build filter and search controls
+          const controlsHtml = `
+            <div class="filter-panel" style="margin-bottom: 16px;">
+              <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select id="syncDetailStatusFilter" class="filter-select">
+                  <option value="">All</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </div>
+              <div class="filter-group" style="flex: 1; min-width: 200px;">
+                <label class="filter-label">Search</label>
+                <input type="text" id="syncDetailSearch" class="filter-input" placeholder="Search by ID or name...">
+              </div>
+            </div>
+          `;
+
+          // Build records table
+          let recordsTableHtml = "";
+          if (recordDetails.length === 0) {
+            recordsTableHtml =
+              '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No individual record details available</div></div>';
+          } else {
+            recordsTableHtml = `
+              <div class="table-container" style="max-height: 400px;">
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width: 150px;">Record ID</th>
+                        <th>Name</th>
+                        <th style="width: 150px;">Synced At</th>
+                        <th style="width: 100px;">Status</th>
+                        <th>Error Message</th>
+                      </tr>
+                    </thead>
+                    <tbody id="syncDetailRecordsBody">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }
+
+          const content = summaryHtml + controlsHtml + recordsTableHtml;
+
+          ModalService.open(
+            `Sync Details: ${escapeHtml(entityName)}`,
+            content,
+            "large"
+          );
+
+          // Render records table
+          if (recordDetails.length > 0) {
+            renderSyncDetailRecords(recordDetails);
+
+            // Setup filters
+            document
+              .getElementById("syncDetailStatusFilter")
+              ?.addEventListener("change", () => {
+                renderSyncDetailRecords(recordDetails);
+              });
+
+            document.getElementById("syncDetailSearch")?.addEventListener(
+              "input",
+              debounce(() => {
+                renderSyncDetailRecords(recordDetails);
+              }, 300)
+            );
+          }
+
+          SoundService.play("dialog");
+        } catch (err) {
+          console.error("Failed to load sync details:", err);
+          SoundService.play("error");
+          alert("Failed to load sync details");
+        }
+      }
+
+      function renderSyncDetailRecords(allRecords) {
+        const tbody = document.getElementById("syncDetailRecordsBody");
+        if (!tbody) return;
+
+        const statusFilter =
+          document.getElementById("syncDetailStatusFilter")?.value || "";
+        const searchTerm = (
+          document.getElementById("syncDetailSearch")?.value || ""
+        ).toLowerCase();
+
+        let filtered = allRecords.filter((record) => {
+          if (statusFilter && record.status !== statusFilter) return false;
+          if (
+            searchTerm &&
+            !record.record_id.toLowerCase().includes(searchTerm) &&
+            !record.record_name.toLowerCase().includes(searchTerm)
+          )
+            return false;
+          return true;
+        });
+
+        tbody.innerHTML = "";
+
+        if (filtered.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="empty-state"><div class="empty-state-text">No records match the filters</div></td></tr>';
+          return;
+        }
+
+        filtered.forEach((record) => {
+          const tr = document.createElement("tr");
+          const statusClass = record.status === "SUCCESS" ? "success" : "error";
+
+          tr.innerHTML = `
+            <td style="font-family: monospace; font-size: 11px;">${escapeHtml(
+              record.record_id
+            )}</td>
+            <td>${escapeHtml(record.record_name)}</td>
+            <td>${formatDate(record.synced_at)}</td>
+            <td><span class="${statusClass}">${record.status}</span></td>
+            <td style="font-size: 11px; color: var(--text-secondary);">${
+              record.error_message ? escapeHtml(record.error_message) : "-"
+            }</td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      }
+
       // Initial load
-      window.addEventListener("DOMContentLoaded", loadData);
+      window.addEventListener("DOMContentLoaded", () => {
+        loadData();
+        loadRecentSyncHistory();
+        loadVoucherSummary();
+      });
 
       // Real-time updates
       window.electronAPI?.onSyncStarted?.(() => {
@@ -1181,10 +2329,748 @@
       });
       window.electronAPI?.onSyncCompleted?.(() => {
         loadData();
+        loadRecentSyncHistory();
+        loadVoucherSummary();
         statusEl.textContent = "Connected";
         statusEl.className = "status-badge status-connected";
       });
-      window.electronAPI?.onProfileData?.(() => loadData());
+      window.electronAPI?.onProfileData?.(() => {
+        loadData();
+        loadRecentSyncHistory();
+        loadVoucherSummary();
+      });
+
+      // ========================================
+      // Navigation System
+      // ========================================
+      const logsNavItem = document.getElementById("logsNavItem");
+      const navItems = document.querySelectorAll(
+        ".nav-item[data-view], .nav-submenu-item[data-view]"
+      );
+      const contentViews = document.querySelectorAll(".content-view");
+
+      // Ensure all views are initially hidden except dashboard
+      contentViews.forEach((cv) => {
+        if (!cv.id.includes("dashboard")) {
+          cv.classList.remove("active");
+        }
+      });
+
+      // Expand/collapse logs submenu
+      if (logsNavItem) {
+        logsNavItem.addEventListener("click", (e) => {
+          e.stopPropagation();
+          logsNavItem.classList.toggle("expanded");
+        });
+      }
+
+      // Navigation handler
+      navItems.forEach((item) => {
+        item.addEventListener("click", () => {
+          const view = item.getAttribute("data-view");
+          if (!view) return;
+
+          // If clicking a submenu item, ensure parent is expanded
+          if (item.classList.contains("nav-submenu-item") && logsNavItem) {
+            logsNavItem.classList.add("expanded");
+          }
+
+          // Update active states
+          navItems.forEach((ni) => ni.classList.remove("active"));
+          item.classList.add("active");
+
+          // Show corresponding view
+          contentViews.forEach((cv) => cv.classList.remove("active"));
+
+          // Convert hyphenated view names to camelCase for ID matching
+          const viewIdMap = {
+            dashboard: "dashboardView",
+            settings: "settingsView",
+            "system-logs": "systemLogsView",
+            "api-logs": "apiLogsView",
+            "voucher-logs": "voucherLogsView",
+          };
+
+          const viewId = viewIdMap[view] || `${view}View`;
+          const targetView = document.getElementById(viewId);
+
+          if (targetView) {
+            targetView.classList.add("active");
+            // Load data for the view
+            if (view === "system-logs") loadSystemLogs();
+            else if (view === "api-logs") loadApiLogs();
+            else if (view === "voucher-logs") loadVoucherLogs();
+            else if (view === "settings") loadSettings();
+          } else {
+            console.error(`View not found: ${viewId}`);
+          }
+        });
+      });
+
+      // ========================================
+      // Sound System
+      // ========================================
+      const SoundService = {
+        enabled: true,
+        audioContext: null,
+
+        init() {
+          try {
+            this.audioContext = new (window.AudioContext ||
+              window.webkitAudioContext)();
+          } catch (e) {
+            console.warn("Web Audio API not supported");
+          }
+        },
+
+        async play(type) {
+          if (!this.enabled || !this.audioContext) return;
+
+          const frequencies = {
+            dialog: 800,
+            success: 1000,
+            error: 400,
+            warning: 600,
+          };
+
+          const freq = frequencies[type] || 800;
+          const oscillator = this.audioContext.createOscillator();
+          const gainNode = this.audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(this.audioContext.destination);
+
+          oscillator.frequency.value = freq;
+          oscillator.type = "sine";
+
+          gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            this.audioContext.currentTime + 0.1
+          );
+
+          oscillator.start(this.audioContext.currentTime);
+          oscillator.stop(this.audioContext.currentTime + 0.1);
+        },
+
+        setEnabled(enabled) {
+          this.enabled = enabled;
+        },
+      };
+
+      SoundService.init();
+
+      // ========================================
+      // Modal System
+      // ========================================
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modal = document.getElementById("modal");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalBody = document.getElementById("modalBody");
+      const modalFooter = document.getElementById("modalFooter");
+      const modalClose = document.getElementById("modalClose");
+
+      let modalFocusTrap = null;
+
+      const ModalService = {
+        open(title, content, size = "medium", footer = null) {
+          modalTitle.textContent = title;
+          modalBody.innerHTML = content;
+          modal.className = `modal ${size}`;
+
+          if (footer) {
+            modalFooter.innerHTML = footer;
+            modalFooter.style.display = "flex";
+          } else {
+            modalFooter.style.display = "none";
+          }
+
+          modalOverlay.classList.add("active");
+          SoundService.play("dialog");
+
+          // Focus trap
+          const focusableElements = modal.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          const trapFocus = (e) => {
+            if (e.key === "Tab") {
+              if (e.shiftKey) {
+                if (document.activeElement === firstElement) {
+                  e.preventDefault();
+                  lastElement.focus();
+                }
+              } else {
+                if (document.activeElement === lastElement) {
+                  e.preventDefault();
+                  firstElement.focus();
+                }
+              }
+            }
+          };
+
+          modal.addEventListener("keydown", trapFocus);
+          modalFocusTrap = trapFocus;
+
+          if (firstElement) firstElement.focus();
+        },
+
+        close() {
+          modalOverlay.classList.remove("active");
+          if (modalFocusTrap) {
+            modal.removeEventListener("keydown", modalFocusTrap);
+            modalFocusTrap = null;
+          }
+        },
+      };
+
+      modalClose.addEventListener("click", () => ModalService.close());
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) ModalService.close();
+      });
+
+      // ESC to close
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modalOverlay.classList.contains("active")) {
+          ModalService.close();
+        }
+      });
+
+      // ========================================
+      // System Logs
+      // ========================================
+      let systemLogsData = [];
+
+      async function loadSystemLogs() {
+        try {
+          const logs = await window.electronAPI.getLogs(500);
+          systemLogsData = logs || [];
+          renderSystemLogs();
+        } catch (err) {
+          console.error("Failed to load system logs:", err);
+        }
+      }
+
+      function renderSystemLogs() {
+        const tbody = document.getElementById("systemLogsTableBody");
+        const levelFilter = document.getElementById(
+          "systemLogLevelFilter"
+        ).value;
+        const searchTerm = document
+          .getElementById("systemLogSearch")
+          .value.toLowerCase();
+
+        let filtered = systemLogsData.filter((log) => {
+          if (levelFilter && log.level !== levelFilter) return false;
+          if (searchTerm && !log.message.toLowerCase().includes(searchTerm))
+            return false;
+          return true;
+        });
+
+        tbody.innerHTML = "";
+
+        if (filtered.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No logs found</div></td></tr>';
+          return;
+        }
+
+        filtered.forEach((log) => {
+          const tr = document.createElement("tr");
+          const levelClass = log.level.toLowerCase();
+          tr.innerHTML = `
+            <td>${formatDate(log.created_at)}</td>
+            <td><span class="status-badge status-${levelClass}">${
+            log.level
+          }</span></td>
+            <td>${escapeHtml(log.message)}</td>
+          `;
+          tr.style.cursor = "pointer";
+          tr.addEventListener("click", () => {
+            const metadata = log.metadata
+              ? JSON.stringify(log.metadata, null, 2)
+              : "No metadata";
+            ModalService.open(
+              "Log Details",
+              `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 12px;">${escapeHtml(
+                metadata
+              )}</pre>`,
+              "small"
+            );
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      document
+        .getElementById("systemLogLevelFilter")
+        .addEventListener("change", renderSystemLogs);
+      document
+        .getElementById("systemLogSearch")
+        .addEventListener("input", debounce(renderSystemLogs, 300));
+      document
+        .getElementById("systemLogRefreshBtn")
+        .addEventListener("click", loadSystemLogs);
+
+      // ========================================
+      // API Logs
+      // ========================================
+      let apiLogsData = [];
+
+      async function loadApiLogs() {
+        try {
+          const statusFilter =
+            document.getElementById("apiLogStatusFilter").value;
+          const fromDate = document.getElementById("apiLogFromDate").value;
+          const toDate = document.getElementById("apiLogToDate").value;
+          const endpointFilter = document.getElementById(
+            "apiLogEndpointFilter"
+          ).value;
+
+          const filters = {};
+          if (statusFilter) filters.status = statusFilter;
+          if (fromDate) filters.fromDate = fromDate;
+          if (toDate) filters.toDate = toDate;
+          if (endpointFilter) filters.endpoint = endpointFilter;
+          filters.limit = 200;
+
+          const logs = await window.electronAPI.getApiLogs(filters);
+          apiLogsData = logs || [];
+          renderApiLogs();
+        } catch (err) {
+          console.error("Failed to load API logs:", err);
+        }
+      }
+
+      function renderApiLogs() {
+        const tbody = document.getElementById("apiLogsTableBody");
+        tbody.innerHTML = "";
+
+        if (apiLogsData.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="empty-state"><div class="empty-state-icon">🌐</div><div class="empty-state-text">No API logs found</div></td></tr>';
+          return;
+        }
+
+        apiLogsData.forEach((log) => {
+          const tr = document.createElement("tr");
+          const statusClass = log.status === "SUCCESS" ? "success" : "error";
+          tr.innerHTML = `
+            <td>${formatDate(log.created_at)}</td>
+            <td>${log.method}</td>
+            <td style="font-family: monospace; font-size: 11px;">${escapeHtml(
+              log.endpoint
+            )}</td>
+            <td><span class="${statusClass}">${
+            log.status_code || "N/A"
+          }</span></td>
+            <td>${log.duration_ms}ms</td>
+          `;
+          tr.style.cursor = "pointer";
+          tr.addEventListener("click", () => {
+            showApiLogDetail(log);
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      function showApiLogDetail(log) {
+        const requestJson =
+          typeof log.request_payload === "string"
+            ? log.request_payload
+            : JSON.stringify(log.request_payload, null, 2);
+        const responseJson =
+          typeof log.response_payload === "string"
+            ? log.response_payload
+            : JSON.stringify(log.response_payload, null, 2);
+
+        const requestId = "req-" + Date.now();
+        const responseId = "res-" + Date.now();
+
+        const content = `
+          <div class="api-detail-container">
+            <div class="api-detail-panel">
+              <div class="api-detail-header">
+                <span>Request</span>
+                <button class="btn" style="padding: 4px 8px; font-size: 11px;" data-copy="${requestId}">Copy</button>
+              </div>
+              <div class="api-detail-content" id="${requestId}">${syntaxHighlight(
+          requestJson
+        )}</div>
+            </div>
+            <div class="api-detail-panel">
+              <div class="api-detail-header">
+                <span>Response</span>
+                <button class="btn" style="padding: 4px 8px; font-size: 11px;" data-copy="${responseId}">Copy</button>
+              </div>
+              <div class="api-detail-content" id="${responseId}">${syntaxHighlight(
+          responseJson
+        )}</div>
+            </div>
+          </div>
+        `;
+
+        ModalService.open("API Request Details", content, "large");
+
+        // Setup copy buttons
+        setTimeout(() => {
+          const requestBtn = modal.querySelector(`[data-copy="${requestId}"]`);
+          const responseBtn = modal.querySelector(
+            `[data-copy="${responseId}"]`
+          );
+
+          if (requestBtn) {
+            requestBtn.addEventListener("click", () =>
+              copyToClipboard(requestJson)
+            );
+          }
+          if (responseBtn) {
+            responseBtn.addEventListener("click", () =>
+              copyToClipboard(responseJson)
+            );
+          }
+        }, 100);
+      }
+
+      document
+        .getElementById("apiLogStatusFilter")
+        .addEventListener("change", loadApiLogs);
+      document
+        .getElementById("apiLogFromDate")
+        .addEventListener("change", loadApiLogs);
+      document
+        .getElementById("apiLogToDate")
+        .addEventListener("change", loadApiLogs);
+      document
+        .getElementById("apiLogEndpointFilter")
+        .addEventListener("input", debounce(loadApiLogs, 300));
+      document
+        .getElementById("apiLogRefreshBtn")
+        .addEventListener("click", loadApiLogs);
+
+      // ========================================
+      // Tally Voucher Logs
+      // ========================================
+      let voucherLogsData = [];
+
+      async function loadVoucherLogs() {
+        try {
+          const typeFilter = document.getElementById("voucherTypeFilter").value;
+          const statusFilter = document.getElementById(
+            "voucherStatusFilter"
+          ).value;
+          const fromDate = document.getElementById("voucherFromDate").value;
+          const toDate = document.getElementById("voucherToDate").value;
+          const searchTerm = document.getElementById("voucherSearch").value;
+
+          const filters = {};
+          if (typeFilter) filters.voucherType = typeFilter;
+          if (statusFilter) filters.status = statusFilter;
+          if (fromDate) filters.fromDate = fromDate;
+          if (toDate) filters.toDate = toDate;
+          if (searchTerm) filters.search = searchTerm;
+          filters.limit = 200;
+
+          const logs = await window.electronAPI.getTallyVoucherLogs(filters);
+          voucherLogsData = logs || [];
+          renderVoucherLogs();
+        } catch (err) {
+          console.error("Failed to load voucher logs:", err);
+        }
+      }
+
+      function renderVoucherLogs() {
+        const tbody = document.getElementById("voucherLogsTableBody");
+        tbody.innerHTML = "";
+
+        if (voucherLogsData.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No voucher logs found</div></td></tr>';
+          return;
+        }
+
+        voucherLogsData.forEach((log) => {
+          const tr = document.createElement("tr");
+          const statusClass = log.status === "SUCCESS" ? "success" : "error";
+          tr.innerHTML = `
+            <td>${log.date}</td>
+            <td>${escapeHtml(log.voucher_number)}</td>
+            <td>${escapeHtml(log.voucher_type)}</td>
+            <td>${escapeHtml(log.party_name || "N/A")}</td>
+            <td>₹${parseFloat(log.amount || 0).toLocaleString("en-IN")}</td>
+            <td><span class="${statusClass}">${log.status}</span></td>
+          `;
+          if (log.error_message) {
+            tr.style.cursor = "pointer";
+            tr.addEventListener("click", () => {
+              ModalService.open(
+                "Voucher Error",
+                `<p><strong>Voucher:</strong> ${escapeHtml(
+                  log.voucher_number
+                )}</p><p><strong>Error:</strong> ${escapeHtml(
+                  log.error_message
+                )}</p>`,
+                "small"
+              );
+            });
+          }
+          tbody.appendChild(tr);
+        });
+      }
+
+      document
+        .getElementById("voucherTypeFilter")
+        .addEventListener("change", loadVoucherLogs);
+      document
+        .getElementById("voucherStatusFilter")
+        .addEventListener("change", loadVoucherLogs);
+      document
+        .getElementById("voucherFromDate")
+        .addEventListener("change", loadVoucherLogs);
+      document
+        .getElementById("voucherToDate")
+        .addEventListener("change", loadVoucherLogs);
+      document
+        .getElementById("voucherSearch")
+        .addEventListener("input", debounce(loadVoucherLogs, 300));
+      document
+        .getElementById("voucherLogRefreshBtn")
+        .addEventListener("click", loadVoucherLogs);
+
+      // ========================================
+      // Settings
+      // ========================================
+      async function loadSettings() {
+        try {
+          const settings = await window.electronAPI.getAllSettings();
+
+          if (settings.theme) {
+            document.getElementById("themeSelect").value = settings.theme;
+            setTheme(settings.theme);
+          }
+
+          const soundEnabled = settings.soundEnabled !== "false";
+          document
+            .getElementById("soundToggle")
+            .classList.toggle("active", soundEnabled);
+          SoundService.setEnabled(soundEnabled);
+
+          if (settings.syncInterval) {
+            document.getElementById("syncInterval").value =
+              settings.syncInterval;
+          }
+          if (settings.backgroundSync !== "false") {
+            document
+              .getElementById("backgroundSyncToggle")
+              .classList.add("active");
+          }
+          // Load API endpoint
+          const apiEndpointInput = document.getElementById("apiEndpoint");
+          if (settings.apiEndpoint) {
+            apiEndpointInput.value = settings.apiEndpoint;
+            apiEndpointInput.placeholder = "";
+          } else {
+            // Should be initialized by main process, but handle gracefully
+            apiEndpointInput.value = "";
+            apiEndpointInput.placeholder = "Loading...";
+          }
+          if (settings.apiTimeout) {
+            document.getElementById("apiTimeout").value = settings.apiTimeout;
+          }
+          if (settings.logRetention) {
+            document.getElementById("logRetention").value =
+              settings.logRetention;
+          }
+          if (settings.maxLogEntries) {
+            document.getElementById("maxLogEntries").value =
+              settings.maxLogEntries;
+          }
+        } catch (err) {
+          console.error("Failed to load settings:", err);
+        }
+      }
+
+      async function saveSettings() {
+        try {
+          const themeValue = document.getElementById("themeSelect").value;
+          await window.electronAPI.setSetting("theme", themeValue);
+          if (themeValue !== "auto") {
+            setTheme(themeValue);
+          }
+
+          await window.electronAPI.setSetting(
+            "soundEnabled",
+            document
+              .getElementById("soundToggle")
+              .classList.contains("active")
+              .toString()
+          );
+          await window.electronAPI.setSetting(
+            "syncInterval",
+            document.getElementById("syncInterval").value
+          );
+          await window.electronAPI.setSetting(
+            "backgroundSync",
+            document
+              .getElementById("backgroundSyncToggle")
+              .classList.contains("active")
+              .toString()
+          );
+          // API endpoint is read-only, managed automatically by the app
+          await window.electronAPI.setSetting(
+            "apiTimeout",
+            document.getElementById("apiTimeout").value
+          );
+          await window.electronAPI.setSetting(
+            "logRetention",
+            document.getElementById("logRetention").value
+          );
+          await window.electronAPI.setSetting(
+            "maxLogEntries",
+            document.getElementById("maxLogEntries").value
+          );
+
+          SoundService.setEnabled(
+            document.getElementById("soundToggle").classList.contains("active")
+          );
+          SoundService.play("success");
+        } catch (err) {
+          console.error("Failed to save settings:", err);
+          SoundService.play("error");
+        }
+      }
+
+      document.getElementById("themeSelect").addEventListener("change", (e) => {
+        const themeValue = e.target.value;
+        if (themeValue !== "auto") {
+          setTheme(themeValue);
+        } else {
+          const systemTheme = getSystemTheme();
+          setTheme(systemTheme);
+        }
+        saveSettings();
+      });
+
+      document
+        .getElementById("soundToggle")
+        .addEventListener("click", function () {
+          this.classList.toggle("active");
+          saveSettings();
+        });
+
+      document
+        .getElementById("backgroundSyncToggle")
+        .addEventListener("click", function () {
+          this.classList.toggle("active");
+          saveSettings();
+        });
+
+      document
+        .getElementById("syncInterval")
+        .addEventListener("change", saveSettings);
+      // API endpoint is read-only, no need for change listener
+      document
+        .getElementById("apiTimeout")
+        .addEventListener("change", saveSettings);
+      document
+        .getElementById("logRetention")
+        .addEventListener("change", saveSettings);
+      document
+        .getElementById("maxLogEntries")
+        .addEventListener("change", saveSettings);
+
+      document
+        .getElementById("exportLogsBtn")
+        .addEventListener("click", async () => {
+          alert("Export functionality coming soon");
+        });
+
+      document
+        .getElementById("clearAllLogsBtn")
+        .addEventListener("click", async () => {
+          if (
+            confirm(
+              "Are you sure you want to clear all logs? This cannot be undone."
+            )
+          ) {
+            try {
+              await window.electronAPI.clearLogs("system");
+              await window.electronAPI.clearLogs("api");
+              await window.electronAPI.clearLogs("voucher");
+              SoundService.play("success");
+              alert("All logs cleared");
+              loadSystemLogs();
+              loadApiLogs();
+              loadVoucherLogs();
+            } catch (err) {
+              console.error("Failed to clear logs:", err);
+              SoundService.play("error");
+            }
+          }
+        });
+
+      // ========================================
+      // Utility Functions
+      // ========================================
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      function syntaxHighlight(json) {
+        if (!json)
+          return '<span style="color: var(--text-secondary);">No data</span>';
+
+        try {
+          const str =
+            typeof json === "string" ? json : JSON.stringify(json, null, 2);
+          return escapeHtml(str).replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            (match) => {
+              let cls = "json-number";
+              if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                  cls = "json-key";
+                } else {
+                  cls = "json-string";
+                }
+              } else if (/true|false/.test(match)) {
+                cls = "json-boolean";
+              } else if (/null/.test(match)) {
+                cls = "json-boolean";
+              }
+              return `<span class="${cls}">${match}</span>`;
+            }
+          );
+        } catch (e) {
+          return '<span style="color: var(--text-secondary);">Invalid JSON</span>';
+        }
+      }
+
+      window.copyToClipboard = async (text) => {
+        try {
+          await navigator.clipboard.writeText(text);
+          SoundService.play("success");
+        } catch (err) {
+          console.error("Failed to copy:", err);
+          SoundService.play("error");
+        }
+      };
     </script>
   </body>
 </html>

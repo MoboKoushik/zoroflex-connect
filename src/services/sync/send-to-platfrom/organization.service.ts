@@ -2,8 +2,8 @@
 
 import axios from 'axios';
 import { DatabaseService, UserProfile } from '../../database/database.service';
+import { getApiUrl } from '../../config/api-url-helper';
 
-const BASE_URL = 'http://localhost:3000';
 const API_KEY = '7061797A6F72726F74616C6C79';
 const ENTITY_TYPE = 'ORGANIZATION';
 
@@ -41,7 +41,8 @@ export class OrganizationService {
 
       this.dbService.log('INFO', 'Sending organization payload to API', { payload });
 
-      const response = await axios.post(`${BASE_URL}/billers/tally/set-organization`, payload, {
+      const baseUrl = await getApiUrl(this.dbService);
+      const response = await axios.post(`${baseUrl}/billers/tally/set-organization`, payload, {
         headers: { 'API-KEY': API_KEY },
         timeout: 20000
       });
@@ -56,6 +57,16 @@ export class OrganizationService {
         organization_id: organizationId,
         synced_at: new Date().toISOString()
       });
+
+      // Log individual organization record
+      await this.dbService.logSyncRecordDetail(
+        runId,
+        organizationId || profile.biller_id || 'unknown',
+        tallyId,
+        'ORGANIZATION',
+        'SUCCESS',
+        null
+      );
 
       await this.dbService.logSyncEnd(runId, 'SUCCESS', 1, 0, undefined, 'Organization synced successfully');
       this.dbService.log('INFO', 'Organization synced successfully', {
@@ -76,6 +87,18 @@ export class OrganizationService {
         statusCode,
         stack: error.stack
       });
+
+      // Log failed organization record
+      const tallyId = currentCompany?.BASICCOMPANYFORMALNAME || currentCompany?.NAME || 'TALLY_CO';
+      const organizationId = currentCompany?.COMPANYNUMBER || profile.biller_id || 'unknown';
+      await this.dbService.logSyncRecordDetail(
+        runId,
+        organizationId,
+        tallyId,
+        'ORGANIZATION',
+        'FAILED',
+        errorMsg
+      );
 
       await this.dbService.logSyncEnd(runId, 'FAILED', 0, 1, undefined, errorMsg);
       throw error;

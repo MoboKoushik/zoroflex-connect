@@ -48,12 +48,66 @@ export interface LastSyncResult {
   last_successful_sync: string;
 }
 
+export interface ApiLogRow {
+  id: number;
+  endpoint: string;
+  method: string;
+  request_payload: string | null;
+  response_payload: string | null;
+  status_code: number | null;
+  status: 'SUCCESS' | 'ERROR';
+  error_message: string | null;
+  duration_ms: number;
+  created_at: string;
+}
+
+export interface TallyVoucherLogRow {
+  id: number;
+  voucher_number: string;
+  voucher_type: string;
+  date: string;
+  party_name: string | null;
+  amount: number;
+  status: 'SUCCESS' | 'FAILED';
+  error_message: string | null;
+  sync_history_id: number | null;
+  created_at: string;
+}
+
+export interface AppSetting {
+  key: string;
+  value: string;
+  updated_at: string;
+}
+
+export interface SyncRecordDetail {
+  id: number;
+  sync_history_id: number;
+  record_id: string;
+  record_name: string;
+  record_type: 'ORGANIZATION' | 'CUSTOMER';
+  status: 'SUCCESS' | 'FAILED';
+  error_message: string | null;
+  synced_at: string;
+}
+
+export interface RecentSyncHistoryItem {
+  entityType: 'ORGANIZATION' | 'CUSTOMER';
+  entityName: string;
+  totalRecords: number;
+  successCount: number;
+  failedCount: number;
+  lastSyncTime: string;
+  status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+  syncHistoryId: number;
+}
+
 export class DatabaseService {
   private db: Database.Database | null = null;
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v401.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v402.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();
@@ -111,6 +165,59 @@ export class DatabaseService {
         metadata TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS api_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        endpoint TEXT NOT NULL,
+        method TEXT NOT NULL,
+        request_payload TEXT,
+        response_payload TEXT,
+        status_code INTEGER,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        duration_ms INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS tally_voucher_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        voucher_number TEXT NOT NULL,
+        voucher_type TEXT NOT NULL,
+        date TEXT NOT NULL,
+        party_name TEXT,
+        amount REAL DEFAULT 0,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        sync_history_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS sync_record_details (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sync_history_id INTEGER NOT NULL,
+        record_id TEXT NOT NULL,
+        record_name TEXT NOT NULL,
+        record_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        synced_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_api_logs_created_at ON api_logs(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_api_logs_status ON api_logs(status);
+      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_date ON tally_voucher_logs(date DESC);
+      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_type ON tally_voucher_logs(voucher_type);
+      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_status ON tally_voucher_logs(status);
+      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_sync_history ON tally_voucher_logs(sync_history_id);
+      CREATE INDEX IF NOT EXISTS idx_sync_record_details_sync_history ON sync_record_details(sync_history_id);
+      CREATE INDEX IF NOT EXISTS idx_sync_record_details_record_type ON sync_record_details(record_type);
+      CREATE INDEX IF NOT EXISTS idx_sync_record_details_status ON sync_record_details(status);
 
       INSERT OR IGNORE INTO global_sync_status (id) VALUES (1);
 
@@ -256,6 +363,449 @@ export class DatabaseService {
       }
     });
     return rows;
+  }
+
+  // === API Logs ===
+  async logApiRequest(
+    endpoint: string,
+    method: string,
+    requestPayload: any,
+    responsePayload: any,
+    statusCode: number | null,
+    status: 'SUCCESS' | 'ERROR',
+    errorMessage: string | null,
+    durationMs: number
+  ): Promise<void> {
+    const requestJson = requestPayload ? JSON.stringify(requestPayload) : null;
+    const responseJson = responsePayload ? JSON.stringify(responsePayload) : null;
+    const stmt = this.db!.prepare(`
+      INSERT INTO api_logs (endpoint, method, request_payload, response_payload, status_code, status, error_message, duration_ms)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(endpoint, method.toUpperCase(), requestJson, responseJson, statusCode, status, errorMessage, durationMs);
+  }
+
+  async getApiLogs(filters?: {
+    status?: 'SUCCESS' | 'ERROR';
+    endpoint?: string;
+    fromDate?: string;
+    toDate?: string;
+    limit?: number;
+  }): Promise<ApiLogRow[]> {
+    let query = `SELECT * FROM api_logs WHERE 1=1`;
+    const params: any[] = [];
+
+    if (filters?.status) {
+      query += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    if (filters?.endpoint) {
+      query += ` AND endpoint LIKE ?`;
+      params.push(`%${filters.endpoint}%`);
+    }
+    if (filters?.fromDate) {
+      query += ` AND created_at >= ?`;
+      params.push(filters.fromDate);
+    }
+    if (filters?.toDate) {
+      query += ` AND created_at <= ?`;
+      params.push(filters.toDate);
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT ?`;
+    params.push(filters?.limit || 200);
+
+    const stmt = this.db!.prepare(query);
+    const rows = stmt.all(...params) as ApiLogRow[];
+    rows.forEach(row => {
+      if (row.request_payload) {
+        try { row.request_payload = JSON.parse(row.request_payload); } catch { }
+      }
+      if (row.response_payload) {
+        try { row.response_payload = JSON.parse(row.response_payload); } catch { }
+      }
+    });
+    return rows;
+  }
+
+  // === Tally Voucher Logs ===
+  async logTallyVoucher(
+    voucherNumber: string,
+    voucherType: string,
+    date: string,
+    partyName: string | null,
+    amount: number,
+    status: 'SUCCESS' | 'FAILED',
+    errorMessage: string | null,
+    syncHistoryId: number | null
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO tally_voucher_logs (voucher_number, voucher_type, date, party_name, amount, status, error_message, sync_history_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(voucherNumber, voucherType, date, partyName, amount, status, errorMessage, syncHistoryId);
+  }
+
+  async getTallyVoucherLogs(filters?: {
+    voucherType?: string;
+    status?: 'SUCCESS' | 'FAILED';
+    fromDate?: string;
+    toDate?: string;
+    search?: string;
+    limit?: number;
+  }): Promise<TallyVoucherLogRow[]> {
+    let query = `SELECT * FROM tally_voucher_logs WHERE 1=1`;
+    const params: any[] = [];
+
+    if (filters?.voucherType) {
+      // Case-insensitive match and handle variations
+      // Map common variations to actual stored values
+      const typeMap: Record<string, string[]> = {
+        'sales': ['sales'],
+        'credit_note': ['credit_note', 'credit note'],
+        'receipt': ['receipt', 'RECEIPT'],
+        'jv_entry': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
+        'JVENTRY': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
+        'JV': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
+        'RECEIPT': ['receipt', 'RECEIPT']
+      };
+      
+      const searchTypes = typeMap[filters.voucherType] || [filters.voucherType];
+      const placeholders = searchTypes.map(() => '?').join(',');
+      // Only check voucher_type column (entry_type doesn't exist in tally_voucher_logs table)
+      query += ` AND LOWER(voucher_type) IN (${placeholders})`;
+      params.push(...searchTypes.map(t => t.toLowerCase()));
+    }
+    if (filters?.status) {
+      query += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    if (filters?.fromDate) {
+      query += ` AND date >= ?`;
+      params.push(filters.fromDate);
+    }
+    if (filters?.toDate) {
+      query += ` AND date <= ?`;
+      params.push(filters.toDate);
+    }
+    if (filters?.search) {
+      query += ` AND (voucher_number LIKE ? OR party_name LIKE ?)`;
+      params.push(`%${filters.search}%`, `%${filters.search}%`);
+    }
+
+    query += ` ORDER BY date DESC, created_at DESC LIMIT ?`;
+    params.push(filters?.limit || 200);
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as TallyVoucherLogRow[];
+  }
+
+  // === App Settings ===
+  async getSetting(key: string): Promise<string | null> {
+    const stmt = this.db!.prepare(`SELECT value FROM app_settings WHERE key = ?`);
+    const row = stmt.get(key) as { value: string } | undefined;
+    return row?.value || null;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO app_settings (key, value, updated_at)
+      VALUES (?, ?, datetime('now'))
+      ON CONFLICT(key) DO UPDATE SET
+        value = excluded.value,
+        updated_at = datetime('now')
+    `);
+    stmt.run(key, value);
+  }
+
+  async getAllSettings(): Promise<Record<string, string>> {
+    const stmt = this.db!.prepare(`SELECT key, value FROM app_settings`);
+    const rows = stmt.all() as { key: string; value: string }[];
+    const settings: Record<string, string> = {};
+    rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    return settings;
+  }
+
+  // === Log Management ===
+  async clearLogs(logType: 'system' | 'api' | 'voucher'): Promise<void> {
+    if (logType === 'system') {
+      this.db!.exec('DELETE FROM logs');
+    } else if (logType === 'api') {
+      this.db!.exec('DELETE FROM api_logs');
+    } else if (logType === 'voucher') {
+      this.db!.exec('DELETE FROM tally_voucher_logs');
+    }
+  }
+
+  // === Sync Record Details ===
+  async logSyncRecordDetail(
+    syncHistoryId: number,
+    recordId: string,
+    recordName: string,
+    recordType: 'ORGANIZATION' | 'CUSTOMER',
+    status: 'SUCCESS' | 'FAILED',
+    errorMessage: string | null = null
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO sync_record_details (sync_history_id, record_id, record_name, record_type, status, error_message)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(syncHistoryId, recordId, recordName, recordType, status, errorMessage);
+  }
+
+  async getSyncRecordDetails(
+    syncHistoryId: number,
+    filters?: {
+      status?: 'SUCCESS' | 'FAILED';
+      search?: string;
+    }
+  ): Promise<SyncRecordDetail[]> {
+    let query = `SELECT * FROM sync_record_details WHERE sync_history_id = ?`;
+    const params: any[] = [syncHistoryId];
+
+    if (filters?.status) {
+      query += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    if (filters?.search) {
+      query += ` AND (record_id LIKE ? OR record_name LIKE ?)`;
+      params.push(`%${filters.search}%`, `%${filters.search}%`);
+    }
+
+    query += ` ORDER BY synced_at DESC`;
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as SyncRecordDetail[];
+  }
+
+  // === Recent Sync History (Grouped) ===
+  async getRecentSyncHistoryGrouped(): Promise<RecentSyncHistoryItem[]> {
+    // Get all syncs and filter for ORGANIZATION and CUSTOMER (case-insensitive)
+    const stmt = this.db!.prepare(`
+      SELECT * FROM sync_history
+      ORDER BY started_at DESC
+    `);
+    const allSyncs = stmt.all() as SyncHistoryRow[];
+
+    console.log('All syncs from database:', allSyncs.length);
+    console.log('All sync entity types:', allSyncs.map(s => ({ type: s.entity_type, id: s.id, status: s.status })));
+
+    // Filter for ORGANIZATION and CUSTOMER (case-insensitive, trim whitespace)
+    const filteredSyncs = allSyncs.filter(s => {
+      const type = (s.entity_type || '').trim().toUpperCase();
+      return type === 'ORGANIZATION' || type === 'CUSTOMER';
+    });
+
+    console.log('Filtered syncs for recent history:', filteredSyncs.length, filteredSyncs.map(s => ({ type: s.entity_type, status: s.status, count: s.entity_count, id: s.id })));
+
+    // Group by entity_type and get latest for each (case-insensitive)
+    const latestByType: Map<string, SyncHistoryRow> = new Map();
+    for (const sync of filteredSyncs) {
+      const key = (sync.entity_type || '').trim().toUpperCase();
+      // Only get the latest (first one we encounter since we're ordering DESC)
+      if (!latestByType.has(key)) {
+        latestByType.set(key, sync);
+      }
+    }
+    
+    console.log('Latest by type keys:', Array.from(latestByType.keys()));
+
+    const result: RecentSyncHistoryItem[] = [];
+
+    // Process Organization
+    const orgSync = latestByType.get('ORGANIZATION');
+    if (orgSync) {
+      const profile = await this.getProfile();
+      const orgName = profile?.organization?.name || 'Organization';
+      result.push({
+        entityType: 'ORGANIZATION',
+        entityName: orgName,
+        totalRecords: orgSync.entity_count || 0,
+        successCount: orgSync.entity_count || 0,
+        failedCount: orgSync.failed_count || 0,
+        lastSyncTime: orgSync.completed_at || orgSync.started_at,
+        status: orgSync.status as 'SUCCESS' | 'PARTIAL' | 'FAILED',
+        syncHistoryId: orgSync.id
+      });
+      console.log('Added Organization sync:', orgSync.id, orgSync.entity_count);
+    }
+
+    // Process Customer
+    const customerSync = latestByType.get('CUSTOMER');
+    if (customerSync) {
+      const totalRecords = (customerSync.entity_count || 0) + (customerSync.failed_count || 0);
+      const successCount = customerSync.entity_count || 0;
+      const failedCount = customerSync.failed_count || 0;
+      
+      console.log('Customer sync data:', {
+        id: customerSync.id,
+        entity_count: customerSync.entity_count,
+        failed_count: customerSync.failed_count,
+        totalRecords,
+        successCount,
+        failedCount,
+        status: customerSync.status
+      });
+      
+      result.push({
+        entityType: 'CUSTOMER',
+        entityName: 'Customers',
+        totalRecords: totalRecords,
+        successCount: successCount,
+        failedCount: failedCount,
+        lastSyncTime: customerSync.completed_at || customerSync.started_at,
+        status: customerSync.status as 'SUCCESS' | 'PARTIAL' | 'FAILED',
+        syncHistoryId: customerSync.id
+      });
+      console.log('Added Customer sync to result:', customerSync.id, 'totalRecords:', totalRecords, 'successCount:', successCount);
+    } else {
+      console.log('No CUSTOMER sync found in database. Available types:', Array.from(latestByType.keys()));
+    }
+
+    return result;
+  }
+
+  // === Voucher Sync Summary ===
+  async getVoucherSyncSummary(): Promise<Record<string, { totalAttempted: number; successCount: number; failedCount: number }>> {
+    // Get all syncs and find VOUCHER (case-insensitive)
+    const stmt = this.db!.prepare(`
+      SELECT * FROM sync_history
+      ORDER BY started_at DESC
+    `);
+    const allSyncs = stmt.all() as SyncHistoryRow[];
+    
+    // Find latest VOUCHER sync (case-insensitive)
+    const latestVoucherSync = allSyncs.find(s => s.entity_type.toUpperCase() === 'VOUCHER');
+
+    console.log('Latest voucher sync:', latestVoucherSync ? { id: latestVoucherSync.id, status: latestVoucherSync.status, count: latestVoucherSync.entity_count } : 'none');
+
+    const result: Record<string, { totalAttempted: number; successCount: number; failedCount: number }> = {};
+
+    // First, try to get from tally_voucher_logs table (most accurate)
+    if (latestVoucherSync) {
+      const voucherStmt = this.db!.prepare(`
+        SELECT voucher_type, 
+               COUNT(*) as total,
+               SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
+               SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failed
+        FROM tally_voucher_logs
+        WHERE sync_history_id = ?
+        GROUP BY voucher_type
+      `);
+      const voucherStats = voucherStmt.all(latestVoucherSync.id) as any[];
+      
+      console.log('Voucher stats from tally_voucher_logs:', voucherStats.length, voucherStats);
+      
+      if (voucherStats.length > 0) {
+        for (const stat of voucherStats) {
+          const typeName = stat.voucher_type || 'Unknown';
+          // Normalize voucher type names - keep original case but capitalize first letter
+          const normalizedType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+          result[normalizedType] = {
+            totalAttempted: stat.total || 0,
+            successCount: stat.success || 0,
+            failedCount: stat.failed || 0
+          };
+        }
+        console.log('Returning voucher summary from tally_voucher_logs:', result);
+        return result;
+      }
+      
+      // If no voucher logs, try to get all voucher logs (might be from different sync_history_id)
+      const allVoucherStmt = this.db!.prepare(`
+        SELECT voucher_type, 
+               COUNT(*) as total,
+               SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
+               SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failed
+        FROM tally_voucher_logs
+        GROUP BY voucher_type
+      `);
+      const allVoucherStats = allVoucherStmt.all() as any[];
+      
+      if (allVoucherStats.length > 0) {
+        console.log('Using all voucher logs:', allVoucherStats.length);
+        for (const stat of allVoucherStats) {
+          const typeName = stat.voucher_type || 'Unknown';
+          const normalizedType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+          result[normalizedType] = {
+            totalAttempted: stat.total || 0,
+            successCount: stat.success || 0,
+            failedCount: stat.failed || 0
+          };
+        }
+        return result;
+      }
+    }
+
+    // Fallback to summary JSON if tally_voucher_logs is empty
+    if (latestVoucherSync && latestVoucherSync.summary) {
+      let summary: any = {};
+      try {
+        summary = typeof latestVoucherSync.summary === 'string' 
+          ? JSON.parse(latestVoucherSync.summary) 
+          : latestVoucherSync.summary;
+      } catch (e) {
+        console.error('Failed to parse voucher summary:', e);
+        // Fallback: use entity_count if available
+        const failedCount = latestVoucherSync.failed_count || 0;
+        if (latestVoucherSync.entity_count > 0 || failedCount > 0) {
+          result['All Vouchers'] = {
+            totalAttempted: (latestVoucherSync.entity_count || 0) + failedCount,
+            successCount: latestVoucherSync.entity_count || 0,
+            failedCount: failedCount
+          };
+        }
+        return result;
+      }
+
+      // Check if summary has voucher type breakdowns
+      if (summary.invoice) {
+        result['Sales'] = {
+          totalAttempted: (summary.invoice.success || 0) + (summary.invoice.failed || 0),
+          successCount: summary.invoice.success || 0,
+          failedCount: summary.invoice.failed || 0
+        };
+      }
+      if (summary.receipt) {
+        result['Receipt'] = {
+          totalAttempted: (summary.receipt.success || 0) + (summary.receipt.failed || 0),
+          successCount: summary.receipt.success || 0,
+          failedCount: summary.receipt.failed || 0
+        };
+      }
+      if (summary.jv || summary.jv_entry) {
+        result['Journal'] = {
+          totalAttempted: ((summary.jv?.success || summary.jv_entry?.success || 0) + (summary.jv?.failed || summary.jv_entry?.failed || 0)),
+          successCount: summary.jv?.success || summary.jv_entry?.success || 0,
+          failedCount: summary.jv?.failed || summary.jv_entry?.failed || 0
+        };
+      }
+      
+      // If no breakdown in summary but we have counts, show aggregate
+      const failedCountInSummary = latestVoucherSync.failed_count || 0;
+      if (Object.keys(result).length === 0 && (latestVoucherSync.entity_count > 0 || failedCountInSummary > 0)) {
+        result['All Vouchers'] = {
+          totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountInSummary,
+          successCount: latestVoucherSync.entity_count || 0,
+          failedCount: failedCountInSummary
+        };
+      }
+    } else if (latestVoucherSync) {
+      const failedCountFallback = latestVoucherSync.failed_count || 0;
+      // No summary JSON, but we have counts - show aggregate
+      if (latestVoucherSync.entity_count > 0 || failedCountFallback > 0) {
+        result['All Vouchers'] = {
+          totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountFallback,
+          successCount: latestVoucherSync.entity_count || 0,
+          failedCount: failedCountFallback
+        };
+      }
+    }
+
+    console.log('Final voucher summary result:', result);
+    return result;
   }
 
   close(): void {

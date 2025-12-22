@@ -4,11 +4,11 @@ import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
 import { DatabaseService, UserProfile } from '../../database/database.service';
+import { getApiUrl } from '../../config/api-url-helper';
 
 const db = new DatabaseService();
 
 const ENTITY_TYPE = 'CUSTOMER';
-const API_URL = 'http://localhost:3000/customer/tally/create';
 const API_KEY = '7061797A6F72726F74616C6C79';
 const BATCH_SIZE = 20;
 
@@ -82,6 +82,9 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
   let newMaxAlterId = '0';
 
   try {
+    const baseUrl = await getApiUrl(db);
+    const API_URL = `${baseUrl}/customer/tally/create`;
+    
     const lastMaxAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
     const cleanLastAlterId = lastMaxAlterId.trim();
 
@@ -204,11 +207,40 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
         });
         successCount += batch.length;
         db.log('INFO', 'Customer batch synced successfully', { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+        
+        // Log individual customer records as successful
+        for (const customer of batch) {
+          const customerId = customer.customer_id || 'unknown';
+          const customerName = customer.name || 'Unknown Customer';
+          await db.logSyncRecordDetail(
+            runId,
+            customerId,
+            customerName,
+            'CUSTOMER',
+            'SUCCESS',
+            null
+          );
+        }
       } catch (err: any) {
         failedCount += batch.length;
         const errorMsg = err.response?.data || err.message || 'Unknown error';
         db.log('ERROR', 'Customer batch failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
         fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
+        
+        // Log individual customer records as failed
+        const errorMessage = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
+        for (const customer of batch) {
+          const customerId = customer.customer_id || 'unknown';
+          const customerName = customer.name || 'Unknown Customer';
+          await db.logSyncRecordDetail(
+            runId,
+            customerId,
+            customerName,
+            'CUSTOMER',
+            'FAILED',
+            errorMessage
+          );
+        }
       }
     }
 

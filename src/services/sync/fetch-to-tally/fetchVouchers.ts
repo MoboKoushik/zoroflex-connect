@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import { parseStringPromise } from 'xml2js';
 import { DatabaseService, UserProfile } from '../../database/database.service';
+import { getApiUrl } from '../../config/api-url-helper';
 
 const db = new DatabaseService();
 
@@ -9,11 +10,6 @@ const ENTITY_TYPE = 'VOUCHER';
 const CUSTOMER_MAP_ENTITY = 'CUSTOMER_MAP';
 const BATCH_SIZE = 20;
 const API_KEY = '7061797A6F72726F74616C6C79';
-
-// API Endpoints
-const INVOICE_API = 'http://localhost:3000/invoice/tally/create';
-const RECEIPT_API = 'http://localhost:3000/billers/tally/payment';
-const JV_API = 'http://localhost:3000/ledgers/tally/jv-entries';
 
 export const customerMasterIdMap = new Map<string, string>();
 
@@ -288,6 +284,11 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
   let newMaxAlterId = '0';
 
   try {
+    const baseUrl = await getApiUrl(db);
+    const INVOICE_API = `${baseUrl}/invoice/tally/create`;
+    const RECEIPT_API = `${baseUrl}/billers/tally/payment`;
+    const JV_API = `${baseUrl}/ledgers/tally/jv-entries`;
+    
     const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
     db.log('INFO', 'Voucher sync started', { from_alter_id: lastAlterId });
 
@@ -568,7 +569,8 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           receipt_amount: receiptAmount.toFixed(2),
           biller_id: billerId,
           transaction_type: getText(paymentLedgerEntry, 'LEDGERNAME') || 'Unknown',
-          bill_details: billDetails
+          bill_details: billDetails,
+          voucher_type: 'receipt' // Add voucher_type for filtering
         };
 
         groupedVouchers.receipt.push(transformedObj);
@@ -581,6 +583,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
 
         transformedObj = {
           entry_type: 'JVENTRY',
+          voucher_type: 'jv_entry', // Add voucher_type for filtering
           transation_id: `Vd${invoiceId}`,
           biller_id: billerId,
           voucher_number: getText(voucher, 'VOUCHERNUMBER'),
@@ -615,11 +618,52 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           });
           successCount[type] += batch.length;
           db.log('INFO', `${type.charAt(0).toUpperCase() + type.slice(1)} batch synced`, { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+          
+          // Log each voucher as successful
+          for (const item of batch) {
+            const voucherNumber = item.invoice_number || item.receipt_number || item.voucher_number || 'N/A';
+            const voucherType = item.voucher_type || item.entry_type || type.toUpperCase();
+            const date = item.issue_date || item.receipt_date || item.date || new Date().toISOString().split('T')[0];
+            const partyName = item.customer_name || item.customer_id || null;
+            const amount = parseFloat(item.total || item.receipt_amount || '0') || 0;
+            
+            await db.logTallyVoucher(
+              voucherNumber,
+              voucherType,
+              date,
+              partyName,
+              amount,
+              'SUCCESS',
+              null,
+              runId
+            );
+          }
         } catch (err: any) {
           failedCount[type] += batch.length;
           const errMsg = err.response?.data || err.message;
           db.log('ERROR', `${type} batch failed`, { error: errMsg });
           fs.writeFileSync(`./dump/voucher/failed_${type}_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
+          
+          // Log each voucher as failed
+          for (const item of batch) {
+            const voucherNumber = item.invoice_number || item.receipt_number || item.voucher_number || 'N/A';
+            const voucherType = item.voucher_type || item.entry_type || type.toUpperCase();
+            const date = item.issue_date || item.receipt_date || item.date || new Date().toISOString().split('T')[0];
+            const partyName = item.customer_name || item.customer_id || null;
+            const amount = parseFloat(item.total || item.receipt_amount || '0') || 0;
+            const errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
+            
+            await db.logTallyVoucher(
+              voucherNumber,
+              voucherType,
+              date,
+              partyName,
+              amount,
+              'FAILED',
+              errorMessage,
+              runId
+            );
+          }
         }
       }
     };
