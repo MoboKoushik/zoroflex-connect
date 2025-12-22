@@ -1,474 +1,1062 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zoroflex Connect - Dashboard</title>
-  <style>
-    :root {
-      --primary: #0078d4;
-      --primary-dark: #106ebe;
-      --primary-light: #deecf9;
-      --success: #107c10;
-      --danger: #d13438;
-      --warning: #ffaa44;
-      --gray-100: #f3f3f3;
-      --gray-200: #e1e1e1;
-      --gray-300: #c8c8c8;
-      --gray-600: #605e5c;
-      --gray-800: #323130;
-      --gray-900: #201f1e;
-      --border-color: #e1e1e1;
-      --border-radius: 2px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-      background: #f3f3f3;
-      min-height: 100vh;
-      color: var(--gray-900);
-      line-height: 1.5;
-      display: flex;
-      flex-direction: column;
-    }
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 1.25rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    /* Statistics Cards */
-    .stats-container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-    }
-    .stat-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      min-height: 110px;
-    }
-    .stat-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.75rem;
-    }
-    .stat-card-icon-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .stat-card-icon {
-      font-size: 1.5rem;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--gray-100);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-    }
-    .stat-card-label {
-      font-size: 0.875rem;
-      color: var(--gray-600);
-      font-weight: 500;
-    }
-    .stat-card-value {
-      font-size: 2.25rem;
-      font-weight: 600;
-      color: var(--gray-900);
-      line-height: 1.1;
-      margin-bottom: 0.25rem;
-    }
-    .stat-card-desc {
-      font-size: 0.75rem;
-      color: var(--gray-600);
-      margin-top: auto;
-    }
-    /* Main Content - Full Height */
-    .main-content {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 1rem;
-      min-height: 0;
-    }
-    /* Cards */
-    .card {
-      background: white;
-      border: 1px solid var(--border-color);
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-    .card h2 {
-      font-size: 1rem;
-      margin-bottom: 1.25rem;
-      color: var(--gray-900);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-bottom: 2px solid var(--gray-200);
-      padding-bottom: 0.75rem;
-      text-transform: uppercase;
-      font-size: 0.8125rem;
-      letter-spacing: 0.5px;
-    }
-    .card h2::before {
-      content: '';
-      width: 4px;
-      height: 16px;
-      background: var(--primary);
-      border-radius: 2px;
-    }
-    /* Status Badge & Info Rows */
-    .status-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 2px;
-      font-weight: 500;
-      font-size: 0.85rem;
-      display: inline-block;
-      border: 1px solid transparent;
-    }
-    .status-connected { background: #dff6dd; color: var(--success); border-color: #dff6dd; }
-    .status-syncing { background: #fff4e5; color: var(--warning); border-color: #fff4e5; }
-    .status-disconnected { background: #fde7e9; color: var(--danger); border-color: #fde7e9; }
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.625rem 0;
-      border-bottom: 1px solid var(--gray-200);
-      font-size: 0.875rem;
-    }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { font-weight: 500; color: var(--gray-600); }
-    .info-value { color: var(--gray-900); font-weight: 400; text-align: right; }
-    /* Buttons */
-    .btn-group {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--gray-200);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .btn {
-      padding: 0.625rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      font-weight: 400;
-      cursor: pointer;
-      font-size: 0.875rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 0.15s ease;
-      width: 100%;
-      justify-content: center;
-    }
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      border-color: var(--primary-dark);
-    }
-    .btn-logout {
-      background: white;
-      color: var(--danger);
-      border-color: var(--danger);
-    }
-    .btn-logout:hover {
-      background: #fef6f6;
-    }
-    .btn:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-    /* Table & Pagination */
-    .table-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      overflow: hidden;
-    }
-    .table-wrapper {
-      flex: 1;
-      overflow: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      table-layout: fixed;
-    }
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--gray-200);
-    }
-    th {
-      background: var(--gray-100);
-      font-weight: 600;
-      color: var(--gray-900);
-      font-size: 0.8125rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid var(--border-color);
-    }
-    tr:hover {
-      background: #fafafa;
-    }
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-    .success { color: var(--success); font-weight: 500; }
-    .error { color: var(--danger); font-weight: 500; }
-    .partial { color: var(--warning); font-weight: 500; }
-    .pagination {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .pagination button {
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--border-color);
-      background: white;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      font-weight: 400;
-      font-size: 0.85rem;
-    }
-    .pagination button:hover {
-      background: var(--gray-100);
-    }
-    .pagination button.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-    .pagination button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    /* Spinner */
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #fff4;
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    /* Footer */
-    .footer {
-      text-align: center;
-      color: var(--gray-600);
-      font-size: 0.8125rem;
-      padding: 0.875rem;
-      background: white;
-      border: 1px solid var(--border-color);
-      margin-top: auto;
-    }
-    /* Responsive Adjustments */
-    @media (max-width: 1024px) {
-      .main-content { grid-template-columns: 1fr; }
-      .stats-container { grid-template-columns: repeat(2, 1fr); }
-      .container { padding: 1rem; }
-    }
-    @media (max-width: 768px) {
-      th, td { padding: 0.625rem 0.5rem; font-size: 0.8125rem; }
-      .stats-container { grid-template-columns: 1fr; }
-      .stat-card { min-height: auto; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Statistics Cards -->
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-card-icon-wrapper">
-            <div class="stat-card-icon">📊</div>
-            <div class="stat-card-label">Total Syncs</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zorrofin Connect - Dashboard</title>
+    <style>
+      /* ========================================
+       CSS Variables - Desktop Color Palette
+       ======================================== */
+      :root {
+        --primary: #0078d4;
+        --primary-dark: #106ebe;
+        --success: #107c10;
+        --danger: #d13438;
+        --warning: #ffaa44;
+        --bg-main: #ffffff;
+        --bg-sidebar: #f8f9fa;
+        --bg-hover: #f3f3f3;
+        --bg-card: #ffffff;
+        --border-color: #e1e1e1;
+        --text-primary: #323130;
+        --text-secondary: #605e5c;
+        --border-radius: 2px;
+        --status-success-bg: #dff6dd;
+        --status-success-border: #dff6dd;
+        --status-warning-bg: #fff4e5;
+        --status-warning-border: #fff4e5;
+        --status-danger-bg: #fde7e9;
+        --status-danger-border: #fde7e9;
+        --btn-logout-hover: #fef6f6;
+      }
+
+      /* Dark Mode Variables */
+      [data-theme="dark"] {
+        --bg-main: #1e1e1e;
+        --bg-sidebar: #252526;
+        --bg-hover: #2d2d30;
+        --bg-card: #252526;
+        --border-color: #3e3e42;
+        --text-primary: #cccccc;
+        --text-secondary: #858585;
+        --status-success-bg: #1e4620;
+        --status-success-border: #1e4620;
+        --status-warning-bg: #4a3a1f;
+        --status-warning-border: #4a3a1f;
+        --status-danger-bg: #4a1e1e;
+        --status-danger-border: #4a1e1e;
+        --btn-logout-hover: #3a1e1e;
+      }
+
+      /* ========================================
+       Reset & Base Styles
+       ======================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter",
+          sans-serif;
+        background: var(--bg-main);
+        height: 100vh;
+        overflow: hidden;
+        color: var(--text-primary);
+        font-size: 13px;
+        line-height: 1.4;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ========================================
+       Layout - Sidebar, Title Bar, Main
+       ======================================== */
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .title-bar {
+        height: 48px;
+        background: var(--bg-sidebar);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0;
+        flex-shrink: 0;
+        -webkit-app-region: drag;
+        user-select: none;
+        width: 100%;
+      }
+
+      .title-bar-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        padding: 0 16px;
+        flex: 1;
+        -webkit-app-region: drag;
+      }
+
+      .title-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0;
+        -webkit-app-region: no-drag;
+      }
+
+      .window-controls {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        -webkit-app-region: no-drag;
+      }
+
+      .window-control-btn {
+        width: 46px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: var(--text-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: background-color 0.15s ease;
+        padding: 0;
+      }
+
+      .window-control-btn:hover {
+        background: var(--bg-hover);
+      }
+
+      .window-control-btn.close:hover {
+        background: #e81123;
+        color: white;
+      }
+
+      .window-control-btn svg {
+        width: 12px;
+        height: 12px;
+        fill: currentColor;
+      }
+
+      /* Make sure the entire title bar area is draggable including where native controls are */
+      .title-bar > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .theme-toggle {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: transparent;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: var(--text-primary);
+        transition: background-color 0.15s ease;
+        padding: 0;
+      }
+
+      .theme-toggle:hover {
+        background: var(--bg-hover);
+      }
+
+      .theme-toggle:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .app-logo {
+        width: 20px;
+        height: 20px;
+        background: var(--primary);
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .main-layout {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* ========================================
+       Sidebar Navigation
+       ======================================== */
+      .sidebar {
+        width: 240px;
+        background: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        overflow-y: auto;
+      }
+
+      .nav-section {
+        padding: 12px 0;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .nav-item:hover {
+        background: var(--bg-hover);
+      }
+
+      .nav-item.active {
+        background: rgba(0, 120, 212, 0.15);
+        border-left-color: var(--primary);
+        color: var(--primary);
+        font-weight: 500;
+      }
+
+      [data-theme="dark"] .nav-item.active {
+        background: rgba(0, 120, 212, 0.2);
+      }
+
+      .nav-icon {
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .user-info {
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 12px;
+      }
+
+      .user-email {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        word-break: break-all;
+      }
+
+      .user-org {
+        font-size: 11px;
+        color: var(--text-secondary);
+      }
+
+      /* ========================================
+       Main Content Area
+       ======================================== */
+      .content-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg-main);
+      }
+
+      .content-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      /* ========================================
+       Statistics Cards
+       ======================================== */
+      .stats-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--border-radius);
+      }
+
+      .stat-card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .stat-card-icon {
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+
+      .stat-card-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .stat-card-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.1;
+        margin-bottom: 4px;
+      }
+
+      .stat-card-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: auto;
+      }
+
+      /* ========================================
+       Connection Status Panel
+       ======================================== */
+      .connection-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: var(--border-radius);
+      }
+
+      .panel-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .panel-title::before {
+        content: "";
+        width: 3px;
+        height: 14px;
+        background: var(--primary);
+        border-radius: 2px;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 13px;
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .info-value {
+        color: var(--text-primary);
+        font-weight: 400;
+        text-align: right;
+      }
+
+      .btn-group {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* ========================================
+       Sync History Table
+       ======================================== */
+      .history-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        border-radius: var(--border-radius);
+      }
+
+      .table-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .table-wrapper {
+        flex: 1;
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        background: var(--bg-hover);
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      tbody tr:hover {
+        background: var(--bg-hover);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .success {
+        color: var(--success);
+        font-weight: 500;
+      }
+
+      .error {
+        color: var(--danger);
+        font-weight: 500;
+      }
+
+      .partial {
+        color: var(--warning);
+        font-weight: 500;
+      }
+
+      /* ========================================
+       Buttons & Controls
+       ======================================== */
+      .btn {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-weight: 400;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+        width: 100%;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+      }
+
+      .btn-logout {
+        background: var(--bg-card);
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+
+      .btn-logout:hover:not(:disabled) {
+        background: var(--btn-logout-hover);
+      }
+
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .btn:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      /* ========================================
+       Status Badges
+       ======================================== */
+      .status-badge {
+        padding: 3px 8px;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 11px;
+        display: inline-block;
+        border: 1px solid transparent;
+      }
+
+      .status-connected {
+        background: var(--status-success-bg);
+        color: var(--success);
+        border-color: var(--status-success-border);
+      }
+
+      .status-syncing {
+        background: var(--status-warning-bg);
+        color: var(--warning);
+        border-color: var(--status-warning-border);
+      }
+
+      .status-disconnected {
+        background: var(--status-danger-bg);
+        color: var(--danger);
+        border-color: var(--status-danger-border);
+      }
+
+      /* ========================================
+       Pagination
+       ======================================== */
+      .pagination {
+        margin-top: 12px;
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .pagination button {
+        padding: 6px 10px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: 400;
+        font-size: 12px;
+        transition: background-color 0.15s ease;
+        color: var(--text-primary);
+      }
+
+      .pagination button:hover:not(:disabled) {
+        background: var(--bg-hover);
+      }
+
+      .pagination button.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ========================================
+       Spinner
+       ======================================== */
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ========================================
+       Utilities
+       ======================================== */
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Custom Title Bar -->
+      <div class="title-bar">
+        <div class="title-bar-content">
+          <div class="app-logo">Z</div>
+          <span>Zorrofin Connect</span>
+        </div>
+        <div class="title-bar-actions">
+          <button
+            id="themeToggle"
+            class="theme-toggle"
+            title="Toggle dark/light mode"
+            aria-label="Toggle theme"
+          >
+            <span id="themeIcon">🌙</span>
+          </button>
+          <div class="window-controls">
+            <button
+              id="minimizeBtn"
+              class="window-control-btn"
+              title="Minimize"
+              aria-label="Minimize"
+            >
+              <svg viewBox="0 0 12 12">
+                <rect x="0" y="5" width="12" height="1" />
+              </svg>
+            </button>
+            <button
+              id="maximizeBtn"
+              class="window-control-btn"
+              title="Maximize"
+              aria-label="Maximize"
+            >
+              <svg
+                id="maximizeIcon"
+                viewBox="0 0 12 12"
+                style="width: 12px; height: 12px"
+              >
+                <rect
+                  x="1"
+                  y="1"
+                  width="10"
+                  height="10"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  fill="none"
+                />
+              </svg>
+            </button>
+            <button
+              id="closeBtn"
+              class="window-control-btn close"
+              title="Close"
+              aria-label="Close"
+            >
+              <svg viewBox="0 0 12 12">
+                <path
+                  d="M1 1 L11 11 M11 1 L1 11"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-        <div class="stat-card-value" id="statTotal">0</div>
-        <div class="stat-card-desc">All time sync operations</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-card-icon-wrapper">
-            <div class="stat-card-icon">✅</div>
-            <div class="stat-card-label">Successful</div>
+
+      <div class="main-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <nav class="nav-section">
+            <div class="nav-item active">
+              <span class="nav-icon">📊</span>
+              <span>Dashboard</span>
+            </div>
+            <div class="nav-item">
+              <span class="nav-icon">⚙️</span>
+              <span>Settings</span>
+            </div>
+            <div class="nav-item">
+              <span class="nav-icon">📋</span>
+              <span>Logs</span>
+            </div>
+          </nav>
+
+          <div class="sidebar-footer">
+            <div class="user-info">
+              <div class="user-email" id="sidebarEmail">-</div>
+              <div class="user-org" id="sidebarOrg">Not synced</div>
+            </div>
+            <button id="sidebarLogoutBtn" class="btn btn-logout">Logout</button>
           </div>
-        </div>
-        <div class="stat-card-value" id="statSuccessful">0</div>
-        <div class="stat-card-desc">Completed successfully</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-card-icon-wrapper">
-            <div class="stat-card-icon">❌</div>
-            <div class="stat-card-label">Failed</div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+          <div class="content-scroll">
+            <!-- Statistics Cards -->
+            <div class="stats-container">
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon">📊</div>
+                  <div class="stat-card-label">Total Syncs</div>
+                </div>
+                <div class="stat-card-value" id="statTotal">0</div>
+                <div class="stat-card-desc">All time sync operations</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon">✅</div>
+                  <div class="stat-card-label">Successful</div>
+                </div>
+                <div class="stat-card-value" id="statSuccessful">0</div>
+                <div class="stat-card-desc">Completed successfully</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon">❌</div>
+                  <div class="stat-card-label">Failed</div>
+                </div>
+                <div class="stat-card-value" id="statFailed">0</div>
+                <div class="stat-card-desc">Errors or failures</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-card-icon">📅</div>
+                  <div class="stat-card-label">Today's Syncs</div>
+                </div>
+                <div class="stat-card-value" id="statToday">0</div>
+                <div class="stat-card-desc">Syncs performed today</div>
+              </div>
+            </div>
+
+            <!-- Connection Status Panel -->
+            <div class="connection-panel">
+              <h2 class="panel-title">Connection Status</h2>
+              <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value" id="email">-</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Biller ID</span>
+                <span class="info-value" id="billerId">-</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Organization</span>
+                <span class="info-value" id="org">Not synced</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Sync Status</span>
+                <span id="status" class="status-badge status-connected"
+                  >Connected</span
+                >
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Sync</span>
+                <span class="info-value" id="lastSync">Never</span>
+              </div>
+              <div class="btn-group">
+                <button id="syncBtn" class="btn btn-primary">
+                  Manual Sync
+                </button>
+              </div>
+            </div>
+
+            <!-- Sync History Panel -->
+            <div class="history-panel">
+              <h2 class="panel-title">Recent Sync History</h2>
+              <div class="table-container">
+                <div class="table-wrapper">
+                  <table id="historyTable">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Entity</th>
+                        <th>Status</th>
+                        <th>Success</th>
+                        <th>Failed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Populated by JS -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="pagination" id="pagination"></div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="stat-card-value" id="statFailed">0</div>
-        <div class="stat-card-desc">Errors or failures</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="stat-card-icon-wrapper">
-            <div class="stat-card-icon">📅</div>
-            <div class="stat-card-label">Today's Syncs</div>
-          </div>
-        </div>
-        <div class="stat-card-value" id="statToday">0</div>
-        <div class="stat-card-desc">Syncs performed today</div>
+        </main>
       </div>
     </div>
-    <div class="main-content">
-      <!-- Left Card: Profile & Controls -->
-      <div class="card">
-        <h2>Connection Status</h2>
-        <div class="info-row">
-          <span class="info-label">Email</span>
-          <span class="info-value" id="email">-</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Biller ID</span>
-          <span class="info-value" id="billerId">-</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Organization</span>
-          <span class="info-value" id="org">Not synced</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Sync Status</span>
-          <span id="status" class="status-badge status-connected">Connected</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Last Sync</span>
-          <span class="info-value" id="lastSync">Never</span>
-        </div>
-        <div class="btn-group">
-          <button id="syncBtn" class="btn btn-primary">Manual Sync</button>
-          <button id="logoutBtn" class="btn btn-logout">Logout</button>
-        </div>
-      </div>
-      <!-- Right Card: Sync History -->
-      <div class="card">
-        <h2>Recent Sync History</h2>
-        <div class="table-container">
-          <div class="table-wrapper">
-            <table id="historyTable">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Type</th>
-                  <th>Entity</th>
-                  <th>Status</th>
-                  <th>Success</th>
-                  <th>Failed</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Populated by JS -->
-              </tbody>
-            </table>
-          </div>
-          <div class="pagination" id="pagination"></div>
-        </div>
-      </div>
-    </div>
-    <div class="footer">
-      © 2025 Zoroflex Solutions • Version 1.0.0 • Secure & Real-time Sync Active
-    </div>
-  </div>
 
-  <script>
-    const emailEl = document.getElementById('email');
-    const billerIdEl = document.getElementById('billerId');
-    const orgEl = document.getElementById('org');
-    const statusEl = document.getElementById('status');
-    const lastSyncEl = document.getElementById('lastSync');
-    const syncBtn = document.getElementById('syncBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const tbody = document.querySelector('#historyTable tbody');
-    const paginationEl = document.getElementById('pagination');
-    const statTotalEl = document.getElementById('statTotal');
-    const statSuccessfulEl = document.getElementById('statSuccessful');
-    const statFailedEl = document.getElementById('statFailed');
-    const statTodayEl = document.getElementById('statToday');
+    <script>
+      // ========================================
+      // Theme Management
+      // ========================================
+      const THEME_STORAGE_KEY = "zoroflex-theme";
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
 
-    const ROWS_PER_PAGE = 10;
-    let currentPage = 1;
-    let historyData = [];
+      // Get system theme preference
+      const getSystemTheme = () => {
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+          return "dark";
+        }
+        return "light";
+      };
 
-    const formatDate = (dateStr) => {
-      if (!dateStr || dateStr === '1970-01-01') return 'Never';
-      return new Date(dateStr).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      // Get saved theme from localStorage
+      const getSavedTheme = () => {
+        return localStorage.getItem(THEME_STORAGE_KEY);
+      };
+
+      // Get initial theme (saved > system > light)
+      const getInitialTheme = () => {
+        const saved = getSavedTheme();
+        if (saved === "dark" || saved === "light") {
+          return saved;
+        }
+        return getSystemTheme();
+      };
+
+      // Set theme
+      const setTheme = (theme) => {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+        // Update icon
+        if (themeIcon) {
+          themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+        }
+      };
+
+      // Toggle theme
+      const toggleTheme = () => {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme") || "light";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        setTheme(newTheme);
+      };
+
+      // Initialize theme
+      const initTheme = () => {
+        const theme = getInitialTheme();
+        setTheme(theme);
+      };
+
+      // Watch system theme changes (only if no user preference)
+      const watchSystemTheme = () => {
+        if (!window.matchMedia) return;
+
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        mediaQuery.addEventListener("change", (e) => {
+          // Only follow system if user hasn't set a preference
+          const saved = getSavedTheme();
+          if (!saved || saved === "auto") {
+            setTheme(e.matches ? "dark" : "light");
+          }
+        });
+      };
+
+      // Initialize theme on load
+      initTheme();
+      watchSystemTheme();
+
+      // Theme toggle button click
+      if (themeToggle) {
+        themeToggle.addEventListener("click", toggleTheme);
+      }
+
+      // ========================================
+      // Window Controls
+      // ========================================
+      const minimizeBtn = document.getElementById("minimizeBtn");
+      const maximizeBtn = document.getElementById("maximizeBtn");
+      const closeBtn = document.getElementById("closeBtn");
+      const maximizeIcon = document.getElementById("maximizeIcon");
+
+      // Update maximize icon based on window state
+      const updateMaximizeIcon = async () => {
+        if (maximizeIcon && window.electronAPI?.isMaximized) {
+          try {
+            const isMaximized = await window.electronAPI.isMaximized();
+            if (isMaximized) {
+              // Show restore icon (two overlapping squares)
+              maximizeIcon.innerHTML = `
+                <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1" fill="none" />
+                <rect x="4" y="4" width="8" height="8" stroke="currentColor" stroke-width="1" fill="none" />
+              `;
+            } else {
+              // Show maximize icon (single square)
+              maximizeIcon.innerHTML = `
+                <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="1" fill="none" />
+              `;
+            }
+          } catch (err) {
+            console.error("Error updating maximize icon:", err);
+          }
+        }
+      };
+
+      // Window control button handlers
+      if (minimizeBtn) {
+        minimizeBtn.addEventListener("click", () => {
+          window.electronAPI?.minimizeWindow?.();
+        });
+      }
+
+      if (maximizeBtn) {
+        maximizeBtn.addEventListener("click", () => {
+          window.electronAPI?.maximizeWindow?.();
+          setTimeout(updateMaximizeIcon, 100);
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+          window.electronAPI?.closeWindow?.();
+        });
+      }
+
+      // Listen for window state changes
+      window.electronAPI?.onWindowMaximize?.(() => {
+        updateMaximizeIcon();
       });
-    };
+      window.electronAPI?.onWindowUnmaximize?.(() => {
+        updateMaximizeIcon();
+      });
 
-    const isToday = (dateStr) => {
-      if (!dateStr) return false;
-      const date = new Date(dateStr);
-      const today = new Date();
-      return date.getDate() === today.getDate() &&
-             date.getMonth() === today.getMonth() &&
-             date.getFullYear() === today.getFullYear();
-    };
+      // Initial icon update
+      updateMaximizeIcon();
 
-    const updateStatistics = (history) => {
-      const total = history.length;
-      const successful = history.filter(h => h.status === 'SUCCESS').length;
-      const failed = history.filter(h => h.status === 'ERROR' || (h.failed_count && h.failed_count > 0)).length;
-      const today = history.filter(h => isToday(h.started_at)).length;
+      // ========================================
+      // Dashboard Functionality
+      // ========================================
+      // DOM Elements
+      const emailEl = document.getElementById("email");
+      const billerIdEl = document.getElementById("billerId");
+      const orgEl = document.getElementById("org");
+      const statusEl = document.getElementById("status");
+      const lastSyncEl = document.getElementById("lastSync");
+      const syncBtn = document.getElementById("syncBtn");
+      const logoutBtn = document.getElementById("sidebarLogoutBtn");
+      const sidebarEmailEl = document.getElementById("sidebarEmail");
+      const sidebarOrgEl = document.getElementById("sidebarOrg");
+      const tbody = document.querySelector("#historyTable tbody");
+      const paginationEl = document.getElementById("pagination");
+      const statTotalEl = document.getElementById("statTotal");
+      const statSuccessfulEl = document.getElementById("statSuccessful");
+      const statFailedEl = document.getElementById("statFailed");
+      const statTodayEl = document.getElementById("statToday");
 
-      statTotalEl.textContent = total;
-      statSuccessfulEl.textContent = successful;
-      statFailedEl.textContent = failed;
-      statTodayEl.textContent = today;
-    };
+      const ROWS_PER_PAGE = 10;
+      let currentPage = 1;
+      let historyData = [];
 
-    const renderTable = (page) => {
-      tbody.innerHTML = '';
-      const start = (page - 1) * ROWS_PER_PAGE;
-      const end = start + ROWS_PER_PAGE;
-      const pageData = historyData.slice(start, end);
+      const formatDate = (dateStr) => {
+        if (!dateStr || dateStr === "1970-01-01") return "Never";
+        return new Date(dateStr).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      };
 
-      if (pageData.length > 0) {
-        pageData.forEach(row => {
-          const tr = document.createElement('tr');
-          const statusClass = row.status === 'SUCCESS' ? 'success' :
-                             row.status === 'PARTIAL' ? 'partial' : 'error';
-          tr.innerHTML = `
+      const isToday = (dateStr) => {
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
+        const today = new Date();
+        return (
+          date.getDate() === today.getDate() &&
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear()
+        );
+      };
+
+      const updateStatistics = (history) => {
+        const total = history.length;
+        const successful = history.filter((h) => h.status === "SUCCESS").length;
+        const failed = history.filter(
+          (h) => h.status === "ERROR" || (h.failed_count && h.failed_count > 0)
+        ).length;
+        const today = history.filter((h) => isToday(h.started_at)).length;
+
+        statTotalEl.textContent = total;
+        statSuccessfulEl.textContent = successful;
+        statFailedEl.textContent = failed;
+        statTodayEl.textContent = today;
+      };
+
+      const renderTable = (page) => {
+        tbody.innerHTML = "";
+        const start = (page - 1) * ROWS_PER_PAGE;
+        const end = start + ROWS_PER_PAGE;
+        const pageData = historyData.slice(start, end);
+
+        if (pageData.length > 0) {
+          pageData.forEach((row) => {
+            const tr = document.createElement("tr");
+            const statusClass =
+              row.status === "SUCCESS"
+                ? "success"
+                : row.status === "PARTIAL"
+                ? "partial"
+                : "error";
+            tr.innerHTML = `
             <td>${formatDate(row.started_at)}</td>
             <td>${row.sync_type}</td>
             <td>${row.entity_type}</td>
@@ -476,112 +1064,127 @@
             <td>${row.entity_count || 0}</td>
             <td>${row.failed_count || 0}</td>
           `;
-          tbody.appendChild(tr);
-        });
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:60px; color:#94a3b8;">No sync activity yet</td></tr>';
-      }
-
-      // Pagination controls
-      paginationEl.innerHTML = '';
-      const totalPages = Math.ceil(historyData.length / ROWS_PER_PAGE);
-      if (totalPages <= 1) return;
-
-      const prevBtn = document.createElement('button');
-      prevBtn.textContent = 'Previous';
-      prevBtn.disabled = page === 1;
-      prevBtn.onclick = () => { currentPage--; renderTable(currentPage); };
-      paginationEl.appendChild(prevBtn);
-
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.classList.toggle('active', i === page);
-        btn.onclick = () => { currentPage = i; renderTable(currentPage); };
-        paginationEl.appendChild(btn);
-      }
-
-      const nextBtn = document.createElement('button');
-      nextBtn.textContent = 'Next';
-      nextBtn.disabled = page === totalPages;
-      nextBtn.onclick = () => { currentPage++; renderTable(currentPage); };
-      paginationEl.appendChild(nextBtn);
-    };
-
-    const loadData = async () => {
-      try {
-        const [profile, lastSync, history] = await Promise.all([
-          window.electronAPI.getProfile(),
-          window.electronAPI.getLastSync(),
-          window.electronAPI.getSyncHistory()
-        ]);
-
-        // Profile
-        if (profile) {
-          emailEl.textContent = profile.email || '-';
-          billerIdEl.textContent = profile.biller_id || 'N/A';
-          orgEl.textContent = profile.organization?.name || 'Not synced';
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML =
+            '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">No sync activity yet</td></tr>';
         }
 
-        // Last Sync
-        lastSyncEl.textContent = formatDate(lastSync?.last_successful_sync);
+        // Pagination controls
+        paginationEl.innerHTML = "";
+        const totalPages = Math.ceil(historyData.length / ROWS_PER_PAGE);
+        if (totalPages <= 1) return;
 
-        // History with pagination
-        historyData = history || [];
-        currentPage = 1;
-        renderTable(currentPage);
-        
-        // Update statistics
-        updateStatistics(historyData);
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "Previous";
+        prevBtn.disabled = page === 1;
+        prevBtn.onclick = () => {
+          currentPage--;
+          renderTable(currentPage);
+        };
+        paginationEl.appendChild(prevBtn);
 
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-        tbody.innerHTML = '<tr><td colspan="6" style="color:red; text-align:center;">Failed to load data</td></tr>';
-      }
-    };
+        for (let i = 1; i <= totalPages; i++) {
+          const btn = document.createElement("button");
+          btn.textContent = i;
+          btn.classList.toggle("active", i === page);
+          btn.onclick = () => {
+            currentPage = i;
+            renderTable(currentPage);
+          };
+          paginationEl.appendChild(btn);
+        }
 
-    // Manual Sync
-    syncBtn.onclick = async () => {
-      syncBtn.disabled = true;
-      syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
-      statusEl.textContent = 'Syncing...';
-      statusEl.className = 'status-badge status-syncing';
-      try {
-        await window.electronAPI.manualSync();
-      } catch (err) {
-        console.error('Manual sync failed:', err);
-      } finally {
-        setTimeout(() => {
-          loadData();
-          syncBtn.disabled = false;
-          syncBtn.innerHTML = 'Manual Sync';
-          statusEl.textContent = 'Connected';
-          statusEl.className = 'status-badge status-connected';
-        }, 1000);
-      }
-    };
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Next";
+        nextBtn.disabled = page === totalPages;
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderTable(currentPage);
+        };
+        paginationEl.appendChild(nextBtn);
+      };
 
-    // Logout
-    logoutBtn.onclick = async () => {
-      if (confirm('Are you sure you want to logout? All sync will stop.')) {
-        await window.electronAPI.logout();
-      }
-    };
+      const loadData = async () => {
+        try {
+          const [profile, lastSync, history] = await Promise.all([
+            window.electronAPI.getProfile(),
+            window.electronAPI.getLastSync(),
+            window.electronAPI.getSyncHistory(),
+          ]);
 
-    // Initial load
-    window.addEventListener('DOMContentLoaded', loadData);
+          // Profile - Update both main content and sidebar
+          if (profile) {
+            const email = profile.email || "-";
+            const org = profile.organization?.name || "Not synced";
 
-    // Real-time updates
-    window.electronAPI?.onSyncStarted?.(() => {
-      statusEl.textContent = 'Syncing...';
-      statusEl.className = 'status-badge status-syncing';
-    });
-    window.electronAPI?.onSyncCompleted?.(() => {
-      loadData();
-      statusEl.textContent = 'Connected';
-      statusEl.className = 'status-badge status-connected';
-    });
-    window.electronAPI?.onProfileData?.(() => loadData());
-  </script>
-</body>
+            emailEl.textContent = email;
+            sidebarEmailEl.textContent = email;
+            billerIdEl.textContent = profile.biller_id || "N/A";
+            orgEl.textContent = org;
+            sidebarOrgEl.textContent = org;
+          }
+
+          // Last Sync
+          lastSyncEl.textContent = formatDate(lastSync?.last_successful_sync);
+
+          // History with pagination
+          historyData = history || [];
+          currentPage = 1;
+          renderTable(currentPage);
+
+          // Update statistics
+          updateStatistics(historyData);
+        } catch (err) {
+          console.error("Dashboard load error:", err);
+          tbody.innerHTML =
+            '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load data</td></tr>';
+        }
+      };
+
+      // Manual Sync
+      syncBtn.onclick = async () => {
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
+        statusEl.textContent = "Syncing...";
+        statusEl.className = "status-badge status-syncing";
+        try {
+          await window.electronAPI.manualSync();
+        } catch (err) {
+          console.error("Manual sync failed:", err);
+        } finally {
+          setTimeout(() => {
+            loadData();
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = "Manual Sync";
+            statusEl.textContent = "Connected";
+            statusEl.className = "status-badge status-connected";
+          }, 1000);
+        }
+      };
+
+      // Logout
+      logoutBtn.onclick = async () => {
+        if (confirm("Are you sure you want to logout? All sync will stop.")) {
+          await window.electronAPI.logout();
+        }
+      };
+
+      // Initial load
+      window.addEventListener("DOMContentLoaded", loadData);
+
+      // Real-time updates
+      window.electronAPI?.onSyncStarted?.(() => {
+        statusEl.textContent = "Syncing...";
+        statusEl.className = "status-badge status-syncing";
+      });
+      window.electronAPI?.onSyncCompleted?.(() => {
+        loadData();
+        statusEl.textContent = "Connected";
+        statusEl.className = "status-badge status-connected";
+      });
+      window.electronAPI?.onProfileData?.(() => loadData());
+    </script>
+  </body>
 </html>

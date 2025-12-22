@@ -71,7 +71,7 @@ function createLoginWindow(): void {
     frame: true,
     resizable: false,
     maximizable: false,
-    title: 'Zoroflex Connect - Login',
+    title: 'Zorrofin Connect - Login',
     icon: path.join(__dirname, '../../assets/icon.png'),
     backgroundColor: '#ffffff',
     titleBarStyle: 'default',
@@ -118,13 +118,13 @@ function createDashboardWindow(profile: any): void {
     minWidth: 1000,
     minHeight: 700,
     show: false, // Start hidden; show on tray click
-    frame: true,
+    frame: false, // Frameless window for custom title bar
     resizable: true,
     maximizable: true,
-    title: 'Zoroflex Connect - Dashboard',
+    title: 'Zorrofin Connect - Dashboard',
     icon: iconPath,
-    backgroundColor: '#f0f4ff',
-    titleBarStyle: 'default',
+    backgroundColor: '#252526', // Dark theme background
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, '../preload/dashboard-preload.js'),
       contextIsolation: true,
@@ -144,6 +144,14 @@ function createDashboardWindow(profile: any): void {
     dashboardWindow = null;
   });
 
+  // Listen for window maximize/unmaximize events
+  dashboardWindow.on('maximize', () => {
+    dashboardWindow?.webContents.send('window-maximized');
+  });
+  dashboardWindow.on('unmaximize', () => {
+    dashboardWindow?.webContents.send('window-unmaximized');
+  });
+
   // Auto-show after a delay if you want (optional)
   // setTimeout(() => dashboardWindow?.show(), 1000);
 }
@@ -152,7 +160,7 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
   console.log('Login attempt:', credentials.email);
 
   try {
-    const { data } = await axios.post('https://uatarmapi.a10s.in/billers/tally/login', credentials, {
+    const { data } = await axios.post('http://localhost:3000/billers/tally/login', credentials, {
       timeout: 15000,
     });
 
@@ -235,6 +243,33 @@ ipcMain.handle('get-last-sync', async () => {
   return await dbService.getLastSync();
 });
 
+// Window control handlers
+ipcMain.handle('window-minimize', () => {
+  if (dashboardWindow) {
+    dashboardWindow.minimize();
+  }
+});
+
+ipcMain.handle('window-maximize', () => {
+  if (dashboardWindow) {
+    if (dashboardWindow.isMaximized()) {
+      dashboardWindow.unmaximize();
+    } else {
+      dashboardWindow.maximize();
+    }
+  }
+});
+
+ipcMain.handle('window-close', () => {
+  if (dashboardWindow) {
+    dashboardWindow.close();
+  }
+});
+
+ipcMain.handle('window-is-maximized', () => {
+  return dashboardWindow ? dashboardWindow.isMaximized() : false;
+});
+
 function createTrayAndStartSync(profile: any): void {
   if (tray) return;
 
@@ -243,7 +278,7 @@ function createTrayAndStartSync(profile: any): void {
     : path.join(__dirname, '../../assets/icon.png');
 
   tray = new Tray(iconPath);
-  tray.setToolTip('Zoroflex Connect - Connected');
+  tray.setToolTip('Zorrofin Connect - Connected');
 
   const contextMenu = Menu.buildFromTemplate([
     {

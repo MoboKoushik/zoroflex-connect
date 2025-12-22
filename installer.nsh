@@ -1,4 +1,4 @@
-; Custom NSIS installer script for Zoroflex Connect
+; Custom NSIS installer script for Zorrofin Connect
 ; Adds Terms & Conditions page and Desktop Shortcut option checkbox
 
 !include "MUI2.nsh"
@@ -24,7 +24,7 @@ Function ShowTermsPage
     Pop $0
     
     ; Terms text (read-only)
-    ${NSD_CreateTextMultiline} 0 15u 100% 180u "SOFTWARE LICENSE AGREEMENT$\r$\n$\r$\nZoroflex Connect$\r$\nCopyright (c) 2025 Zoroflex Solutions. All rights reserved.$\r$\n$\r$\nIMPORTANT - READ CAREFULLY: This License Agreement is a legal agreement between you and Zoroflex Solutions for the Zoroflex Connect software product.$\r$\n$\r$\nBy installing, copying, or otherwise using the Software, you agree to be bound by the terms of this Agreement. If you do not agree, do not install or use the Software.$\r$\n$\r$\nLICENSE GRANT: Zoroflex Solutions grants you a limited, non-exclusive, non-transferable license to install and use the Software on a single computer or device for your internal business purposes.$\r$\n$\r$\nRESTRICTIONS: You may not modify, adapt, alter, translate, or create derivative works of the Software; reverse engineer, decompile, disassemble the Software; or distribute, sublicense, lease, rent, loan, or transfer the Software to any third party.$\r$\n$\r$\nTERMINATION: This Agreement is effective until terminated. Your rights will terminate automatically if you fail to comply with any term of this Agreement.$\r$\n$\r$\nDISCLAIMER: THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT WARRANTY OF ANY KIND.$\r$\n$\r$\nLIMITATION OF LIABILITY: ZOROFLEX SOLUTIONS SHALL NOT BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES."
+    ${NSD_CreateTextMultiline} 0 15u 100% 180u "SOFTWARE LICENSE AGREEMENT$\r$\n$\r$\nZorrofin Connect$\r$\nCopyright (c) 2025 Zorrofin Solutions. All rights reserved.$\r$\n$\r$\nIMPORTANT - READ CAREFULLY: This License Agreement is a legal agreement between you and Zorrofin Solutions for the Zorrofin Connect software product.$\r$\n$\r$\nBy installing, copying, or otherwise using the Software, you agree to be bound by the terms of this Agreement. If you do not agree, do not install or use the Software.$\r$\n$\r$\nLICENSE GRANT: Zorrofin Solutions grants you a limited, non-exclusive, non-transferable license to install and use the Software on a single computer or device for your internal business purposes.$\r$\n$\r$\nRESTRICTIONS: You may not modify, adapt, alter, translate, or create derivative works of the Software; reverse engineer, decompile, disassemble the Software; or distribute, sublicense, lease, rent, loan, or transfer the Software to any third party.$\r$\n$\r$\nTERMINATION: This Agreement is effective until terminated. Your rights will terminate automatically if you fail to comply with any term of this Agreement.$\r$\n$\r$\nDISCLAIMER: THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT WARRANTY OF ANY KIND.$\r$\n$\r$\nLIMITATION OF LIABILITY: ZORROFIN SOLUTIONS SHALL NOT BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES."
     Pop $0
     SendMessage $0 ${EM_SETREADONLY} 1 0
     ${NSD_AddStyle} $0 ${WS_VSCROLL}|${ES_MULTILINE}
@@ -71,12 +71,12 @@ FunctionEnd
 !macro customInstall
     ${NSD_GetState} $DesktopShortcutCheckbox $0
     ${If} $0 == "1"
-        CreateShortcut "$DESKTOP\Zoroflex Connect.lnk" "$INSTDIR\${PRODUCT_FILENAME}"
+        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" "$INSTDIR\${PRODUCT_FILENAME}"
     ${EndIf}
 !macroend
 
 !macro customUnInstall
-    Delete "$DESKTOP\Zoroflex Connect.lnk"
+    Delete "$DESKTOP\Zorrofin Connect.lnk"
 !macroend
 
 ; Insert custom page
