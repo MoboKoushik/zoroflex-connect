@@ -73,6 +73,62 @@
         box-sizing: border-box;
       }
 
+      /* ========================================
+       Global Scrollbar Styling - Round & Long
+       ======================================== */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+      }
+
+      *::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        min-height: 40px;
+        transition: background 0.2s ease;
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.35);
+        background-clip: padding-box;
+      }
+
+      *::-webkit-scrollbar-thumb:active {
+        background: rgba(0, 0, 0, 0.5);
+        background-clip: padding-box;
+      }
+
+      [data-theme="dark"] * {
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+      }
+
+      [data-theme="dark"] *::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        background-clip: padding-box;
+      }
+
+      [data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.35);
+        background-clip: padding-box;
+      }
+
+      [data-theme="dark"] *::-webkit-scrollbar-thumb:active {
+        background: rgba(255, 255, 255, 0.5);
+        background-clip: padding-box;
+      }
+
       body {
         font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter",
           sans-serif;
@@ -806,7 +862,7 @@
       }
 
       /* ========================================
-       Modal System
+       Modal System - Modern Design
        ======================================== */
       .modal-overlay {
         position: fixed;
@@ -814,12 +870,14 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
         display: none;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        animation: fadeIn 0.2s ease;
+        animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 20px;
       }
 
       .modal-overlay.active {
@@ -829,46 +887,51 @@
       .modal {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
-        border-radius: 4px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.05);
         max-width: 90vw;
         max-height: 90vh;
         display: flex;
         flex-direction: column;
-        animation: modalSlideIn 0.2s ease;
+        animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
+        position: relative;
       }
 
       .modal.small {
-        width: 400px;
+        width: 420px;
       }
 
       .modal.medium {
-        width: 600px;
+        width: 640px;
       }
 
       .modal.large {
-        width: 900px;
+        width: 960px;
       }
 
       .modal-header {
-        padding: 16px;
+        padding: 20px 24px;
         border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
+        background: var(--bg-sidebar);
       }
 
       .modal-title {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .modal-close {
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
         border: none;
         background: transparent;
         color: var(--text-secondary);
@@ -877,27 +940,35 @@
         align-items: center;
         justify-content: center;
         border-radius: var(--border-radius);
-        transition: background-color 0.15s ease, color 0.15s ease;
+        transition: var(--transition);
+        font-size: 20px;
+        line-height: 1;
       }
 
       .modal-close:hover {
         background: var(--bg-hover);
         color: var(--text-primary);
+        transform: scale(1.1);
+      }
+
+      .modal-close:active {
+        transform: scale(0.95);
       }
 
       .modal-body {
-        padding: 16px;
+        padding: 24px;
         overflow-y: auto;
         flex: 1;
       }
 
       .modal-footer {
-        padding: 12px 16px;
+        padding: 16px 24px;
         border-top: 1px solid var(--border-color);
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 12px;
         flex-shrink: 0;
+        background: var(--bg-sidebar);
       }
 
       @keyframes fadeIn {
@@ -912,7 +983,7 @@
       @keyframes modalSlideIn {
         from {
           opacity: 0;
-          transform: scale(0.95) translateY(-10px);
+          transform: scale(0.96) translateY(-20px);
         }
         to {
           opacity: 1;
@@ -2016,9 +2087,28 @@
           }
 
           console.log("Rendering recent history items:", recentHistory.length);
+          console.log(
+            "Recent history data:",
+            JSON.stringify(recentHistory, null, 2)
+          );
 
           recentHistory.forEach((item) => {
-            if (!item) return;
+            if (!item) {
+              console.warn("Skipping null item");
+              return;
+            }
+
+            console.log("Processing item:", item);
+
+            // Ensure values are numbers
+            const totalRecords = Number(item.totalRecords) || 0;
+            const successCount = Number(item.successCount) || 0;
+            const failedCount = Number(item.failedCount) || 0;
+
+            console.log(
+              `Item ${item.entityName}: totalRecords=${totalRecords}, successCount=${successCount}, failedCount=${failedCount}`
+            );
+
             const tr = document.createElement("tr");
             tr.classList.add("clickable");
             const statusClass =
@@ -2030,9 +2120,9 @@
 
             tr.innerHTML = `
               <td>${escapeHtml(item.entityName || "N/A")}</td>
-              <td>${item.totalRecords || 0}</td>
-              <td>${item.successCount || 0}</td>
-              <td>${item.failedCount || 0}</td>
+              <td>${totalRecords}</td>
+              <td>${successCount}</td>
+              <td>${failedCount}</td>
               <td>${formatDate(item.lastSyncTime)}</td>
               <td><span class="${statusClass}">${
               item.status || "UNKNOWN"
@@ -2078,7 +2168,7 @@
 
           if (!summary || typeof summary !== "object") {
             tbody.innerHTML =
-              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No voucher sync data available</div></td></tr>';
+              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon"><i class="fas fa-file-invoice"></i></div><div class="empty-state-text">No voucher sync data available</div></td></tr>';
             return;
           }
 
@@ -2086,7 +2176,7 @@
 
           if (voucherTypes.length === 0) {
             tbody.innerHTML =
-              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No voucher sync data available. Run a voucher sync to see data here.</div></td></tr>';
+              '<tr><td colspan="4" class="empty-state"><div class="empty-state-icon"><i class="fas fa-file-invoice"></i></div><div class="empty-state-text">No voucher sync data available. Run a voucher sync to see data here.</div></td></tr>';
             return;
           }
 
@@ -2139,8 +2229,8 @@
 
           // Build summary section
           const summaryHtml = `
-            <div style="padding: 16px; background: var(--bg-hover); border-radius: var(--border-radius); margin-bottom: 16px;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div style="padding: 24px; background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-card) 100%); border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
                   <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Entity Name</div>
                   <div style="font-size: 14px; font-weight: 600;">${escapeHtml(
@@ -2208,7 +2298,7 @@
           let recordsTableHtml = "";
           if (recordDetails.length === 0) {
             recordsTableHtml =
-              '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No individual record details available</div></div>';
+              '<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-inbox"></i></div><div class="empty-state-text">No individual record details available</div></div>';
           } else {
             recordsTableHtml = `
               <div class="table-container" style="max-height: 400px;">
@@ -2236,7 +2326,9 @@
           ModalService.open(
             `Sync Details: ${escapeHtml(entityName)}`,
             content,
-            "large"
+            "large",
+            null,
+            "fa-list-alt"
           );
 
           // Render records table
@@ -2473,8 +2565,17 @@
       let modalFocusTrap = null;
 
       const ModalService = {
-        open(title, content, size = "medium", footer = null) {
-          modalTitle.textContent = title;
+        open(
+          title,
+          content,
+          size = "medium",
+          footer = null,
+          icon = "fa-info-circle"
+        ) {
+          modalTitle.innerHTML = `
+            <i class="fas ${icon}" style="font-size: 16px; opacity: 0.7; color: var(--primary); margin-right: 8px;"></i>
+            <span>${escapeHtml(title)}</span>
+          `;
           modalBody.innerHTML = content;
           modal.className = `modal ${size}`;
 
@@ -2597,7 +2698,9 @@
               `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 12px;">${escapeHtml(
                 metadata
               )}</pre>`,
-              "small"
+              "small",
+              null,
+              "fa-file-alt"
             );
           });
           tbody.appendChild(tr);
@@ -2712,7 +2815,13 @@
           </div>
         `;
 
-        ModalService.open("API Request Details", content, "large");
+        ModalService.open(
+          "API Request Details",
+          content,
+          "large",
+          null,
+          "fa-code"
+        );
 
         // Setup copy buttons
         setTimeout(() => {
@@ -2812,7 +2921,9 @@
                 )}</p><p><strong>Error:</strong> ${escapeHtml(
                   log.error_message
                 )}</p>`,
-                "small"
+                "small",
+                null,
+                "fa-exclamation-triangle"
               );
             });
           }

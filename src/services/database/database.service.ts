@@ -107,7 +107,7 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v402.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v400.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();
@@ -619,38 +619,45 @@ export class DatabaseService {
     if (orgSync) {
       const profile = await this.getProfile();
       const orgName = profile?.organization?.name || 'Organization';
+      const orgEntityCount = orgSync.entity_count != null ? parseInt(String(orgSync.entity_count), 10) : 0;
+      const orgFailedCount = orgSync.failed_count != null ? parseInt(String(orgSync.failed_count), 10) : 0;
+      
       result.push({
         entityType: 'ORGANIZATION',
         entityName: orgName,
-        totalRecords: orgSync.entity_count || 0,
-        successCount: orgSync.entity_count || 0,
-        failedCount: orgSync.failed_count || 0,
+        totalRecords: orgEntityCount + orgFailedCount,
+        successCount: orgEntityCount,
+        failedCount: orgFailedCount,
         lastSyncTime: orgSync.completed_at || orgSync.started_at,
         status: orgSync.status as 'SUCCESS' | 'PARTIAL' | 'FAILED',
         syncHistoryId: orgSync.id
       });
-      console.log('Added Organization sync:', orgSync.id, orgSync.entity_count);
+      console.log('Added Organization sync:', orgSync.id, 'entity_count:', orgEntityCount, 'totalRecords:', orgEntityCount + orgFailedCount);
     }
 
     // Process Customer
     const customerSync = latestByType.get('CUSTOMER');
     if (customerSync) {
-      const totalRecords = (customerSync.entity_count || 0) + (customerSync.failed_count || 0);
-      const successCount = customerSync.entity_count || 0;
-      const failedCount = customerSync.failed_count || 0;
+      // Ensure we're getting numeric values
+      const entityCount = parseInt(String(customerSync.entity_count || 0), 10);
+      const failedCount = parseInt(String(customerSync.failed_count || 0), 10);
+      const totalRecords = entityCount + failedCount;
+      const successCount = entityCount;
       
       console.log('Customer sync data:', {
         id: customerSync.id,
         entity_count: customerSync.entity_count,
+        entity_count_parsed: entityCount,
         failed_count: customerSync.failed_count,
+        failed_count_parsed: failedCount,
         totalRecords,
         successCount,
         failedCount,
         status: customerSync.status
       });
       
-      result.push({
-        entityType: 'CUSTOMER',
+      const customerItem = {
+        entityType: 'CUSTOMER' as const,
         entityName: 'Customers',
         totalRecords: totalRecords,
         successCount: successCount,
@@ -658,7 +665,10 @@ export class DatabaseService {
         lastSyncTime: customerSync.completed_at || customerSync.started_at,
         status: customerSync.status as 'SUCCESS' | 'PARTIAL' | 'FAILED',
         syncHistoryId: customerSync.id
-      });
+      };
+      
+      console.log('Customer item to be added:', JSON.stringify(customerItem, null, 2));
+      result.push(customerItem);
       console.log('Added Customer sync to result:', customerSync.id, 'totalRecords:', totalRecords, 'successCount:', successCount);
     } else {
       console.log('No CUSTOMER sync found in database. Available types:', Array.from(latestByType.keys()));
