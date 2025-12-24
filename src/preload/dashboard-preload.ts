@@ -3,9 +3,24 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   manualSync: () => ipcRenderer.invoke('manual-sync'),
   logout: () => ipcRenderer.invoke('logout'),
-  onProfileData: (callback: any) => ipcRenderer.on('profile-data', callback),
-  onSyncStarted: (callback: any) => ipcRenderer.on('sync-started', callback),
-  onSyncCompleted: (callback: any) => ipcRenderer.on('sync-completed', callback),
+  onProfileData: (callback: any) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('profile-data');
+    ipcRenderer.on('profile-data', callback);
+    return () => ipcRenderer.removeListener('profile-data', callback);
+  },
+  onSyncStarted: (callback: any) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('sync-started');
+    ipcRenderer.on('sync-started', callback);
+    return () => ipcRenderer.removeListener('sync-started', callback);
+  },
+  onSyncCompleted: (callback: any) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('sync-completed');
+    ipcRenderer.on('sync-completed', callback);
+    return () => ipcRenderer.removeListener('sync-completed', callback);
+  },
   getProfile: () => ipcRenderer.invoke('get-profile'),
   getSyncHistory: () => ipcRenderer.invoke('get-sync-history'),
   getLogs: () => ipcRenderer.invoke('get-logs'),
@@ -26,11 +41,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRecentSyncHistory: () => ipcRenderer.invoke('get-recent-sync-history'),
   getSyncRecordDetails: (syncHistoryId: number, filters?: any) => ipcRenderer.invoke('get-sync-record-details', syncHistoryId, filters),
   getVoucherSyncSummary: () => ipcRenderer.invoke('get-voucher-sync-summary'),
+  // Dashboard queries
+  getDashboardStats: () => ipcRenderer.invoke('get-dashboard-stats'),
+  getCustomers: (limit?: number, offset?: number, search?: string) => ipcRenderer.invoke('get-customers', limit, offset, search),
+  getVouchers: (limit?: number, offset?: number, search?: string, voucherType?: string) => ipcRenderer.invoke('get-vouchers', limit, offset, search, voucherType),
+  getSyncHistoryWithBatches: (limit?: number) => ipcRenderer.invoke('get-sync-history-with-batches', limit),
   // Window controls
   minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window-maximize'),
   closeWindow: () => ipcRenderer.invoke('window-close'),
   isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
-  onWindowMaximize: (callback: any) => ipcRenderer.on('window-maximized', callback),
-  onWindowUnmaximize: (callback: any) => ipcRenderer.on('window-unmaximized', callback),
+  onWindowMaximize: (callback: any) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('window-maximized');
+    ipcRenderer.on('window-maximized', callback);
+    return () => ipcRenderer.removeListener('window-maximized', callback);
+  },
+  onWindowUnmaximize: (callback: any) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('window-unmaximized');
+    ipcRenderer.on('window-unmaximized', callback);
+    return () => ipcRenderer.removeListener('window-unmaximized', callback);
+  },
 });

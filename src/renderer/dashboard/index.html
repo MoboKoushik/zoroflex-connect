@@ -1228,6 +1228,16 @@
               <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
               <span>Dashboard</span>
             </div>
+            <div class="nav-item" data-view="customers">
+              <span class="nav-icon"><i class="fas fa-users"></i></span>
+              <span>Customers</span>
+            </div>
+            <div class="nav-item" data-view="vouchers">
+              <span class="nav-icon"
+                ><i class="fas fa-file-invoice-dollar"></i
+              ></span>
+              <span>Vouchers</span>
+            </div>
             <div class="nav-item" data-view="settings">
               <span class="nav-icon"><i class="fas fa-cog"></i></span>
               <span>Settings</span>
@@ -1253,6 +1263,10 @@
                   ><i class="fas fa-file-invoice"></i
                 ></span>
                 <span>Tally Voucher Logs</span>
+              </div>
+              <div class="nav-submenu-item" data-view="sync-history">
+                <span class="nav-icon"><i class="fas fa-history"></i></span>
+                <span>Sync History</span>
               </div>
             </div>
           </nav>
@@ -1330,6 +1344,35 @@
                   </div>
                   <div class="stat-card-value" id="statToday">0</div>
                   <div class="stat-card-desc">Syncs performed today</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div
+                      class="stat-card-icon"
+                      style="background: var(--info-light); color: var(--info)"
+                    >
+                      <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-card-label">Total Customers</div>
+                  </div>
+                  <div class="stat-card-value" id="statCustomers">0</div>
+                  <div class="stat-card-desc">Customers in database</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-card-header">
+                    <div
+                      class="stat-card-icon"
+                      style="
+                        background: var(--primary-light);
+                        color: var(--primary);
+                      "
+                    >
+                      <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="stat-card-label">Total Vouchers</div>
+                  </div>
+                  <div class="stat-card-value" id="statVouchers">0</div>
+                  <div class="stat-card-desc">Vouchers in database</div>
                 </div>
               </div>
 
@@ -1768,6 +1811,102 @@
               </div>
             </div>
           </div>
+
+          <!-- Customers View -->
+          <div class="content-view" id="customersView">
+            <div class="content-scroll">
+              <div class="filter-panel">
+                <div class="filter-group" style="flex: 1; min-width: 200px">
+                  <label class="filter-label">Search</label>
+                  <input
+                    type="text"
+                    id="customerSearchInput"
+                    class="filter-input"
+                    placeholder="Search by name, email, phone..."
+                  />
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Mobile</th>
+                      <th>GSTIN</th>
+                      <th>Current Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customersTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vouchers View -->
+          <div class="content-view" id="vouchersView">
+            <div class="content-scroll">
+              <div class="filter-panel">
+                <div class="filter-group">
+                  <label class="filter-label">Voucher Type</label>
+                  <select id="voucherTypeFilterView" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="invoice">Invoice</option>
+                    <option value="receipt">Receipt</option>
+                    <option value="journal">Journal</option>
+                  </select>
+                </div>
+                <div class="filter-group" style="flex: 1; min-width: 200px">
+                  <label class="filter-label">Search</label>
+                  <input
+                    type="text"
+                    id="voucherSearchInput"
+                    class="filter-input"
+                    placeholder="Search by voucher number, party..."
+                  />
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Voucher Number</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Party</th>
+                      <th>Amount</th>
+                      <th>API Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vouchersTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sync History View -->
+          <div class="content-view" id="syncHistoryView">
+            <div class="content-scroll">
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Entity</th>
+                      <th>Status</th>
+                      <th>Count</th>
+                      <th>Failed</th>
+                      <th>Started</th>
+                      <th>Completed</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="syncHistoryTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
 
@@ -1785,6 +1924,39 @@
     </div>
 
     <script>
+      // ========================================
+      // ElectronAPI Availability Check
+      // ========================================
+      // Check if electronAPI is available - must be done first!
+      (function () {
+        if (typeof window === "undefined" || !window.electronAPI) {
+          console.error("CRITICAL ERROR: window.electronAPI is not available!");
+          console.error("The preload script may have failed to load.");
+          // Show error message after a short delay to ensure DOM is ready
+          setTimeout(() => {
+            const body = document.body;
+            if (body) {
+              body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; font-family: Arial, sans-serif; background: #1e1e1e; color: #fff; padding: 20px; text-align: center;">
+                  <h1 style="color: #ff6b6b; margin-bottom: 20px; font-size: 24px;">⚠️ Error: Application Not Initialized</h1>
+                  <p style="margin-bottom: 10px; font-size: 16px;">The application cannot communicate with the main process.</p>
+                  <p style="margin-bottom: 20px; color: #888; font-size: 14px;">Please restart the application.</p>
+                  <button onclick="location.reload()" style="padding: 12px 24px; background: #0078d4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">🔄 Reload Application</button>
+                </div>
+              `;
+            }
+          }, 100);
+          throw new Error(
+            "electronAPI is not available - preload script may have failed"
+          );
+        }
+        console.log("✓ electronAPI is available");
+        console.log(
+          "Available methods:",
+          Object.keys(window.electronAPI || {})
+        );
+      })();
+
       // ========================================
       // Theme Management
       // ========================================
@@ -1871,10 +2043,8 @@
       // ========================================
       // Window Controls
       // ========================================
-      const minimizeBtn = document.getElementById("minimizeBtn");
-      const maximizeBtn = document.getElementById("maximizeBtn");
-      const closeBtn = document.getElementById("closeBtn");
-      const maximizeIcon = document.getElementById("maximizeIcon");
+      // Window control elements - will be set in DOMContentLoaded
+      let minimizeBtn, maximizeBtn, closeBtn, maximizeIcon;
 
       // Update maximize icon based on window state
       const updateMaximizeIcon = async () => {
@@ -1899,55 +2069,137 @@
         }
       };
 
-      // Window control button handlers
-      if (minimizeBtn) {
-        minimizeBtn.addEventListener("click", () => {
-          window.electronAPI?.minimizeWindow?.();
-        });
-      }
+      // Window control setup function - will be called in DOMContentLoaded
+      const setupWindowControls = () => {
+        try {
+          minimizeBtn = document.getElementById("minimizeBtn");
+          maximizeBtn = document.getElementById("maximizeBtn");
+          closeBtn = document.getElementById("closeBtn");
+          maximizeIcon = document.getElementById("maximizeIcon");
 
-      if (maximizeBtn) {
-        maximizeBtn.addEventListener("click", () => {
-          window.electronAPI?.maximizeWindow?.();
-          setTimeout(updateMaximizeIcon, 100);
-        });
-      }
+          console.log("Window control elements found:", {
+            minimizeBtn: !!minimizeBtn,
+            maximizeBtn: !!maximizeBtn,
+            closeBtn: !!closeBtn,
+            maximizeIcon: !!maximizeIcon,
+            electronAPI: !!window.electronAPI,
+          });
 
-      if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
-          window.electronAPI?.closeWindow?.();
-        });
-      }
+          if (!window.electronAPI) {
+            console.error(
+              "window.electronAPI not available for window controls"
+            );
+            // Retry after a short delay
+            setTimeout(() => {
+              if (window.electronAPI) {
+                console.log("Retrying window controls setup...");
+                setupWindowControls();
+              }
+            }, 500);
+            return;
+          }
 
-      // Listen for window state changes
-      window.electronAPI?.onWindowMaximize?.(() => {
-        updateMaximizeIcon();
-      });
-      window.electronAPI?.onWindowUnmaximize?.(() => {
-        updateMaximizeIcon();
-      });
+          // Setup minimize button
+          if (minimizeBtn) {
+            minimizeBtn.addEventListener("click", () => {
+              try {
+                if (window.electronAPI?.minimizeWindow) {
+                  window.electronAPI.minimizeWindow().catch((err) => {
+                    console.error("Error minimizing window:", err);
+                  });
+                } else {
+                  console.error("minimizeWindow function not available");
+                }
+              } catch (err) {
+                console.error("Error in minimize button handler:", err);
+              }
+            });
+            console.log("✓ Minimize button handler attached");
+          } else {
+            console.error("minimizeBtn element not found");
+          }
 
-      // Initial icon update
-      updateMaximizeIcon();
+          // Setup maximize/restore button
+          if (maximizeBtn) {
+            maximizeBtn.addEventListener("click", () => {
+              try {
+                if (window.electronAPI?.maximizeWindow) {
+                  window.electronAPI.maximizeWindow().catch((err) => {
+                    console.error("Error maximizing window:", err);
+                  });
+                  setTimeout(updateMaximizeIcon, 100);
+                } else {
+                  console.error("maximizeWindow function not available");
+                }
+              } catch (err) {
+                console.error("Error in maximize button handler:", err);
+              }
+            });
+            console.log("✓ Maximize button handler attached");
+          } else {
+            console.error("maximizeBtn element not found");
+          }
+
+          // Setup close button
+          if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+              try {
+                if (window.electronAPI?.closeWindow) {
+                  window.electronAPI.closeWindow().catch((err) => {
+                    console.error("Error closing window:", err);
+                  });
+                } else {
+                  console.error("closeWindow function not available");
+                }
+              } catch (err) {
+                console.error("Error in close button handler:", err);
+              }
+            });
+            console.log("✓ Close button handler attached");
+          } else {
+            console.error("closeBtn element not found");
+          }
+
+          // Listen for window state changes
+          if (window.electronAPI) {
+            try {
+              if (window.electronAPI.onWindowMaximize) {
+                window.electronAPI.onWindowMaximize(() => {
+                  updateMaximizeIcon();
+                });
+                console.log("✓ Window maximize listener attached");
+              }
+
+              if (window.electronAPI.onWindowUnmaximize) {
+                window.electronAPI.onWindowUnmaximize(() => {
+                  updateMaximizeIcon();
+                });
+                console.log("✓ Window unmaximize listener attached");
+              }
+            } catch (err) {
+              console.error("Error setting up window state listeners:", err);
+            }
+          }
+
+          // Initial icon update
+          updateMaximizeIcon();
+          console.log("✓ Window controls setup completed");
+        } catch (err) {
+          console.error("Error in setupWindowControls:", err);
+        }
+      };
 
       // ========================================
       // Dashboard Functionality
       // ========================================
-      // DOM Elements
-      const emailEl = document.getElementById("email");
-      const billerIdEl = document.getElementById("billerId");
-      const orgEl = document.getElementById("org");
-      const statusEl = document.getElementById("status");
-      const lastSyncEl = document.getElementById("lastSync");
-      const syncBtn = document.getElementById("syncBtn");
-      const logoutBtn = document.getElementById("sidebarLogoutBtn");
-      const sidebarEmailEl = document.getElementById("sidebarEmail");
-      const sidebarOrgEl = document.getElementById("sidebarOrg");
-      const statTotalEl = document.getElementById("statTotal");
-      const statSuccessfulEl = document.getElementById("statSuccessful");
-      const statFailedEl = document.getElementById("statFailed");
-      const statTodayEl = document.getElementById("statToday");
-
+      // These will be set after DOM loads
+      let emailEl, billerIdEl, orgEl, statusEl, lastSyncEl, syncBtn, logoutBtn;
+      let sidebarEmailEl,
+        sidebarOrgEl,
+        statTotalEl,
+        statSuccessfulEl,
+        statFailedEl;
+      let statTodayEl, statCustomersEl, statVouchersEl;
       let historyData = [];
 
       const formatDate = (dateStr) => {
@@ -1998,12 +2250,18 @@
       };
 
       const loadData = async () => {
+        if (!window.electronAPI) {
+          console.error("loadData: electronAPI not available");
+          return;
+        }
         try {
-          const [profile, lastSync, history] = await Promise.all([
-            window.electronAPI.getProfile(),
-            window.electronAPI.getLastSync(),
-            window.electronAPI.getSyncHistory(),
-          ]);
+          const [profile, lastSync, history, dashboardStats] =
+            await Promise.all([
+              window.electronAPI.getProfile(),
+              window.electronAPI.getLastSync(),
+              window.electronAPI.getSyncHistory(),
+              window.electronAPI.getDashboardStats(),
+            ]);
 
           // Profile - Update both main content and sidebar
           if (profile) {
@@ -2027,41 +2285,21 @@
 
           // Update statistics
           updateStatistics(historyData);
+
+          // Update dashboard stats from SQLite
+          if (dashboardStats) {
+            if (statCustomersEl)
+              statCustomersEl.textContent = dashboardStats.totalCustomers || 0;
+            if (statVouchersEl)
+              statVouchersEl.textContent = dashboardStats.totalVouchers || 0;
+          }
         } catch (err) {
           console.error("Dashboard load error:", err);
           updateStatistics([]);
         }
       };
 
-      // Manual Sync
-      syncBtn.onclick = async () => {
-        syncBtn.disabled = true;
-        syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
-        statusEl.textContent = "Syncing...";
-        statusEl.className = "status-badge status-syncing";
-        try {
-          await window.electronAPI.manualSync();
-        } catch (err) {
-          console.error("Manual sync failed:", err);
-        } finally {
-          setTimeout(() => {
-            loadData();
-            loadRecentSyncHistory();
-            loadVoucherSummary();
-            syncBtn.disabled = false;
-            syncBtn.innerHTML = "Manual Sync";
-            statusEl.textContent = "Connected";
-            statusEl.className = "status-badge status-connected";
-          }, 1000);
-        }
-      };
-
-      // Logout
-      logoutBtn.onclick = async () => {
-        if (confirm("Are you sure you want to logout? All sync will stop.")) {
-          await window.electronAPI.logout();
-        }
-      };
+      // Button handlers are now set up in DOMContentLoaded event
 
       // ========================================
       // Recent Sync History
@@ -2407,97 +2645,395 @@
         });
       }
 
-      // Initial load
-      window.addEventListener("DOMContentLoaded", () => {
-        loadData();
-        loadRecentSyncHistory();
-        loadVoucherSummary();
-      });
-
-      // Real-time updates
-      window.electronAPI?.onSyncStarted?.(() => {
-        statusEl.textContent = "Syncing...";
-        statusEl.className = "status-badge status-syncing";
-      });
-      window.electronAPI?.onSyncCompleted?.(() => {
-        loadData();
-        loadRecentSyncHistory();
-        loadVoucherSummary();
-        statusEl.textContent = "Connected";
-        statusEl.className = "status-badge status-connected";
-      });
-      window.electronAPI?.onProfileData?.(() => {
-        loadData();
-        loadRecentSyncHistory();
-        loadVoucherSummary();
-      });
-
       // ========================================
-      // Navigation System
+      // Load Customers
       // ========================================
-      const logsNavItem = document.getElementById("logsNavItem");
-      const navItems = document.querySelectorAll(
-        ".nav-item[data-view], .nav-submenu-item[data-view]"
-      );
-      const contentViews = document.querySelectorAll(".content-view");
+      async function loadCustomers() {
+        try {
+          const search =
+            document.getElementById("customerSearchInput")?.value || "";
+          const customers = await window.electronAPI.getCustomers(
+            100,
+            0,
+            search
+          );
+          const tbody = document.getElementById("customersTableBody");
+          if (!tbody) return;
 
-      // Ensure all views are initially hidden except dashboard
-      contentViews.forEach((cv) => {
-        if (!cv.id.includes("dashboard")) {
-          cv.classList.remove("active");
+          tbody.innerHTML = "";
+          if (!customers || customers.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No customers found</div></td></tr>';
+            return;
+          }
+
+          customers.forEach((customer) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${escapeHtml(customer.ledger_name || "")}</td>
+              <td>${escapeHtml(customer.email || "")}</td>
+              <td>${escapeHtml(customer.phone || "")}</td>
+              <td>${escapeHtml(customer.mobile || "")}</td>
+              <td>${escapeHtml(customer.gstin || "")}</td>
+              <td>${(customer.current_balance || 0).toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load customers:", err);
         }
-      });
+      }
 
-      // Expand/collapse logs submenu
-      if (logsNavItem) {
-        logsNavItem.addEventListener("click", (e) => {
-          e.stopPropagation();
-          logsNavItem.classList.toggle("expanded");
+      // Search input handler for customers
+      const customerSearchInput = document.getElementById(
+        "customerSearchInput"
+      );
+      if (customerSearchInput) {
+        let searchTimeout;
+        customerSearchInput.addEventListener("input", () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            loadCustomers();
+          }, 500);
         });
       }
 
-      // Navigation handler
-      navItems.forEach((item) => {
-        item.addEventListener("click", () => {
-          const view = item.getAttribute("data-view");
-          if (!view) return;
+      // ========================================
+      // Load Vouchers
+      // ========================================
+      async function loadVouchers() {
+        try {
+          const search =
+            document.getElementById("voucherSearchInput")?.value || "";
+          const voucherType =
+            document.getElementById("voucherTypeFilterView")?.value || "";
+          const vouchers = await window.electronAPI.getVouchers(
+            100,
+            0,
+            search,
+            voucherType
+          );
+          const tbody = document.getElementById("vouchersTableBody");
+          if (!tbody) return;
 
-          // If clicking a submenu item, ensure parent is expanded
-          if (item.classList.contains("nav-submenu-item") && logsNavItem) {
-            logsNavItem.classList.add("expanded");
+          tbody.innerHTML = "";
+          if (!vouchers || vouchers.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No vouchers found</div></td></tr>';
+            return;
           }
 
-          // Update active states
-          navItems.forEach((ni) => ni.classList.remove("active"));
-          item.classList.add("active");
+          vouchers.forEach((voucher) => {
+            const tr = document.createElement("tr");
+            const apiStatus =
+              voucher.synced_to_api === 1
+                ? '<span class="success">Synced</span>'
+                : '<span class="error">Pending</span>';
+            tr.innerHTML = `
+              <td>${escapeHtml(voucher.voucher_number || "")}</td>
+              <td>${escapeHtml(voucher.voucher_type || "")}</td>
+              <td>${formatDate(voucher.voucher_date)}</td>
+              <td>${escapeHtml(voucher.party_ledger_name || "")}</td>
+              <td>${(voucher.total_amount || 0).toFixed(2)}</td>
+              <td>${apiStatus}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load vouchers:", err);
+        }
+      }
 
-          // Show corresponding view
-          contentViews.forEach((cv) => cv.classList.remove("active"));
+      // Search and filter handlers will be set up in DOMContentLoaded
 
-          // Convert hyphenated view names to camelCase for ID matching
-          const viewIdMap = {
-            dashboard: "dashboardView",
-            settings: "settingsView",
-            "system-logs": "systemLogsView",
-            "api-logs": "apiLogsView",
-            "voucher-logs": "voucherLogsView",
+      // ========================================
+      // Load Sync History
+      // ========================================
+      async function loadSyncHistory() {
+        try {
+          const history = await window.electronAPI.getSyncHistoryWithBatches(
+            50
+          );
+          const tbody = document.getElementById("syncHistoryTableBody");
+          if (!tbody) return;
+
+          tbody.innerHTML = "";
+          if (!history || history.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="8" class="empty-state"><div class="empty-state-text">No sync history found</div></td></tr>';
+            return;
+          }
+
+          history.forEach((item) => {
+            const tr = document.createElement("tr");
+            const statusClass =
+              item.status === "SUCCESS"
+                ? "success"
+                : item.status === "PARTIAL"
+                ? "partial"
+                : "error";
+            const batchCount = item.batches ? item.batches.length : 0;
+            tr.innerHTML = `
+              <td>${escapeHtml(item.sync_type || "")}</td>
+              <td>${escapeHtml(item.entity_type || "")}</td>
+              <td><span class="${statusClass}">${escapeHtml(
+              item.status || ""
+            )}</span></td>
+              <td>${item.entity_count || 0}</td>
+              <td>${item.failed_count || 0}</td>
+              <td>${formatDate(item.started_at)}</td>
+              <td>${
+                item.completed_at ? formatDate(item.completed_at) : "-"
+              }</td>
+              <td>${batchCount} batches</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load sync history:", err);
+        }
+      }
+
+      // Initial load - ALL DOM-dependent code must be here
+      window.addEventListener("DOMContentLoaded", () => {
+        console.log(
+          "DOMContentLoaded - electronAPI available:",
+          !!window.electronAPI
+        );
+
+        // Get all DOM elements NOW that DOM is loaded
+        emailEl = document.getElementById("email");
+        billerIdEl = document.getElementById("billerId");
+        orgEl = document.getElementById("org");
+        statusEl = document.getElementById("status");
+        lastSyncEl = document.getElementById("lastSync");
+        syncBtn = document.getElementById("syncBtn");
+        logoutBtn = document.getElementById("sidebarLogoutBtn");
+        sidebarEmailEl = document.getElementById("sidebarEmail");
+        sidebarOrgEl = document.getElementById("sidebarOrg");
+        statTotalEl = document.getElementById("statTotal");
+        statSuccessfulEl = document.getElementById("statSuccessful");
+        statFailedEl = document.getElementById("statFailed");
+        statTodayEl = document.getElementById("statToday");
+        statCustomersEl = document.getElementById("statCustomers");
+        statVouchersEl = document.getElementById("statVouchers");
+
+        console.log("DOM elements found:", {
+          syncBtn: !!syncBtn,
+          logoutBtn: !!logoutBtn,
+          statusEl: !!statusEl,
+          emailEl: !!emailEl,
+        });
+
+        // Setup window controls
+        if (typeof setupWindowControls === "function") {
+          setupWindowControls();
+        }
+
+        // Setup button handlers now that elements exist
+        if (syncBtn && window.electronAPI) {
+          syncBtn.onclick = async () => {
+            if (!window.electronAPI) {
+              console.error("electronAPI not available for sync");
+              alert(
+                "Error: Application not properly initialized. Please restart."
+              );
+              return;
+            }
+            syncBtn.disabled = true;
+            syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
+            if (statusEl) {
+              statusEl.textContent = "Syncing...";
+              statusEl.className = "status-badge status-syncing";
+            }
+            try {
+              await window.electronAPI.manualSync();
+            } catch (err) {
+              console.error("Manual sync failed:", err);
+              alert("Sync failed: " + (err.message || String(err)));
+            } finally {
+              setTimeout(() => {
+                loadData();
+                loadRecentSyncHistory();
+                loadVoucherSummary();
+                syncBtn.disabled = false;
+                syncBtn.innerHTML = "Manual Sync";
+                if (statusEl) {
+                  statusEl.textContent = "Connected";
+                  statusEl.className = "status-badge status-connected";
+                }
+              }, 1000);
+            }
           };
+          console.log("✓ Sync button handler attached");
+        } else {
+          console.error("syncBtn not found or electronAPI not available:", {
+            syncBtn: !!syncBtn,
+            electronAPI: !!window.electronAPI,
+          });
+        }
 
-          const viewId = viewIdMap[view] || `${view}View`;
-          const targetView = document.getElementById(viewId);
+        if (logoutBtn && window.electronAPI) {
+          logoutBtn.onclick = async () => {
+            if (
+              confirm("Are you sure you want to logout? All sync will stop.")
+            ) {
+              try {
+                await window.electronAPI.logout();
+              } catch (err) {
+                console.error("Logout failed:", err);
+                alert("Logout failed: " + (err.message || String(err)));
+              }
+            }
+          };
+          console.log("✓ Logout button handler attached");
+        } else {
+          console.error("logoutBtn not found or electronAPI not available:", {
+            logoutBtn: !!logoutBtn,
+            electronAPI: !!window.electronAPI,
+          });
+        }
 
-          if (targetView) {
-            targetView.classList.add("active");
-            // Load data for the view
-            if (view === "system-logs") loadSystemLogs();
-            else if (view === "api-logs") loadApiLogs();
-            else if (view === "voucher-logs") loadVoucherLogs();
-            else if (view === "settings") loadSettings();
-          } else {
-            console.error(`View not found: ${viewId}`);
+        // Setup Navigation System
+        const logsNavItem = document.getElementById("logsNavItem");
+        const navItems = document.querySelectorAll(
+          ".nav-item[data-view], .nav-submenu-item[data-view]"
+        );
+        const contentViews = document.querySelectorAll(".content-view");
+
+        // Ensure all views are initially hidden except dashboard
+        contentViews.forEach((cv) => {
+          if (!cv.id.includes("dashboard")) {
+            cv.classList.remove("active");
           }
         });
+
+        // Expand/collapse logs submenu
+        if (logsNavItem) {
+          logsNavItem.addEventListener("click", (e) => {
+            e.stopPropagation();
+            logsNavItem.classList.toggle("expanded");
+          });
+        }
+
+        // Navigation handler
+        navItems.forEach((item) => {
+          item.addEventListener("click", () => {
+            const view = item.getAttribute("data-view");
+            if (!view) return;
+
+            // If clicking a submenu item, ensure parent is expanded
+            if (item.classList.contains("nav-submenu-item") && logsNavItem) {
+              logsNavItem.classList.add("expanded");
+            }
+
+            // Update active states
+            navItems.forEach((ni) => ni.classList.remove("active"));
+            item.classList.add("active");
+
+            // Show corresponding view
+            contentViews.forEach((cv) => cv.classList.remove("active"));
+
+            // Convert hyphenated view names to camelCase for ID matching
+            const viewIdMap = {
+              dashboard: "dashboardView",
+              customers: "customersView",
+              vouchers: "vouchersView",
+              settings: "settingsView",
+              "system-logs": "systemLogsView",
+              "api-logs": "apiLogsView",
+              "voucher-logs": "voucherLogsView",
+              "sync-history": "syncHistoryView",
+            };
+
+            const viewId = viewIdMap[view] || `${view}View`;
+            const targetView = document.getElementById(viewId);
+
+            if (targetView) {
+              targetView.classList.add("active");
+              // Load data for the view
+              if (view === "system-logs") loadSystemLogs();
+              else if (view === "api-logs") loadApiLogs();
+              else if (view === "voucher-logs") loadVoucherLogs();
+              else if (view === "settings") loadSettings();
+              else if (view === "customers") loadCustomers();
+              else if (view === "vouchers") loadVouchers();
+              else if (view === "sync-history") loadSyncHistory();
+            } else {
+              console.error(`View not found: ${viewId}`);
+            }
+          });
+        });
+
+        // Setup search and filter handlers for vouchers
+        const voucherSearchInput =
+          document.getElementById("voucherSearchInput");
+        const voucherTypeFilterView = document.getElementById(
+          "voucherTypeFilterView"
+        );
+        if (voucherSearchInput) {
+          let searchTimeout;
+          voucherSearchInput.addEventListener("input", () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+              loadVouchers();
+            }, 500);
+          });
+        }
+        if (voucherTypeFilterView) {
+          voucherTypeFilterView.addEventListener("change", () => {
+            loadVouchers();
+          });
+        }
+
+        // Load initial data
+        if (window.electronAPI) {
+          loadData();
+          loadRecentSyncHistory();
+          loadVoucherSummary();
+        } else {
+          console.error("electronAPI not available on DOMContentLoaded");
+        }
+
+        // Real-time updates - Set up event listeners inside DOMContentLoaded
+        if (window.electronAPI) {
+          try {
+            // Sync started listener
+            window.electronAPI.onSyncStarted?.(() => {
+              if (statusEl) {
+                statusEl.textContent = "Syncing...";
+                statusEl.className = "status-badge status-syncing";
+              }
+            });
+
+            // Sync completed listener
+            window.electronAPI.onSyncCompleted?.(() => {
+              loadData();
+              loadRecentSyncHistory();
+              loadVoucherSummary();
+              if (statusEl) {
+                statusEl.textContent = "Connected";
+                statusEl.className = "status-badge status-connected";
+              }
+            });
+
+            // Profile data listener
+            window.electronAPI.onProfileData?.(() => {
+              loadData();
+              loadRecentSyncHistory();
+              loadVoucherSummary();
+            });
+
+            console.log("✓ Real-time event listeners set up");
+          } catch (err) {
+            console.error("Error setting up real-time event listeners:", err);
+          }
+        } else {
+          console.error("electronAPI not available for real-time updates");
+        }
       });
+
+      // Navigation System is now set up in DOMContentLoaded
 
       // ========================================
       // Sound System

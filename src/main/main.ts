@@ -149,9 +149,32 @@ function createDashboardWindow(profile: any): void {
   // Load the dashboard HTML (which renders React Dashboard)
   dashboardWindow.loadFile(path.join(__dirname, '../renderer/dashboard/index.html'));
 
+  // Show window once loaded
+  dashboardWindow.once('ready-to-show', () => {
+    dashboardWindow?.show();
+    dashboardWindow?.focus();
+  });
+
   // Pass profile data via IPC once loaded
   dashboardWindow.webContents.once('did-finish-load', () => {
-    dashboardWindow?.webContents.send('profile-data', profile);
+    try {
+      if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+        dashboardWindow.webContents.send('profile-data', profile);
+      }
+    } catch (error) {
+      console.error('Error sending profile-data event:', error);
+    }
+  });
+
+  // Log errors for debugging
+  dashboardWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Dashboard failed to load:', errorCode, errorDescription);
+  });
+
+  dashboardWindow.webContents.on('console-message', (event, level, message) => {
+    if (level >= 2) { // Error or warning (2 = warning, 3 = error)
+      console.error('Dashboard console:', message);
+    }
   });
 
   dashboardWindow.on('closed', () => {
@@ -160,10 +183,22 @@ function createDashboardWindow(profile: any): void {
 
   // Listen for window maximize/unmaximize events
   dashboardWindow.on('maximize', () => {
-    dashboardWindow?.webContents.send('window-maximized');
+    try {
+      if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+        dashboardWindow.webContents.send('window-maximized');
+      }
+    } catch (error) {
+      console.error('Error sending window-maximized event:', error);
+    }
   });
   dashboardWindow.on('unmaximize', () => {
-    dashboardWindow?.webContents.send('window-unmaximized');
+    try {
+      if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+        dashboardWindow.webContents.send('window-unmaximized');
+      }
+    } catch (error) {
+      console.error('Error sending window-unmaximized event:', error);
+    }
   });
 
   // Auto-show after a delay if you want (optional)
@@ -216,13 +251,38 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
 
 // New IPC for manual sync from dashboard
 ipcMain.handle('manual-sync', async (event) => {
-  const profile = await dbService.getProfile();
-  if (profile && dashboardWindow) {
-    dashboardWindow.webContents.send('sync-started');
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { success: false, error: 'No profile found' };
+    }
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-started');
+      } catch (err) {
+        console.error('Error sending sync-started event:', err);
+      }
+    }
     await syncService.manualSync(profile);
-    dashboardWindow.webContents.send('sync-completed');
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-completed');
+      } catch (err) {
+        console.error('Error sending sync-completed event:', err);
+      }
+    }
+    return { success: true };
+  } catch (error: any) {
+    console.error('Manual sync error:', error);
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-completed');
+      } catch (err) {
+        console.error('Error sending sync-completed event:', err);
+      }
+    }
+    return { success: false, error: error.message || 'Sync failed' };
   }
-  return { success: true };
 });
 
 // New IPC for logout from dashboard
@@ -243,7 +303,13 @@ ipcMain.handle('logout', async () => {
 
 // New IPC handlers for dashboard data
 ipcMain.handle('get-profile', async () => {
-  return await dbService.getProfile();
+  try {
+    const profile = await dbService.getProfile();
+    return profile;
+  } catch (error: any) {
+    console.error('Error getting profile:', error);
+    return null;
+  }
 });
 
 ipcMain.handle('get-sync-history', async () => {
@@ -307,31 +373,95 @@ ipcMain.handle('get-voucher-sync-summary', async () => {
   return await dbService.getVoucherSyncSummary();
 });
 
+// Dashboard query handlers
+ipcMain.handle('get-dashboard-stats', async () => {
+  try {
+    return await dbService.getDashboardStats();
+  } catch (error: any) {
+    console.error('get-dashboard-stats error:', error);
+    return {
+      totalCustomers: 0,
+      totalVouchers: 0,
+      invoiceCount: 0,
+      receiptCount: 0,
+      jvCount: 0,
+      lastSyncTime: null
+    };
+  }
+});
+
+ipcMain.handle('get-customers', async (event, limit?: number, offset?: number, search?: string) => {
+  return await dbService.getCustomers(limit, offset, search);
+});
+
+ipcMain.handle('get-vouchers', async (event, limit?: number, offset?: number, search?: string, voucherType?: string) => {
+  return await dbService.getVouchers(limit, offset, search, voucherType);
+});
+
+ipcMain.handle('get-sync-history-with-batches', async (event, limit?: number) => {
+  return await dbService.getSyncHistoryWithBatches(limit);
+});
+
 // Window control handlers
 ipcMain.handle('window-minimize', () => {
-  if (dashboardWindow) {
-    dashboardWindow.minimize();
+  try {
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      dashboardWindow.minimize();
+      return { success: true };
+    } else {
+      console.warn('window-minimize: dashboardWindow not available or destroyed');
+      return { success: false, error: 'Window not available' };
+    }
+  } catch (error: any) {
+    console.error('Error minimizing window:', error);
+    return { success: false, error: error.message || 'Unknown error' };
   }
 });
 
 ipcMain.handle('window-maximize', () => {
-  if (dashboardWindow) {
-    if (dashboardWindow.isMaximized()) {
-      dashboardWindow.unmaximize();
+  try {
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      if (dashboardWindow.isMaximized()) {
+        dashboardWindow.unmaximize();
+      } else {
+        dashboardWindow.maximize();
+      }
+      return { success: true };
     } else {
-      dashboardWindow.maximize();
+      console.warn('window-maximize: dashboardWindow not available or destroyed');
+      return { success: false, error: 'Window not available' };
     }
+  } catch (error: any) {
+    console.error('Error maximizing window:', error);
+    return { success: false, error: error.message || 'Unknown error' };
   }
 });
 
 ipcMain.handle('window-close', () => {
-  if (dashboardWindow) {
-    dashboardWindow.close();
+  try {
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      dashboardWindow.close();
+      return { success: true };
+    } else {
+      console.warn('window-close: dashboardWindow not available or destroyed');
+      return { success: false, error: 'Window not available' };
+    }
+  } catch (error: any) {
+    console.error('Error closing window:', error);
+    return { success: false, error: error.message || 'Unknown error' };
   }
 });
 
 ipcMain.handle('window-is-maximized', () => {
-  return dashboardWindow ? dashboardWindow.isMaximized() : false;
+  try {
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      return dashboardWindow.isMaximized();
+    }
+    return false;
+  } catch (error: any) {
+    console.error('Error checking window maximize state:', error);
+    return false;
+  }
 });
 
 function createTrayAndStartSync(profile: any): void {
