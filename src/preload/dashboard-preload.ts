@@ -26,6 +26,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRecentSyncHistory: () => ipcRenderer.invoke('get-recent-sync-history'),
   getSyncRecordDetails: (syncHistoryId: number, filters?: any) => ipcRenderer.invoke('get-sync-record-details', syncHistoryId, filters),
   getVoucherSyncSummary: () => ipcRenderer.invoke('get-voucher-sync-summary'),
+  // Customer data
+  getCustomers: (filters?: any) => ipcRenderer.invoke('get-customers', filters),
+  getCustomersCount: (search?: string) => ipcRenderer.invoke('get-customers-count', search),
+  // Voucher data
+  getVouchers: (filters?: any) => ipcRenderer.invoke('get-vouchers', filters),
+  getVouchersCount: (filters?: any) => ipcRenderer.invoke('get-vouchers-count', filters),
+  getVoucherLineItems: (voucherId: string) => ipcRenderer.invoke('get-voucher-line-items', voucherId),
   // Window controls
   minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window-maximize'),

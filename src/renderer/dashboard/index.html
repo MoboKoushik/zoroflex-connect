@@ -1228,6 +1228,33 @@
               <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
               <span>Dashboard</span>
             </div>
+            <div class="nav-item" data-view="customers">
+              <span class="nav-icon"><i class="fas fa-users"></i></span>
+              <span>Customers</span>
+            </div>
+            <div class="nav-item has-submenu" id="vouchersNavItem">
+              <span style="display: flex; align-items: center; gap: 12px">
+                <span class="nav-icon"
+                  ><i class="fas fa-file-invoice"></i
+                ></span>
+                <span>Vouchers</span>
+              </span>
+              <span class="nav-chevron">▶</span>
+            </div>
+            <div class="nav-submenu">
+              <div class="nav-submenu-item" data-view="invoices">
+                <span class="nav-icon"><i class="fas fa-receipt"></i></span>
+                <span>Invoices</span>
+              </div>
+              <div class="nav-submenu-item" data-view="receipts">
+                <span class="nav-icon"><i class="fas fa-money-check"></i></span>
+                <span>Receipts</span>
+              </div>
+              <div class="nav-submenu-item" data-view="journals">
+                <span class="nav-icon"><i class="fas fa-book"></i></span>
+                <span>Journal Entries</span>
+              </div>
+            </div>
             <div class="nav-item" data-view="settings">
               <span class="nav-icon"><i class="fas fa-cog"></i></span>
               <span>Settings</span>
@@ -1407,6 +1434,521 @@
                         <!-- Populated by JS -->
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customers View -->
+          <div class="content-view" id="customersView">
+            <div class="content-scroll">
+              <div class="history-panel">
+                <h2 class="panel-title">Customers from Tally</h2>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                  <div class="filter-group" style="flex: 1; max-width: 300px">
+                    <label class="filter-label">Search</label>
+                    <input
+                      type="text"
+                      id="customersSearch"
+                      class="filter-input"
+                      placeholder="Search by name, ID, or email..."
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 100px">
+                    <label class="filter-label">Records</label>
+                    <select id="customersLimit" class="filter-select">
+                      <option value="50">50</option>
+                      <option value="100" selected>100</option>
+                      <option value="200">200</option>
+                      <option value="500">500</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="min-width: 80px">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-primary" onclick="loadCustomers()">
+                      <i class="fas fa-search"></i> Search
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="customersTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 150px">Customer ID</th>
+                          <th style="width: 200px">Name</th>
+                          <th style="width: 180px">Email</th>
+                          <th style="width: 120px">Phone</th>
+                          <th style="width: 150px">GSTIN</th>
+                          <th style="width: 120px">Balance</th>
+                          <th style="width: 100px">Sync Status</th>
+                          <th style="width: 150px">Created At</th>
+                        </tr>
+                      </thead>
+                      <tbody id="customersTableBody">
+                        <tr>
+                          <td
+                            colspan="8"
+                            style="
+                              text-align: center;
+                              padding: 40px;
+                              color: var(--text-secondary);
+                            "
+                          >
+                            <i
+                              class="fas fa-spinner fa-spin"
+                              style="margin-right: 8px"
+                            ></i>
+                            Loading customers...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 16px;
+                    padding: 12px;
+                  "
+                >
+                  <div style="color: var(--text-secondary); font-size: 13px">
+                    <span id="customersCount">0</span> customers found
+                  </div>
+                  <div style="display: flex; gap: 8px">
+                    <button
+                      class="btn btn-secondary"
+                      id="customersPrevBtn"
+                      onclick="loadCustomersPrevious()"
+                      disabled
+                    >
+                      <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span
+                      style="
+                        padding: 6px 12px;
+                        color: var(--text-secondary);
+                        font-size: 13px;
+                      "
+                    >
+                      Page <span id="customersPageNum">1</span>
+                    </span>
+                    <button
+                      class="btn btn-secondary"
+                      id="customersNextBtn"
+                      onclick="loadCustomersNext()"
+                    >
+                      Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoices View -->
+          <div class="content-view" id="invoicesView">
+            <div class="content-scroll">
+              <div class="history-panel">
+                <h2 class="panel-title">Invoices from Tally</h2>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                  <div class="filter-group" style="flex: 1; max-width: 250px">
+                    <label class="filter-label">Search</label>
+                    <input
+                      type="text"
+                      id="invoicesSearch"
+                      class="filter-input"
+                      placeholder="Search by voucher number or customer..."
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date From</label>
+                    <input
+                      type="date"
+                      id="invoicesDateFrom"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date To</label>
+                    <input
+                      type="date"
+                      id="invoicesDateTo"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 100px">
+                    <label class="filter-label">Records</label>
+                    <select id="invoicesLimit" class="filter-select">
+                      <option value="50">50</option>
+                      <option value="100" selected>100</option>
+                      <option value="200">200</option>
+                      <option value="500">500</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="min-width: 80px">
+                    <label class="filter-label">&nbsp;</label>
+                    <button
+                      class="btn btn-primary"
+                      onclick="loadVouchers('SALES')"
+                    >
+                      <i class="fas fa-search"></i> Search
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="invoicesTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 120px">Voucher Number</th>
+                          <th style="width: 100px">Date</th>
+                          <th style="width: 200px">Customer</th>
+                          <th style="width: 120px">Amount</th>
+                          <th style="width: 100px">Sync Status</th>
+                          <th style="width: 150px">Created At</th>
+                        </tr>
+                      </thead>
+                      <tbody id="invoicesTableBody">
+                        <tr>
+                          <td
+                            colspan="6"
+                            style="
+                              text-align: center;
+                              padding: 40px;
+                              color: var(--text-secondary);
+                            "
+                          >
+                            <i
+                              class="fas fa-spinner fa-spin"
+                              style="margin-right: 8px"
+                            ></i>
+                            Loading invoices...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 16px;
+                    padding: 12px;
+                  "
+                >
+                  <div style="color: var(--text-secondary); font-size: 13px">
+                    <span id="invoicesCount">0</span> invoices found
+                  </div>
+                  <div style="display: flex; gap: 8px">
+                    <button
+                      class="btn btn-secondary"
+                      id="invoicesPrevBtn"
+                      onclick="loadVouchersPrevious('SALES')"
+                      disabled
+                    >
+                      <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span
+                      style="
+                        padding: 6px 12px;
+                        color: var(--text-secondary);
+                        font-size: 13px;
+                      "
+                    >
+                      Page <span id="invoicesPageNum">1</span>
+                    </span>
+                    <button
+                      class="btn btn-secondary"
+                      id="invoicesNextBtn"
+                      onclick="loadVouchersNext('SALES')"
+                    >
+                      Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Receipts View -->
+          <div class="content-view" id="receiptsView">
+            <div class="content-scroll">
+              <div class="history-panel">
+                <h2 class="panel-title">Receipts from Tally</h2>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                  <div class="filter-group" style="flex: 1; max-width: 250px">
+                    <label class="filter-label">Search</label>
+                    <input
+                      type="text"
+                      id="receiptsSearch"
+                      class="filter-input"
+                      placeholder="Search by voucher number or customer..."
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date From</label>
+                    <input
+                      type="date"
+                      id="receiptsDateFrom"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date To</label>
+                    <input
+                      type="date"
+                      id="receiptsDateTo"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 100px">
+                    <label class="filter-label">Records</label>
+                    <select id="receiptsLimit" class="filter-select">
+                      <option value="50">50</option>
+                      <option value="100" selected>100</option>
+                      <option value="200">200</option>
+                      <option value="500">500</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="min-width: 80px">
+                    <label class="filter-label">&nbsp;</label>
+                    <button
+                      class="btn btn-primary"
+                      onclick="loadVouchers('RECEIPT')"
+                    >
+                      <i class="fas fa-search"></i> Search
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="receiptsTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 120px">Voucher Number</th>
+                          <th style="width: 100px">Date</th>
+                          <th style="width: 200px">Customer</th>
+                          <th style="width: 120px">Amount</th>
+                          <th style="width: 100px">Sync Status</th>
+                          <th style="width: 150px">Created At</th>
+                        </tr>
+                      </thead>
+                      <tbody id="receiptsTableBody">
+                        <tr>
+                          <td
+                            colspan="6"
+                            style="
+                              text-align: center;
+                              padding: 40px;
+                              color: var(--text-secondary);
+                            "
+                          >
+                            <i
+                              class="fas fa-spinner fa-spin"
+                              style="margin-right: 8px"
+                            ></i>
+                            Loading receipts...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 16px;
+                    padding: 12px;
+                  "
+                >
+                  <div style="color: var(--text-secondary); font-size: 13px">
+                    <span id="receiptsCount">0</span> receipts found
+                  </div>
+                  <div style="display: flex; gap: 8px">
+                    <button
+                      class="btn btn-secondary"
+                      id="receiptsPrevBtn"
+                      onclick="loadVouchersPrevious('RECEIPT')"
+                      disabled
+                    >
+                      <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span
+                      style="
+                        padding: 6px 12px;
+                        color: var(--text-secondary);
+                        font-size: 13px;
+                      "
+                    >
+                      Page <span id="receiptsPageNum">1</span>
+                    </span>
+                    <button
+                      class="btn btn-secondary"
+                      id="receiptsNextBtn"
+                      onclick="loadVouchersNext('RECEIPT')"
+                    >
+                      Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Journals View -->
+          <div class="content-view" id="journalsView">
+            <div class="content-scroll">
+              <div class="history-panel">
+                <h2 class="panel-title">Journal Entries from Tally</h2>
+
+                <!-- Filter Panel -->
+                <div class="filter-panel">
+                  <div class="filter-group" style="flex: 1; max-width: 250px">
+                    <label class="filter-label">Search</label>
+                    <input
+                      type="text"
+                      id="journalsSearch"
+                      class="filter-input"
+                      placeholder="Search by voucher number or customer..."
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date From</label>
+                    <input
+                      type="date"
+                      id="journalsDateFrom"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 120px">
+                    <label class="filter-label">Date To</label>
+                    <input
+                      type="date"
+                      id="journalsDateTo"
+                      class="filter-input"
+                    />
+                  </div>
+                  <div class="filter-group" style="min-width: 100px">
+                    <label class="filter-label">Records</label>
+                    <select id="journalsLimit" class="filter-select">
+                      <option value="50">50</option>
+                      <option value="100" selected>100</option>
+                      <option value="200">200</option>
+                      <option value="500">500</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="min-width: 80px">
+                    <label class="filter-label">&nbsp;</label>
+                    <button
+                      class="btn btn-primary"
+                      onclick="loadVouchers('JVENTRY')"
+                    >
+                      <i class="fas fa-search"></i> Search
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                  <div class="table-wrapper">
+                    <table id="journalsTable">
+                      <thead>
+                        <tr>
+                          <th style="width: 120px">Voucher Number</th>
+                          <th style="width: 100px">Date</th>
+                          <th style="width: 200px">Party</th>
+                          <th style="width: 120px">Amount</th>
+                          <th style="width: 100px">Sync Status</th>
+                          <th style="width: 150px">Created At</th>
+                        </tr>
+                      </thead>
+                      <tbody id="journalsTableBody">
+                        <tr>
+                          <td
+                            colspan="6"
+                            style="
+                              text-align: center;
+                              padding: 40px;
+                              color: var(--text-secondary);
+                            "
+                          >
+                            <i
+                              class="fas fa-spinner fa-spin"
+                              style="margin-right: 8px"
+                            ></i>
+                            Loading journal entries...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 16px;
+                    padding: 12px;
+                  "
+                >
+                  <div style="color: var(--text-secondary); font-size: 13px">
+                    <span id="journalsCount">0</span> journal entries found
+                  </div>
+                  <div style="display: flex; gap: 8px">
+                    <button
+                      class="btn btn-secondary"
+                      id="journalsPrevBtn"
+                      onclick="loadVouchersPrevious('JVENTRY')"
+                      disabled
+                    >
+                      <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span
+                      style="
+                        padding: 6px 12px;
+                        color: var(--text-secondary);
+                        font-size: 13px;
+                      "
+                    >
+                      Page <span id="journalsPageNum">1</span>
+                    </span>
+                    <button
+                      class="btn btn-secondary"
+                      id="journalsNextBtn"
+                      onclick="loadVouchersNext('JVENTRY')"
+                    >
+                      Next <i class="fas fa-chevron-right"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2433,6 +2975,244 @@
       });
 
       // ========================================
+      // Customer Data Loading
+      // ========================================
+      let customersCurrentPage = 0;
+      let customersPageSize = 100;
+      let customersSearchTerm = "";
+
+      async function loadCustomers() {
+        try {
+          const search =
+            document.getElementById("customersSearch")?.value || "";
+          const limit = parseInt(
+            document.getElementById("customersLimit")?.value || "100"
+          );
+          const offset = customersCurrentPage * limit;
+
+          customersSearchTerm = search;
+          customersPageSize = limit;
+
+          const tbody = document.getElementById("customersTableBody");
+          if (!tbody) return;
+
+          tbody.innerHTML =
+            '<tr><td colspan="8" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+          const customers = await window.electronAPI.getCustomers({
+            search,
+            limit,
+            offset,
+          });
+          const totalCount = await window.electronAPI.getCustomersCount(search);
+
+          // Update count
+          document.getElementById("customersCount").textContent = totalCount;
+          document.getElementById("customersPageNum").textContent = (
+            customersCurrentPage + 1
+          ).toString();
+
+          // Update pagination buttons
+          document.getElementById("customersPrevBtn").disabled =
+            customersCurrentPage === 0;
+          document.getElementById("customersNextBtn").disabled =
+            offset + limit >= totalCount;
+
+          if (customers.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="8" class="empty-state"><div class="empty-state-icon"><i class="fas fa-users"></i></div><div class="empty-state-text">No customers found</div></td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = "";
+          customers.forEach((customer) => {
+            const tr = document.createElement("tr");
+            const syncStatus = customer.synced_to_api
+              ? '<span class="success">Synced</span>'
+              : '<span class="warning">Pending</span>';
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-size: 11px;">${escapeHtml(
+                customer.customer_id || "-"
+              )}</td>
+              <td>${escapeHtml(customer.name || "-")}</td>
+              <td>${escapeHtml(customer.email || "-")}</td>
+              <td>${escapeHtml(customer.phone || customer.mobile || "-")}</td>
+              <td>${escapeHtml(customer.gstin || "-")}</td>
+              <td style="text-align: right; font-weight: 500;">₹${formatNumber(
+                customer.current_balance || 0
+              )}</td>
+              <td>${syncStatus}</td>
+              <td>${formatDate(customer.created_at)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load customers:", err);
+          const tbody = document.getElementById("customersTableBody");
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="8" style="color:var(--danger); text-align:center;">Failed to load customers</td></tr>';
+          }
+        }
+      }
+
+      function loadCustomersNext() {
+        customersCurrentPage++;
+        loadCustomers();
+      }
+
+      function loadCustomersPrevious() {
+        if (customersCurrentPage > 0) {
+          customersCurrentPage--;
+          loadCustomers();
+        }
+      }
+
+      // ========================================
+      // Voucher Data Loading
+      // ========================================
+      const voucherPages = { SALES: 0, RECEIPT: 0, JVENTRY: 0 };
+      const voucherPageSizes = { SALES: 100, RECEIPT: 100, JVENTRY: 100 };
+      const voucherSearches = { SALES: "", RECEIPT: "", JVENTRY: "" };
+      const voucherDateFilters = {
+        SALES: { from: "", to: "" },
+        RECEIPT: { from: "", to: "" },
+        JVENTRY: { from: "", to: "" },
+      };
+
+      async function loadVouchers(voucherType) {
+        try {
+          const viewId =
+            voucherType === "SALES"
+              ? "invoices"
+              : voucherType === "RECEIPT"
+              ? "receipts"
+              : "journals";
+          const searchId = `${viewId}Search`;
+          const dateFromId = `${viewId}DateFrom`;
+          const dateToId = `${viewId}DateTo`;
+          const limitId = `${viewId}Limit`;
+          const tableId = `${viewId}Table`;
+          const tbodyId = `${viewId}TableBody`;
+          const countId = `${viewId}Count`;
+          const pageNumId = `${viewId}PageNum`;
+          const prevBtnId = `${viewId}PrevBtn`;
+          const nextBtnId = `${viewId}NextBtn`;
+
+          const search = document.getElementById(searchId)?.value || "";
+          const dateFrom = document.getElementById(dateFromId)?.value || "";
+          const dateTo = document.getElementById(dateToId)?.value || "";
+          const limit = parseInt(
+            document.getElementById(limitId)?.value || "100"
+          );
+          const offset = voucherPages[voucherType] * limit;
+
+          voucherSearches[voucherType] = search;
+          voucherPageSizes[voucherType] = limit;
+          voucherDateFilters[voucherType] = { from: dateFrom, to: dateTo };
+
+          const tbody = document.getElementById(tbodyId);
+          if (!tbody) return;
+
+          tbody.innerHTML =
+            '<tr><td colspan="6" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+          const filters = {
+            voucher_type: voucherType,
+            search,
+            date_from: dateFrom || undefined,
+            date_to: dateTo || undefined,
+            limit,
+            offset,
+          };
+
+          const vouchers = await window.electronAPI.getVouchers(filters);
+          const countFilters = {
+            voucher_type: voucherType,
+            search,
+            date_from: dateFrom || undefined,
+            date_to: dateTo || undefined,
+          };
+          const totalCount = await window.electronAPI.getVouchersCount(
+            countFilters
+          );
+
+          // Update count
+          document.getElementById(countId).textContent = totalCount;
+          document.getElementById(pageNumId).textContent = (
+            voucherPages[voucherType] + 1
+          ).toString();
+
+          // Update pagination buttons
+          document.getElementById(prevBtnId).disabled =
+            voucherPages[voucherType] === 0;
+          document.getElementById(nextBtnId).disabled =
+            offset + limit >= totalCount;
+
+          if (vouchers.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon"><i class="fas fa-file-invoice"></i></div><div class="empty-state-text">No vouchers found</div></td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = "";
+          vouchers.forEach((voucher) => {
+            const tr = document.createElement("tr");
+            const syncStatus = voucher.synced_to_api
+              ? '<span class="success">Synced</span>'
+              : '<span class="warning">Pending</span>';
+            tr.innerHTML = `
+              <td style="font-weight: 500;">${escapeHtml(
+                voucher.voucher_number || "-"
+              )}</td>
+              <td>${formatDate(voucher.date)}</td>
+              <td>${escapeHtml(
+                voucher.customer_name || voucher.party_ledger_name || "-"
+              )}</td>
+              <td style="text-align: right; font-weight: 600;">₹${formatNumber(
+                voucher.total_amount || 0
+              )}</td>
+              <td>${syncStatus}</td>
+              <td>${formatDate(voucher.created_at)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error(`Failed to load ${voucherType} vouchers:`, err);
+          const viewId =
+            voucherType === "SALES"
+              ? "invoices"
+              : voucherType === "RECEIPT"
+              ? "receipts"
+              : "journals";
+          const tbody = document.getElementById(`${viewId}TableBody`);
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="color:var(--danger); text-align:center;">Failed to load vouchers</td></tr>';
+          }
+        }
+      }
+
+      function loadVouchersNext(voucherType) {
+        voucherPages[voucherType]++;
+        loadVouchers(voucherType);
+      }
+
+      function loadVouchersPrevious(voucherType) {
+        if (voucherPages[voucherType] > 0) {
+          voucherPages[voucherType]--;
+          loadVouchers(voucherType);
+        }
+      }
+
+      function formatNumber(num) {
+        return new Intl.NumberFormat("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(num);
+      }
+
+      // ========================================
       // Navigation System
       // ========================================
       const logsNavItem = document.getElementById("logsNavItem");
@@ -2456,6 +3236,15 @@
         });
       }
 
+      // Expand/collapse vouchers submenu
+      const vouchersNavItem = document.getElementById("vouchersNavItem");
+      if (vouchersNavItem) {
+        vouchersNavItem.addEventListener("click", (e) => {
+          e.stopPropagation();
+          vouchersNavItem.classList.toggle("expanded");
+        });
+      }
+
       // Navigation handler
       navItems.forEach((item) => {
         item.addEventListener("click", () => {
@@ -2463,8 +3252,23 @@
           if (!view) return;
 
           // If clicking a submenu item, ensure parent is expanded
-          if (item.classList.contains("nav-submenu-item") && logsNavItem) {
-            logsNavItem.classList.add("expanded");
+          if (item.classList.contains("nav-submenu-item")) {
+            if (
+              logsNavItem &&
+              (view === "system-logs" ||
+                view === "api-logs" ||
+                view === "voucher-logs")
+            ) {
+              logsNavItem.classList.add("expanded");
+            }
+            if (
+              vouchersNavItem &&
+              (view === "invoices" ||
+                view === "receipts" ||
+                view === "journals")
+            ) {
+              vouchersNavItem.classList.add("expanded");
+            }
           }
 
           // Update active states
@@ -2477,6 +3281,10 @@
           // Convert hyphenated view names to camelCase for ID matching
           const viewIdMap = {
             dashboard: "dashboardView",
+            customers: "customersView",
+            invoices: "invoicesView",
+            receipts: "receiptsView",
+            journals: "journalsView",
             settings: "settingsView",
             "system-logs": "systemLogsView",
             "api-logs": "apiLogsView",
@@ -2489,7 +3297,11 @@
           if (targetView) {
             targetView.classList.add("active");
             // Load data for the view
-            if (view === "system-logs") loadSystemLogs();
+            if (view === "customers") loadCustomers();
+            else if (view === "invoices") loadVouchers("SALES");
+            else if (view === "receipts") loadVouchers("RECEIPT");
+            else if (view === "journals") loadVouchers("JVENTRY");
+            else if (view === "system-logs") loadSystemLogs();
             else if (view === "api-logs") loadApiLogs();
             else if (view === "voucher-logs") loadVoucherLogs();
             else if (view === "settings") loadSettings();

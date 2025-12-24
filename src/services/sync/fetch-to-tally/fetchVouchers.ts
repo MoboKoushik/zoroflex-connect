@@ -194,86 +194,32 @@ const getInvoiceBillDetails = (partyLedger: any, total: number) => {
 
 
 
-export async function syncLedgersAndBuildMap(): Promise<void> {
+/**
+ * Build customer map from local database instead of fetching from Tally
+ * Maps customer name (lowercase) -> customer_id
+ */
+async function buildCustomerMapFromDatabase(): Promise<void> {
   try {
-    const lastMaxAlterId = '0';
-    const cleanLastAlterId = lastMaxAlterId.trim();
-
-    const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <VERSION>1</VERSION>
-    <TALLYREQUEST>Export</TALLYREQUEST>
-    <TYPE>Collection</TYPE>
-    <ID>ARCUSTOMERS</ID>
-  </HEADER>
-  <BODY>
-    <DESC>
-      <STATICVARIABLES>
-        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVLastMaxAlterID>${cleanLastAlterId}</SVLastMaxAlterID>
-      </STATICVARIABLES>
-      <TDL>
-        <TDLMESSAGE>
-          <COLLECTION NAME="ARCUSTOMERS" ISINITIALIZE="Yes">
-            <TYPE>Ledger</TYPE>
-            <BELONGSTO>Yes</BELONGSTO>
-            <CHILDOF>$$GroupSundryDebtors</CHILDOF>
-            <FILTERS>IncrementalFilter</FILTERS>
-            <NATIVEMETHOD>Name</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerContact</NATIVEMETHOD>
-            <NATIVEMETHOD>Email</NATIVEMETHOD>
-            <NATIVEMETHOD>EmailCC</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerPhone</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerMobile</NATIVEMETHOD>
-            <NATIVEMETHOD>OpeningBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>ClosingBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>Address.List</NATIVEMETHOD>
-            <NATIVEMETHOD>PartyGSTIN</NATIVEMETHOD>
-            <NATIVEMETHOD>GSTRegistrationType</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerState</NATIVEMETHOD>
-            <NATIVEMETHOD>BankAllocations.List</NATIVEMETHOD>
-            <NATIVEMETHOD>MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>AlterID</NATIVEMETHOD>
-          </COLLECTION>
-
-          <!-- Proven working formula: Numeric comparison with $$Number -->
-          <SYSTEM TYPE="Formulae" NAME="IncrementalFilter">
-            $$Number:$AlterID > $$Number:##SVLastMaxAlterID
-          </SYSTEM>
-        </TDLMESSAGE>
-      </TDL>
-    </DESC>
-  </BODY>
-</ENVELOPE>
-`.trim();
-
-    const response = await axios.post('http://localhost:9000', xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
-    });
-
-    const parsed = await parseStringPromise(response.data);
-    const ledgers = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
-
-    console.log(`Fetched ${ledgers.length} ledgers for customer mapping`);
-
-    if (ledgers.length === 0) {
-      console.log('No new/changed customers.');
-      return;
-    }
     customerMasterIdMap.clear();
 
-    for (const ledger of ledgers) {
-      const name = ledger?.$?.NAME || '';
-      const masterId = getText(ledger, 'MASTERID').trim();
-      console.log(`Mapping customer: Name='${name}', MasterID='${masterId}'`);
-      if (name !== '' && masterId !== '') {
-        customerMasterIdMap.set(name.toLowerCase(), masterId);
+    // Get all customers from local database
+    const customers = await db.getCustomers({ limit: 10000 }); // Get up to 10k customers
+
+    db.log('INFO', `Loading customer map from database: ${customers.length} customers`);
+
+    for (const customer of customers) {
+      const name = (customer.name || '').trim();
+      const customerId = (customer.customer_id || '').trim();
+
+      if (name && customerId) {
+        customerMasterIdMap.set(name.toLowerCase(), customerId);
       }
     }
+
+    db.log('INFO', `Customer map built from database: ${customerMasterIdMap.size} entries`);
   } catch (error: any) {
-    console.error('Ledger sync failed:', error.message);
-    throw error;
+    db.log('ERROR', 'Failed to build customer map from database', { error: error.message });
+    // Don't throw - continue without customer map if database query fails
   }
 }
 
@@ -288,7 +234,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
     const INVOICE_API = `${baseUrl}/invoice/tally/create`;
     const RECEIPT_API = `${baseUrl}/billers/tally/payment`;
     const JV_API = `${baseUrl}/ledgers/tally/jv-entries`;
-    
+
     const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
     db.log('INFO', 'Voucher sync started', { from_alter_id: lastAlterId });
 
@@ -330,16 +276,6 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
             <NATIVEMETHOD>InventoryEntries.Rate</NATIVEMETHOD>
             <NATIVEMETHOD>InventoryEntries.Amount</NATIVEMETHOD>
             <NATIVEMETHOD>InventoryEntries.BasicUnit</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.AltUnit</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.TaxablePercentage</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.Discount</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.List</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.GodownName</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.BatchName</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.BilledQty</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.MFGDATE</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.EXPIRYDATE</NATIVEMETHOD>
-            <NATIVEMETHOD>BillAllocations.List</NATIVEMETHOD>
             <NATIVEMETHOD>Narration</NATIVEMETHOD>
             <NATIVEMETHOD>AlterID</NATIVEMETHOD>
           </COLLECTION>
@@ -354,16 +290,111 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
 </ENVELOPE>
 `.trim();
 
-    const response = await axios.post('http://localhost:9000', xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
-    });
-    await syncLedgersAndBuildMap();
-    console.log(`Built customer ledger map with ${customerMasterIdMap.size} entries`, JSON.stringify(customerMasterIdMap, null, 2));
-    const parsed = await parseStringPromise(response.data);
+    // Make voucher request with retry logic
+    let response;
+    let retries = 0;
+    const maxRetries = 3;
+
+    while (retries < maxRetries) {
+      try {
+        db.log('INFO', `Voucher sync request attempt ${retries + 1}/${maxRetries}`, { alterId: lastAlterId });
+        response = await axios.post('http://localhost:9000', xmlRequest, {
+          headers: { 'Content-Type': 'text/xml' },
+          timeout: 180000, // 3 minutes for voucher sync
+          maxContentLength: 50 * 1024 * 1024, // 50MB max
+          maxBodyLength: 50 * 1024 * 1024
+        });
+        break; // Success, exit retry loop
+      } catch (err: any) {
+        retries++;
+        if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
+          if (retries < maxRetries) {
+            const waitTime = retries * 2000; // 2s, 4s, 6s
+            db.log('WARN', `Voucher sync connection error (attempt ${retries}/${maxRetries}), retrying in ${waitTime}ms...`, {
+              error: err.code,
+              message: err.message
+            });
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+        }
+        // If not a retryable error, or max retries reached, throw
+        throw err;
+      }
+    }
+
+    if (!response) {
+      throw new Error('Failed to get response from Tally after retries');
+    }
+
+    // Validate response before parsing
+    if (!response.data || typeof response.data !== 'string') {
+      throw new Error('Invalid response from Tally: empty or non-string');
+    }
+
+    // Check for Tally error messages
+    if (response.data.includes('<LINEERROR>') || response.data.includes('<ERROR>') || response.data.includes('ERROR')) {
+      db.log('ERROR', 'Tally returned error in XML', { response: response.data.substring(0, 500) });
+      throw new Error('Tally returned an error response');
+    }
+
+    // Check response size (warn if > 5MB)
+    const responseSizeMB = Buffer.byteLength(response.data, 'utf8') / (1024 * 1024);
+    if (responseSizeMB > 5) {
+      db.log('WARN', `Large XML response from Tally: ${responseSizeMB.toFixed(2)}MB`, {
+        alterId: lastAlterId,
+        size: responseSizeMB
+      });
+    }
+
+    // Parse response FIRST (before building customer map)
+    db.log('INFO', 'Parsing voucher XML response...');
+    let parsed;
+    try {
+      parsed = await parseStringPromise(response.data);
+    } catch (parseError: any) {
+      db.log('ERROR', 'Failed to parse XML response from Tally', { error: parseError.message });
+      // Try to save raw response for debugging
+      try {
+        fs.mkdirSync('./dump/voucher', { recursive: true });
+        fs.writeFileSync('./dump/voucher/parse_error_raw_response.xml', response.data.substring(0, 10000));
+      } catch { }
+      throw new Error(`XML parsing failed: ${parseError.message}`);
+    }
+
+    // Save parsed response for debugging
     fs.mkdirSync('./dump/voucher', { recursive: true });
     fs.writeFileSync('./dump/voucher/raw_incremental_vouchers.json', JSON.stringify(parsed, null, 2));
 
-    let vouchersXml = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
+    // Build customer map from local database (no need to fetch from Tally)
+    await buildCustomerMapFromDatabase();
+
+    // Safe parsing with validation (already parsed above, just validate structure)
+    if (!parsed || !parsed.ENVELOPE || !parsed.ENVELOPE.BODY || !Array.isArray(parsed.ENVELOPE.BODY)) {
+      db.log('ERROR', 'Invalid XML structure from Tally', { parsed: JSON.stringify(parsed).substring(0, 500) });
+      // Save partial parsed data for debugging
+      try {
+        fs.writeFileSync('./dump/voucher/invalid_structure_parsed.json', JSON.stringify(parsed, null, 2));
+      } catch { }
+      throw new Error('Invalid XML structure returned by Tally');
+    }
+
+    const body = parsed.ENVELOPE.BODY[0];
+    if (!body || !body.DATA || !Array.isArray(body.DATA)) {
+      db.log('INFO', 'No DATA section in Tally response - no new vouchers');
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, lastAlterId, 'No DATA section in response');
+      return;
+    }
+
+    const data = body.DATA[0];
+    if (!data || !data.COLLECTION || !Array.isArray(data.COLLECTION)) {
+      db.log('INFO', 'No COLLECTION section in Tally response - no new vouchers');
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, lastAlterId, 'No COLLECTION section in response');
+      return;
+    }
+
+    const collection = data.COLLECTION[0];
+    let vouchersXml = (collection && collection.VOUCHER) ? (Array.isArray(collection.VOUCHER) ? collection.VOUCHER : [collection.VOUCHER]) : [];
 
     if (vouchersXml.length === 0) {
       await db.logSyncEnd(runId, 'SUCCESS', 0, 0, lastAlterId, 'No new vouchers');
@@ -393,13 +424,8 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
     console.log(`Fetched ${vouchersXml.length} total new vouchers, ${arVouchersXml.length} are AR related`);
 
     if (arVouchersXml.length === 0) {
-      console.log('No AR related vouchers in this batch.');
-      let highest = parseInt(lastAlterId || '0', 10);
-      for (const voucher of vouchersXml) {
-        const alterIdNum = parseInt(getText(voucher, 'ALTERID').replace(/\s+/g, '') || '0', 10);
-        if (alterIdNum > highest) highest = alterIdNum;
-      }
-      newMaxAlterId = highest.toString();
+      db.log('INFO', 'No AR related vouchers in this batch, skipping AlterID update to retry next sync');
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, lastAlterId, 'No AR vouchers found, will retry');
       return;
     }
 
@@ -603,6 +629,110 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
     fs.writeFileSync('./dump/voucher/grouped_vouchers.json', JSON.stringify(groupedVouchers, null, 2));
     console.log(`Processed ${arVouchersXml.length} AR vouchers into groups: Invoice=${groupedVouchers.invoice.length}, Receipt=${groupedVouchers.receipt.length}, JV=${groupedVouchers.jv_entry.length} (highest AlterID: ${newMaxAlterId})`);
 
+    // Store vouchers in local SQLite database first
+    db.log('INFO', 'Storing vouchers in local database');
+    db.execInTransaction((tx) => {
+      // Create a map to find original voucher XML data by invoice_id/receipt_number/voucher_number
+      const voucherMap = new Map<string, any>();
+      for (const voucher of arVouchersXml) {
+        const voucherId = getText(voucher, 'MASTERID');
+        if (voucherId) voucherMap.set(voucherId, voucher);
+      }
+
+      // Store invoices
+      for (const item of groupedVouchers.invoice) {
+        try {
+          const originalVoucher = voucherMap.get(item.invoice_id || '');
+          const alterId = originalVoucher ? getText(originalVoucher, 'ALTERID') : '0';
+
+          db.upsertVoucher({
+            voucher_id: item.invoice_id || '',
+            alter_id: alterId,
+            voucher_type: 'SALES',
+            voucher_number: item.invoice_number || '',
+            date: item.issue_date || item.Date || '',
+            customer_id: item.customer_id,
+            customer_name: item.company_name || '',
+            party_ledger_name: item.company_name || '',
+            total_amount: item.total || 0,
+            balance_amount: item.balance || 0,
+            narration: '',
+            voucher_data: item
+          }, tx);
+
+          // Store line items
+          if (item.Inventory_Details && Array.isArray(item.Inventory_Details)) {
+            const lineItems = item.Inventory_Details.map((lineItem: any, index: number) => ({
+              line_number: index + 1,
+              stock_item_name: lineItem.StockItem_Name || '',
+              billed_qty: lineItem.Quantity || 0,
+              rate: lineItem.Rate || 0,
+              amount: lineItem.Amount || 0,
+              basic_unit: lineItem.UOM || '',
+              alt_unit: lineItem.AlterbativeUnit || '',
+              taxable_percentage: parseFloat(lineItem.GST_perc || '0'),
+              discount: parseFloat(lineItem.Discount || '0'),
+              batch_allocations: lineItem.Batch_Allocation || []
+            }));
+            db.upsertVoucherLineItems(item.invoice_id || '', lineItems, tx);
+          }
+        } catch (err: any) {
+          db.log('ERROR', `Failed to store invoice ${item.invoice_id}`, { error: err.message });
+        }
+      }
+
+      // Store receipts
+      for (const item of groupedVouchers.receipt) {
+        try {
+          const originalVoucher = voucherMap.get(item.receipt_id || '');
+          const alterId = originalVoucher ? getText(originalVoucher, 'ALTERID') : '0';
+
+          db.upsertVoucher({
+            voucher_id: item.receipt_id || '',
+            alter_id: alterId,
+            voucher_type: 'RECEIPT',
+            voucher_number: item.receipt_number || '',
+            date: item.receipt_date || item.date || '',
+            customer_id: item.customer_id,
+            customer_name: item.customer_name || '',
+            party_ledger_name: item.customer_name || '',
+            total_amount: item.receipt_amount || 0,
+            balance_amount: 0,
+            narration: '',
+            voucher_data: item
+          }, tx);
+        } catch (err: any) {
+          db.log('ERROR', `Failed to store receipt ${item.receipt_id}`, { error: err.message });
+        }
+      }
+
+      // Store journal entries
+      for (const item of groupedVouchers.jv_entry) {
+        try {
+          const originalVoucher = voucherMap.get(item.voucher_id || '');
+          const alterId = originalVoucher ? getText(originalVoucher, 'ALTERID') : '0';
+
+          db.upsertVoucher({
+            voucher_id: item.voucher_id || '',
+            alter_id: alterId,
+            voucher_type: 'JVENTRY',
+            voucher_number: item.voucher_number || '',
+            date: item.date || '',
+            customer_id: item.customer_id,
+            customer_name: item.company_name || '',
+            party_ledger_name: item.company_name || '',
+            total_amount: 0, // JV entries don't have a single total
+            balance_amount: 0,
+            narration: '',
+            voucher_data: item
+          }, tx);
+        } catch (err: any) {
+          db.log('ERROR', `Failed to store JV ${item.voucher_id}`, { error: err.message });
+        }
+      }
+    });
+    db.log('INFO', 'Vouchers stored in local database');
+
     const sendBatch = async (items: any[], apiUrl: string, type: 'invoice' | 'receipt' | 'jv') => {
       for (let i = 0; i < items.length; i += BATCH_SIZE) {
         const batch = items.slice(i, i + BATCH_SIZE);
@@ -618,7 +748,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           });
           successCount[type] += batch.length;
           db.log('INFO', `${type.charAt(0).toUpperCase() + type.slice(1)} batch synced`, { batch_index: i / BATCH_SIZE + 1, count: batch.length });
-          
+
           // Log each voucher as successful
           for (const item of batch) {
             const voucherNumber = item.invoice_number || item.receipt_number || item.voucher_number || 'N/A';
@@ -626,7 +756,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
             const date = item.issue_date || item.receipt_date || item.date || new Date().toISOString().split('T')[0];
             const partyName = item.customer_name || item.customer_id || null;
             const amount = parseFloat(item.total || item.receipt_amount || '0') || 0;
-            
+
             await db.logTallyVoucher(
               voucherNumber,
               voucherType,
@@ -643,7 +773,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           const errMsg = err.response?.data || err.message;
           db.log('ERROR', `${type} batch failed`, { error: errMsg });
           fs.writeFileSync(`./dump/voucher/failed_${type}_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
-          
+
           // Log each voucher as failed
           for (const item of batch) {
             const voucherNumber = item.invoice_number || item.receipt_number || item.voucher_number || 'N/A';
@@ -652,7 +782,7 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
             const partyName = item.customer_name || item.customer_id || null;
             const amount = parseFloat(item.total || item.receipt_amount || '0') || 0;
             const errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
-            
+
             await db.logTallyVoucher(
               voucherNumber,
               voucherType,
@@ -678,8 +808,15 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
     const totalFailed = failedCount.invoice + failedCount.receipt + failedCount.jv;
     const status = totalFailed === 0 ? 'SUCCESS' : (totalSuccess > 0 ? 'PARTIAL' : 'FAILED');
 
-    if (totalSuccess > 0) {
+    // Update AlterID only if we successfully processed at least some vouchers
+    if (totalSuccess > 0 && newMaxAlterId !== '0') {
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+      db.log('INFO', `Updated AlterID for ${ENTITY_TYPE} to ${newMaxAlterId}`);
+    } else if (arVouchersXml.length > 0) {
+      // Even if API sync failed, update AlterID if we processed vouchers locally
+      // This prevents re-processing same vouchers on next sync
+      await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+      db.log('INFO', `Updated AlterID for ${ENTITY_TYPE} to ${newMaxAlterId} (local processing succeeded, API sync had failures)`);
     }
 
     await db.logSyncEnd(runId, status, totalSuccess, totalFailed, newMaxAlterId, `${totalSuccess} synced`, {
@@ -692,8 +829,20 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
     db.log('INFO', 'Voucher sync completed', { totalSuccess, totalFailed, highest_alter_id: newMaxAlterId });
 
   } catch (error: any) {
-    await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, error.message);
-    db.log('ERROR', 'Voucher sync crashed', { error: error.message });
+    const errorMessage = error?.message || 'Unknown error';
+    const errorCode = error?.code || 'UNKNOWN';
+    await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, `Error: ${errorMessage} (${errorCode})`);
+    db.log('ERROR', 'Voucher sync crashed', {
+      error: errorMessage,
+      code: errorCode,
+      stack: error?.stack?.substring(0, 500)
+    });
+
+    // If it's a connection error, provide helpful message
+    if (errorCode === 'ECONNRESET' || errorCode === 'ETIMEDOUT' || errorCode === 'ECONNABORTED') {
+      db.log('ERROR', 'Voucher sync failed due to connection issue. Possible causes: XML response too large, Tally timeout, or network issue. Check dump/voucher/raw_incremental_vouchers.json if it exists.');
+    }
+
     throw error;
   }
 }

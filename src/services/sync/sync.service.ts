@@ -1,8 +1,8 @@
 import { DatabaseService, UserProfile } from '../../services/database/database.service';
 import { fetchCurrentCompany } from './fetch-to-tally/fetchCurrentCompany';
 import { OrganizationService } from './send-to-platfrom/organization.service';
-import { syncCustomers } from '../sync/fetch-to-tally/fetchLedgers';
-import { syncVouchers } from '../sync/fetch-to-tally/fetchVouchers';
+import { syncCustomers } from './fetch-to-tally/fetchLedgers';
+import { syncVouchers } from './fetch-to-tally/fetchVouchers';
 
 export class SyncService {
   private dbService: DatabaseService;
@@ -66,10 +66,11 @@ export class SyncService {
         await this.organizationService.syncOrganization(profile, companyData);
       }
 
+      // Sync customers and vouchers using the working functions
       this.dbService.log('INFO', 'Starting customer sync');
       await syncCustomers(profile);
-
-      this.dbService.log('INFO', 'Starting voucher sync (Invoice, Receipt, Journal)');
+      
+      this.dbService.log('INFO', 'Starting voucher sync');
       await syncVouchers(profile);
 
 

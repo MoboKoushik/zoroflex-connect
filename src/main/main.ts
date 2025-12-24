@@ -307,6 +307,28 @@ ipcMain.handle('get-voucher-sync-summary', async () => {
   return await dbService.getVoucherSyncSummary();
 });
 
+// Customer data handlers
+ipcMain.handle('get-customers', async (event, filters?: any) => {
+  return await dbService.getCustomers(filters);
+});
+
+ipcMain.handle('get-customers-count', async (event, search?: string) => {
+  return await dbService.getCustomersCount(search);
+});
+
+// Voucher data handlers
+ipcMain.handle('get-vouchers', async (event, filters?: any) => {
+  return await dbService.getVouchers(filters);
+});
+
+ipcMain.handle('get-vouchers-count', async (event, filters?: any) => {
+  return await dbService.getVouchersCount(filters);
+});
+
+ipcMain.handle('get-voucher-line-items', async (event, voucherId: string) => {
+  return await dbService.getVoucherLineItems(voucherId);
+});
+
 // Window control handlers
 ipcMain.handle('window-minimize', () => {
   if (dashboardWindow) {

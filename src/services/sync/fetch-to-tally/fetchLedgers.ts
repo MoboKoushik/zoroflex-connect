@@ -123,7 +123,6 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
             <NATIVEMETHOD>PartyGSTIN</NATIVEMETHOD>
             <NATIVEMETHOD>GSTRegistrationType</NATIVEMETHOD>
             <NATIVEMETHOD>LedgerState</NATIVEMETHOD>
-            <NATIVEMETHOD>BankAllocations.List</NATIVEMETHOD>
             <NATIVEMETHOD>MasterID</NATIVEMETHOD>
             <NATIVEMETHOD>AlterID</NATIVEMETHOD>
           </COLLECTION>
@@ -137,14 +136,47 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
 </ENVELOPE>`.trim();
 
     const response = await axios.post('http://localhost:9000', xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' }
+      headers: { 'Content-Type': 'text/xml' },
+      timeout: 60000
     });
+
+    // Validate response before parsing
+    if (!response.data || typeof response.data !== 'string') {
+      throw new Error('Invalid response from Tally: empty or non-string');
+    }
+
+    // Check for Tally error messages
+    if (response.data.includes('<LINEERROR>') || response.data.includes('<ERROR>') || response.data.includes('ERROR')) {
+      db.log('ERROR', 'Tally returned error in XML', { response: response.data.substring(0, 500) });
+      throw new Error('Tally returned an error response');
+    }
 
     const parsed = await parseStringPromise(response.data);
     fs.mkdirSync('./dump/customer', { recursive: true });
     fs.writeFileSync('./dump/customer/raw_response.json', JSON.stringify(parsed, null, 2));
 
-    const ledgersXml = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
+    // Safe parsing with validation
+    if (!parsed || !parsed.ENVELOPE || !parsed.ENVELOPE.BODY || !Array.isArray(parsed.ENVELOPE.BODY)) {
+      db.log('ERROR', 'Invalid XML structure from Tally', { parsed: JSON.stringify(parsed).substring(0, 500) });
+      throw new Error('Invalid XML structure returned by Tally');
+    }
+
+    const body = parsed.ENVELOPE.BODY[0];
+    if (!body || !body.DATA || !Array.isArray(body.DATA)) {
+      db.log('INFO', 'No DATA section in Tally response - no new customers');
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, cleanLastAlterId, 'No DATA section in response');
+      return;
+    }
+
+    const data = body.DATA[0];
+    if (!data || !data.COLLECTION || !Array.isArray(data.COLLECTION)) {
+      db.log('INFO', 'No COLLECTION section in Tally response - no new customers');
+      await db.logSyncEnd(runId, 'SUCCESS', 0, 0, cleanLastAlterId, 'No COLLECTION section in response');
+      return;
+    }
+
+    const collection = data.COLLECTION[0];
+    const ledgersXml = (collection && collection.LEDGER) ? (Array.isArray(collection.LEDGER) ? collection.LEDGER : [collection.LEDGER]) : [];
 
     if (ledgersXml.length === 0) {
       await db.logSyncEnd(runId, 'SUCCESS', 0, 0, cleanLastAlterId, 'No new customers');
@@ -193,6 +225,45 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
     fs.writeFileSync('./dump/customer/transformed_customers.json', JSON.stringify(customers, null, 2));
     db.log('INFO', 'Customers transformed', { count: customers.length, highest_alter_id: newMaxAlterId });
 
+    // Store customers in local SQLite database first
+    db.log('INFO', 'Storing customers in local database');
+    db.execInTransaction((tx) => {
+      for (let idx = 0; idx < customers.length; idx++) {
+        const customer = customers[idx];
+        try {
+          // Find corresponding ledger XML to get AlterID
+          const ledgerXml = ledgersXml[idx] || ledgersXml.find((l: any) => getText(l, 'MASTERID') === customer.customer_id);
+          const alterId = ledgerXml ? getText(ledgerXml, 'ALTERID') : '0';
+
+          db.upsertCustomer({
+            customer_id: customer.customer_id,
+            alter_id: alterId || '0',
+            name: customer.name,
+            contact_person: customer.contact_person,
+            email: customer.email,
+            email_cc: customer.email_cc,
+            phone: customer.phone,
+            mobile: customer.mobile,
+            whatsapp_number: customer.whatsapp_number,
+            company_name: customer.company_name,
+            additional_address_lines: customer.additional_address_lines || [],
+            gstin: customer.gstin,
+            gst_registration_type: customer.gst_registration_type,
+            gst_state: customer.gst_state,
+            bank_details: customer.bank_details || [],
+            opening_balance: customer.opening_balance,
+            current_balance: customer.current_balance,
+            current_balance_at: customer.current_balance_at,
+            biller_id: customer.biller_id
+          }, tx);
+        } catch (err: any) {
+          db.log('ERROR', `Failed to store customer ${customer.customer_id}`, { error: err.message });
+        }
+      }
+    });
+    db.log('INFO', 'Customers stored in local database');
+
+    // Then sync to API
     for (let i = 0; i < customers.length; i += BATCH_SIZE) {
       const batch = customers.slice(i, i + BATCH_SIZE);
       const payload = { customer: batch };
@@ -206,7 +277,13 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
           timeout: 30000
         });
         successCount += batch.length;
-        db.log('INFO', 'Customer batch synced successfully', { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+        db.log('INFO', 'Customer batch synced to API successfully', { batch_index: i / BATCH_SIZE + 1, count: batch.length });
+        
+        // Mark as synced in database
+        const customerIds = batch.map(c => c.customer_id).filter(id => id);
+        if (customerIds.length > 0) {
+          db.markRecordsAsSynced('CUSTOMER', customerIds);
+        }
         
         // Log individual customer records as successful
         for (const customer of batch) {
@@ -224,7 +301,7 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
       } catch (err: any) {
         failedCount += batch.length;
         const errorMsg = err.response?.data || err.message || 'Unknown error';
-        db.log('ERROR', 'Customer batch failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
+        db.log('ERROR', 'Customer batch API sync failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
         fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
         
         // Log individual customer records as failed
@@ -247,8 +324,15 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
     const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
     const summary = { success: successCount, failed: failedCount, total: customers.length };
 
-    if (successCount > 0) {
+    // Update AlterID only if we successfully processed at least some customers
+    if (successCount > 0 && newMaxAlterId !== '0') {
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+      db.log('INFO', `Updated AlterID for ${ENTITY_TYPE} to ${newMaxAlterId}`);
+    } else if (customers.length > 0) {
+      // Even if API sync failed, update AlterID if we processed customers locally
+      // This prevents re-processing same customers on next sync
+      await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+      db.log('INFO', `Updated AlterID for ${ENTITY_TYPE} to ${newMaxAlterId} (local processing succeeded, API sync had failures)`);
     }
 
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`, summary);
