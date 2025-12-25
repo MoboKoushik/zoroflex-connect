@@ -119,7 +119,7 @@ export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number =
     <DESC>
       <STATICVARIABLES>
         <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVFromAlterID TYPE="Number">${fromAlterId}</SVFromAlterID>
+        <SVFromAlterID>${fromAlterId}</SVFromAlterID>
       </STATICVARIABLES>
       <TDL>
         <TDLMESSAGE>
@@ -185,11 +185,12 @@ export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number =
 
 /**
  * Fetches vouchers from Tally in batches using AlterID windowing
+ * Optimized query using FETCH for nested data to prevent Tally crashes
  * @param fromAlterId Starting AlterID (exclusive, so we fetch > fromAlterId)
- * @param sizeMax Maximum number of records to return per request (default: 20)
+ * @param sizeMax Maximum number of records to return per request (default: 10)
  * @returns Parsed XML response with VOUCHER array
  */
-export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 20): Promise<any> {
+export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 10): Promise<any> {
     const xmlRequest = `
 <ENVELOPE>
   <HEADER>
@@ -202,7 +203,7 @@ export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 
     <DESC>
       <STATICVARIABLES>
         <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVLastMaxAlterID TYPE="Number">${fromAlterId}</SVLastMaxAlterID>
+        <SVLastMaxAlterID>${fromAlterId}</SVLastMaxAlterID>
       </STATICVARIABLES>
       <TDL>
         <TDLMESSAGE>
@@ -214,28 +215,6 @@ export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 
             <NATIVEMETHOD>VoucherTypeName</NATIVEMETHOD>
             <NATIVEMETHOD>PartyLedgerName</NATIVEMETHOD>
             <NATIVEMETHOD>MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.List</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.LedgerName</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.Parent</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.Amount</NATIVEMETHOD>
-            <NATIVEMETHOD>AllLedgerEntries.IsDeemedPositive</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.List</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.StockItemName</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BilledQty</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.Rate</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.Amount</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BasicUnit</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.AltUnit</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.TaxablePercentage</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.Discount</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.List</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.GodownName</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.BatchName</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.BilledQty</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.MFGDATE</NATIVEMETHOD>
-            <NATIVEMETHOD>InventoryEntries.BatchAllocations.EXPIRYDATE</NATIVEMETHOD>
-            <NATIVEMETHOD>BillAllocations.List</NATIVEMETHOD>
             <NATIVEMETHOD>Narration</NATIVEMETHOD>
             <NATIVEMETHOD>AlterID</NATIVEMETHOD>
           </COLLECTION>

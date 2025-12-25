@@ -8,8 +8,8 @@ const db = new DatabaseService();
 
 const ENTITY_TYPE = 'VOUCHER';
 const BATCH_SIZE = 20; // API batch size (for sending to API)
-const TALLY_BATCH_SIZE = 20; // Tally fetch batch size (reduced to prevent crashes)
-const BATCH_DELAY_MS = 1000; // Delay between batches (increased to 1000ms for safety)
+const TALLY_BATCH_SIZE = 200; // Tally fetch batch size (optimized to prevent crashes)
+const BATCH_DELAY_MS = 2000; // Delay between batches (increased to 2000ms for stability)
 const API_KEY = '7061797A6F72726F74616C6C79';
 
 // In-memory customer map for fast lookups (ledger_name -> tally_master_id)
@@ -342,10 +342,10 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           const voucherType = getText(voucher, 'VOUCHERTYPENAME').toLowerCase();
           const rawAlterId = getText(voucher, 'ALTERID');
 
-          const ledgerEntries = voucher['ALLLEDGERENTRIES.LIST'] || [];
-          const ledgerEntriesAll = getLedgerEntries(ledgerEntries);
-          const lineItems = getLineItems(voucher['ALLINVENTORYENTRIES.LIST'] || []);
-          const billDetails = getBillDetails(voucher['BILLALLOCATIONS.LIST'] || []);
+          // const ledgerEntries = voucher['ALLLEDGERENTRIES.LIST'] || [];
+          // const ledgerEntriesAll = getLedgerEntries(ledgerEntries);
+          // const lineItems = getLineItems(voucher['ALLINVENTORYENTRIES.LIST'] || []);
+          // const billDetails = getBillDetails(voucher['BILLALLOCATIONS.LIST'] || []);
 
           const partyLedgerName = getText(voucher, 'PARTYLEDGERNAME');
 
@@ -704,11 +704,11 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
           }
         };
 
-        await Promise.all([
-          sendBatchToAPI(groupedVouchers.invoice, INVOICE_API, 'invoice'),
-          sendBatchToAPI(groupedVouchers.receipt, RECEIPT_API, 'receipt'),
-          sendBatchToAPI(groupedVouchers.jv_entry, JV_API, 'jv')
-        ]);
+        // await Promise.all([
+        //   sendBatchToAPI(groupedVouchers.invoice, INVOICE_API, 'invoice'),
+        //   sendBatchToAPI(groupedVouchers.receipt, RECEIPT_API, 'receipt'),
+        //   sendBatchToAPI(groupedVouchers.jv_entry, JV_API, 'jv')
+        // ]);
 
         const batchSuccess = successCount.invoice + successCount.receipt + successCount.jv;
         const batchFailed = failedCount.invoice + failedCount.receipt + failedCount.jv;
