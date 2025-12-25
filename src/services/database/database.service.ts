@@ -102,6 +102,12 @@ export interface RecentSyncHistoryItem {
   syncHistoryId: number;
 }
 
+export interface VoucherSummaryItem {
+  totalAttempted: number;
+  successCount: number;
+  failedCount: number;
+}
+
 export interface CustomerData {
   id?: number;
   tally_master_id: string;
@@ -181,7 +187,7 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v406.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v401.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();
@@ -253,18 +259,7 @@ export class DatabaseService {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS tally_voucher_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        voucher_number TEXT NOT NULL,
-        voucher_type TEXT NOT NULL,
-        date TEXT NOT NULL,
-        party_name TEXT,
-        amount REAL DEFAULT 0,
-        status TEXT NOT NULL,
-        error_message TEXT,
-        sync_history_id INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+      -- tally_voucher_logs table removed - logging handled by backend
 
       CREATE TABLE IF NOT EXISTS app_settings (
         key TEXT PRIMARY KEY,
@@ -272,98 +267,13 @@ export class DatabaseService {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS sync_record_details (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sync_history_id INTEGER NOT NULL,
-        record_id TEXT NOT NULL,
-        record_name TEXT NOT NULL,
-        record_type TEXT NOT NULL,
-        status TEXT NOT NULL,
-        error_message TEXT,
-        synced_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+      -- sync_record_details table removed - detailed logging handled by backend
 
       CREATE INDEX IF NOT EXISTS idx_api_logs_created_at ON api_logs(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_api_logs_status ON api_logs(status);
-      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_date ON tally_voucher_logs(date DESC);
-      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_type ON tally_voucher_logs(voucher_type);
-      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_status ON tally_voucher_logs(status);
-      CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_sync_history ON tally_voucher_logs(sync_history_id);
-      CREATE INDEX IF NOT EXISTS idx_sync_record_details_sync_history ON sync_record_details(sync_history_id);
-      CREATE INDEX IF NOT EXISTS idx_sync_record_details_record_type ON sync_record_details(record_type);
-      CREATE INDEX IF NOT EXISTS idx_sync_record_details_status ON sync_record_details(status);
+      -- Indexes for removed tables removed
 
-      CREATE TABLE IF NOT EXISTS customers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tally_master_id TEXT UNIQUE NOT NULL,
-        ledger_name TEXT NOT NULL,
-        ledger_name_lower TEXT NOT NULL,
-        contact_person TEXT,
-        email TEXT,
-        email_cc TEXT,
-        phone TEXT,
-        mobile TEXT,
-        company_name TEXT,
-        address_json TEXT,
-        gstin TEXT,
-        gst_registration_type TEXT,
-        gst_state TEXT,
-        bank_details_json TEXT,
-        opening_balance REAL DEFAULT 0,
-        current_balance REAL DEFAULT 0,
-        current_balance_at TEXT,
-        tally_alter_id TEXT NOT NULL,
-        synced_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_customers_tally_master_id ON customers(tally_master_id);
-      CREATE INDEX IF NOT EXISTS idx_customers_ledger_name_lower ON customers(ledger_name_lower);
-      CREATE INDEX IF NOT EXISTS idx_customers_tally_alter_id ON customers(tally_alter_id);
-
-      CREATE TABLE IF NOT EXISTS vouchers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tally_master_id TEXT UNIQUE NOT NULL,
-        voucher_number TEXT NOT NULL,
-        voucher_type TEXT NOT NULL,
-        voucher_date TEXT NOT NULL,
-        party_ledger_name TEXT,
-        customer_master_id TEXT,
-        total_amount REAL DEFAULT 0,
-        biller_id TEXT,
-        address TEXT,
-        state TEXT,
-        country TEXT,
-        company_name TEXT,
-        narration TEXT,
-        tally_alter_id TEXT NOT NULL,
-        voucher_data_json TEXT,
-        synced_to_api INTEGER DEFAULT 0,
-        api_sync_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_master_id) REFERENCES customers(tally_master_id)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_vouchers_tally_master_id ON vouchers(tally_master_id);
-      CREATE INDEX IF NOT EXISTS idx_vouchers_voucher_number ON vouchers(voucher_number);
-      CREATE INDEX IF NOT EXISTS idx_vouchers_customer_master_id ON vouchers(customer_master_id);
-      CREATE INDEX IF NOT EXISTS idx_vouchers_tally_alter_id ON vouchers(tally_alter_id);
-      CREATE INDEX IF NOT EXISTS idx_vouchers_voucher_type ON vouchers(voucher_type);
-      CREATE INDEX IF NOT EXISTS idx_vouchers_synced_to_api ON vouchers(synced_to_api);
-
-      CREATE TABLE IF NOT EXISTS voucher_ledgers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        voucher_id INTEGER NOT NULL,
-        ledger_name TEXT NOT NULL,
-        amount REAL DEFAULT 0,
-        is_party_ledger INTEGER DEFAULT 0,
-        is_deemed_positive INTEGER DEFAULT 0,
-        parent TEXT,
-        FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_voucher_ledgers_voucher_id ON voucher_ledgers(voucher_id);
+      -- Customer and voucher tables removed - data now stored in backend
 
       CREATE TABLE IF NOT EXISTS sync_batches (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -596,23 +506,8 @@ export class DatabaseService {
   }
 
   // === Tally Voucher Logs ===
-  async logTallyVoucher(
-    voucherNumber: string,
-    voucherType: string,
-    date: string,
-    partyName: string | null,
-    amount: number,
-    status: 'SUCCESS' | 'FAILED',
-    errorMessage: string | null,
-    syncHistoryId: number | null
-  ): Promise<void> {
-    const stmt = this.db!.prepare(`
-      INSERT INTO tally_voucher_logs (voucher_number, voucher_type, date, party_name, amount, status, error_message, sync_history_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    stmt.run(voucherNumber, voucherType, date, partyName, amount, status, errorMessage, syncHistoryId);
-  }
-
+  // Updated for thin client: tally_voucher_logs table removed - logging handled by backend
+  // Return empty array as voucher logs are now stored in backend
   async getTallyVoucherLogs(filters?: {
     voucherType?: string;
     status?: 'SUCCESS' | 'FAILED';
@@ -621,50 +516,11 @@ export class DatabaseService {
     search?: string;
     limit?: number;
   }): Promise<TallyVoucherLogRow[]> {
-    let query = `SELECT * FROM tally_voucher_logs WHERE 1=1`;
-    const params: any[] = [];
-
-    if (filters?.voucherType) {
-      // Case-insensitive match and handle variations
-      // Map common variations to actual stored values
-      const typeMap: Record<string, string[]> = {
-        'sales': ['sales'],
-        'credit_note': ['credit_note', 'credit note'],
-        'receipt': ['receipt', 'RECEIPT'],
-        'jv_entry': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
-        'JVENTRY': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
-        'JV': ['jv_entry', 'JVENTRY', 'JV', 'jventry'],
-        'RECEIPT': ['receipt', 'RECEIPT']
-      };
-
-      const searchTypes = typeMap[filters.voucherType] || [filters.voucherType];
-      const placeholders = searchTypes.map(() => '?').join(',');
-      // Only check voucher_type column (entry_type doesn't exist in tally_voucher_logs table)
-      query += ` AND LOWER(voucher_type) IN (${placeholders})`;
-      params.push(...searchTypes.map(t => t.toLowerCase()));
-    }
-    if (filters?.status) {
-      query += ` AND status = ?`;
-      params.push(filters.status);
-    }
-    if (filters?.fromDate) {
-      query += ` AND date >= ?`;
-      params.push(filters.fromDate);
-    }
-    if (filters?.toDate) {
-      query += ` AND date <= ?`;
-      params.push(filters.toDate);
-    }
-    if (filters?.search) {
-      query += ` AND (voucher_number LIKE ? OR party_name LIKE ?)`;
-      params.push(`%${filters.search}%`, `%${filters.search}%`);
-    }
-
-    query += ` ORDER BY date DESC, created_at DESC LIMIT ?`;
-    params.push(filters?.limit || 200);
-
-    const stmt = this.db!.prepare(query);
-    return stmt.all(...params) as TallyVoucherLogRow[];
+    // tally_voucher_logs table removed in thin client architecture
+    // Voucher logs are now stored and managed by backend
+    // Return empty array - UI should fetch from backend API if needed
+    console.log('getTallyVoucherLogs: Voucher logs now handled by backend (tally_voucher_logs table removed)');
+    return [];
   }
 
   // === App Settings ===
@@ -696,56 +552,16 @@ export class DatabaseService {
   }
 
   // === Log Management ===
-  async clearLogs(logType: 'system' | 'api' | 'voucher'): Promise<void> {
+  async clearLogs(logType: 'system' | 'api'): Promise<void> {
     if (logType === 'system') {
       this.db!.exec('DELETE FROM logs');
     } else if (logType === 'api') {
       this.db!.exec('DELETE FROM api_logs');
-    } else if (logType === 'voucher') {
-      this.db!.exec('DELETE FROM tally_voucher_logs');
     }
   }
 
   // === Sync Record Details ===
-  async logSyncRecordDetail(
-    syncHistoryId: number,
-    recordId: string,
-    recordName: string,
-    recordType: 'ORGANIZATION' | 'CUSTOMER',
-    status: 'SUCCESS' | 'FAILED',
-    errorMessage: string | null = null
-  ): Promise<void> {
-    const stmt = this.db!.prepare(`
-      INSERT INTO sync_record_details (sync_history_id, record_id, record_name, record_type, status, error_message)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-    stmt.run(syncHistoryId, recordId, recordName, recordType, status, errorMessage);
-  }
-
-  async getSyncRecordDetails(
-    syncHistoryId: number,
-    filters?: {
-      status?: 'SUCCESS' | 'FAILED';
-      search?: string;
-    }
-  ): Promise<SyncRecordDetail[]> {
-    let query = `SELECT * FROM sync_record_details WHERE sync_history_id = ?`;
-    const params: any[] = [syncHistoryId];
-
-    if (filters?.status) {
-      query += ` AND status = ?`;
-      params.push(filters.status);
-    }
-    if (filters?.search) {
-      query += ` AND (record_id LIKE ? OR record_name LIKE ?)`;
-      params.push(`%${filters.search}%`, `%${filters.search}%`);
-    }
-
-    query += ` ORDER BY synced_at DESC`;
-
-    const stmt = this.db!.prepare(query);
-    return stmt.all(...params) as SyncRecordDetail[];
-  }
+  // Removed - detailed logging now handled by backend
 
   // === Recent Sync History (Grouped) ===
   async getRecentSyncHistoryGrouped(): Promise<RecentSyncHistoryItem[]> {
@@ -845,7 +661,8 @@ export class DatabaseService {
   }
 
   // === Voucher Sync Summary ===
-  async getVoucherSyncSummary(): Promise<Record<string, { totalAttempted: number; successCount: number; failedCount: number }>> {
+  // Updated for thin client: Only use sync_history table (tally_voucher_logs removed)
+  async getVoucherSyncSummary(): Promise<Record<string, VoucherSummaryItem>> {
     // Get all syncs and find VOUCHER (case-insensitive)
     const stmt = this.db!.prepare(`
       SELECT * FROM sync_history
@@ -858,126 +675,73 @@ export class DatabaseService {
 
     console.log('Latest voucher sync:', latestVoucherSync ? { id: latestVoucherSync.id, status: latestVoucherSync.status, count: latestVoucherSync.entity_count } : 'none');
 
-    const result: Record<string, { totalAttempted: number; successCount: number; failedCount: number }> = {};
+    const result: Record<string, VoucherSummaryItem> = {};
 
-    // First, try to get from tally_voucher_logs table (most accurate)
+    // Use sync_history summary data only (tally_voucher_logs table removed in thin client architecture)
     if (latestVoucherSync) {
-      const voucherStmt = this.db!.prepare(`
-        SELECT voucher_type, 
-               COUNT(*) as total,
-               SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
-               SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failed
-        FROM tally_voucher_logs
-        WHERE sync_history_id = ?
-        GROUP BY voucher_type
-      `);
-      const voucherStats = voucherStmt.all(latestVoucherSync.id) as any[];
+      // Fallback to summary JSON from sync_history
+      if (latestVoucherSync.summary) {
+        let summary: any = {};
+        try {
+          summary = typeof latestVoucherSync.summary === 'string'
+            ? JSON.parse(latestVoucherSync.summary)
+            : latestVoucherSync.summary;
+        } catch (e) {
+          console.error('Failed to parse voucher summary:', e);
+          // Fallback: use entity_count if available
+          const failedCount = latestVoucherSync.failed_count || 0;
+          if (latestVoucherSync.entity_count > 0 || failedCount > 0) {
+            result['All Vouchers'] = {
+              totalAttempted: (latestVoucherSync.entity_count || 0) + failedCount,
+              successCount: latestVoucherSync.entity_count || 0,
+              failedCount: failedCount
+            };
+          }
+          return result;
+        }
 
-      // console.log('Voucher stats from tally_voucher_logs:', voucherStats.length, voucherStats);
-
-      if (voucherStats.length > 0) {
-        for (const stat of voucherStats) {
-          const typeName = stat.voucher_type || 'Unknown';
-          // Normalize voucher type names - keep original case but capitalize first letter
-          const normalizedType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-          result[normalizedType] = {
-            totalAttempted: stat.total || 0,
-            successCount: stat.success || 0,
-            failedCount: stat.failed || 0
+        // Check if summary has voucher type breakdowns
+        if (summary.invoice) {
+          result['Sales'] = {
+            totalAttempted: (summary.invoice.success || 0) + (summary.invoice.failed || 0),
+            successCount: summary.invoice.success || 0,
+            failedCount: summary.invoice.failed || 0
           };
         }
-        // console.log('Returning voucher summary from tally_voucher_logs:', result);
-        return result;
-      }
-
-      // If no voucher logs, try to get all voucher logs (might be from different sync_history_id)
-      const allVoucherStmt = this.db!.prepare(`
-        SELECT voucher_type, 
-               COUNT(*) as total,
-               SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
-               SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failed
-        FROM tally_voucher_logs
-        GROUP BY voucher_type
-      `);
-      const allVoucherStats = allVoucherStmt.all() as any[];
-
-      if (allVoucherStats.length > 0) {
-        console.log('Using all voucher logs:', allVoucherStats.length);
-        for (const stat of allVoucherStats) {
-          const typeName = stat.voucher_type || 'Unknown';
-          const normalizedType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-          result[normalizedType] = {
-            totalAttempted: stat.total || 0,
-            successCount: stat.success || 0,
-            failedCount: stat.failed || 0
+        if (summary.receipt) {
+          result['Receipt'] = {
+            totalAttempted: (summary.receipt.success || 0) + (summary.receipt.failed || 0),
+            successCount: summary.receipt.success || 0,
+            failedCount: summary.receipt.failed || 0
           };
         }
-        return result;
-      }
-    }
+        if (summary.jv || summary.jv_entry) {
+          result['Journal'] = {
+            totalAttempted: ((summary.jv?.success || summary.jv_entry?.success || 0) + (summary.jv?.failed || summary.jv_entry?.failed || 0)),
+            successCount: summary.jv?.success || summary.jv_entry?.success || 0,
+            failedCount: summary.jv?.failed || summary.jv_entry?.failed || 0
+          };
+        }
 
-    // Fallback to summary JSON if tally_voucher_logs is empty
-    if (latestVoucherSync && latestVoucherSync.summary) {
-      let summary: any = {};
-      try {
-        summary = typeof latestVoucherSync.summary === 'string'
-          ? JSON.parse(latestVoucherSync.summary)
-          : latestVoucherSync.summary;
-      } catch (e) {
-        console.error('Failed to parse voucher summary:', e);
-        // Fallback: use entity_count if available
-        const failedCount = latestVoucherSync.failed_count || 0;
-        if (latestVoucherSync.entity_count > 0 || failedCount > 0) {
+        // If no breakdown in summary but we have counts, show aggregate
+        const failedCountInSummary = latestVoucherSync.failed_count || 0;
+        if (Object.keys(result).length === 0 && (latestVoucherSync.entity_count > 0 || failedCountInSummary > 0)) {
           result['All Vouchers'] = {
-            totalAttempted: (latestVoucherSync.entity_count || 0) + failedCount,
+            totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountInSummary,
             successCount: latestVoucherSync.entity_count || 0,
-            failedCount: failedCount
+            failedCount: failedCountInSummary
           };
         }
-        return result;
-      }
-
-      // Check if summary has voucher type breakdowns
-      if (summary.invoice) {
-        result['Sales'] = {
-          totalAttempted: (summary.invoice.success || 0) + (summary.invoice.failed || 0),
-          successCount: summary.invoice.success || 0,
-          failedCount: summary.invoice.failed || 0
-        };
-      }
-      if (summary.receipt) {
-        result['Receipt'] = {
-          totalAttempted: (summary.receipt.success || 0) + (summary.receipt.failed || 0),
-          successCount: summary.receipt.success || 0,
-          failedCount: summary.receipt.failed || 0
-        };
-      }
-      if (summary.jv || summary.jv_entry) {
-        result['Journal'] = {
-          totalAttempted: ((summary.jv?.success || summary.jv_entry?.success || 0) + (summary.jv?.failed || summary.jv_entry?.failed || 0)),
-          successCount: summary.jv?.success || summary.jv_entry?.success || 0,
-          failedCount: summary.jv?.failed || summary.jv_entry?.failed || 0
-        };
-      }
-
-      // If no breakdown in summary but we have counts, show aggregate
-      const failedCountInSummary = latestVoucherSync.failed_count || 0;
-      if (Object.keys(result).length === 0 && (latestVoucherSync.entity_count > 0 || failedCountInSummary > 0)) {
-        result['All Vouchers'] = {
-          totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountInSummary,
-          successCount: latestVoucherSync.entity_count || 0,
-          failedCount: failedCountInSummary
-        };
-      }
-    } else if (latestVoucherSync) {
-      const failedCountFallback = latestVoucherSync.failed_count || 0;
-      // No summary JSON, but we have counts - show aggregate
-      if (latestVoucherSync.entity_count > 0 || failedCountFallback > 0) {
-        result['All Vouchers'] = {
-          totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountFallback,
-          successCount: latestVoucherSync.entity_count || 0,
-          failedCount: failedCountFallback
-        };
+      } else {
+        // No summary JSON, but we have counts - show aggregate
+        const failedCountFallback = latestVoucherSync.failed_count || 0;
+        if (latestVoucherSync.entity_count > 0 || failedCountFallback > 0) {
+          result['All Vouchers'] = {
+            totalAttempted: (latestVoucherSync.entity_count || 0) + failedCountFallback,
+            successCount: latestVoucherSync.entity_count || 0,
+            failedCount: failedCountFallback
+          };
+        }
       }
     }
 
@@ -986,153 +750,10 @@ export class DatabaseService {
   }
 
   // === Customer Operations ===
-  async insertCustomer(customer: CustomerData): Promise<void> {
-    const stmt = this.db!.prepare(`
-      INSERT OR REPLACE INTO customers (
-        tally_master_id, ledger_name, ledger_name_lower, contact_person, email, email_cc,
-        phone, mobile, company_name, address_json, gstin, gst_registration_type, gst_state,
-        bank_details_json, opening_balance, current_balance, current_balance_at, tally_alter_id,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `);
-
-    stmt.run(
-      customer.tally_master_id,
-      customer.ledger_name,
-      customer.ledger_name_lower,
-      customer.contact_person || null,
-      customer.email || null,
-      customer.email_cc || null,
-      customer.phone || null,
-      customer.mobile || null,
-      customer.company_name || null,
-      customer.address_json || null,
-      customer.gstin || null,
-      customer.gst_registration_type || null,
-      customer.gst_state || null,
-      customer.bank_details_json || null,
-      customer.opening_balance || 0,
-      customer.current_balance || 0,
-      customer.current_balance_at || null,
-      customer.tally_alter_id
-    );
-  }
-
-  async getCustomerByMasterId(masterId: string): Promise<CustomerData | null> {
-    const stmt = this.db!.prepare(`SELECT * FROM customers WHERE tally_master_id = ?`);
-    const row = stmt.get(masterId) as any;
-    return row || null;
-  }
-
-  async getCustomerByLedgerName(ledgerName: string): Promise<CustomerData | null> {
-    const stmt = this.db!.prepare(`SELECT * FROM customers WHERE ledger_name_lower = ?`);
-    const row = stmt.get(ledgerName.toLowerCase()) as any;
-    return row || null;
-  }
-
-  async getCustomersByAlterIdRange(fromAlterId: string, toAlterId: string): Promise<CustomerData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM customers 
-      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER) 
-        AND CAST(tally_alter_id AS INTEGER) <= CAST(? AS INTEGER)
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC
-    `);
-    return stmt.all(fromAlterId, toAlterId) as CustomerData[];
-  }
-
-  async getMaxCustomerAlterId(): Promise<string> {
-    const stmt = this.db!.prepare(`SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM customers`);
-    const row = stmt.get() as { max_id: number | null } | undefined;
-    return row?.max_id?.toString() || '0';
-  }
+  // Removed - customer data now stored in backend
 
   // === Voucher Operations ===
-  async insertVoucher(voucher: VoucherData): Promise<number> {
-    const stmt = this.db!.prepare(`
-      INSERT OR REPLACE INTO vouchers (
-        tally_master_id, voucher_number, voucher_type, voucher_date, party_ledger_name,
-        customer_master_id, total_amount, biller_id, address, state, country, company_name,
-        narration, tally_alter_id, voucher_data_json, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `);
-
-    const info = stmt.run(
-      voucher.tally_master_id,
-      voucher.voucher_number,
-      voucher.voucher_type,
-      voucher.voucher_date,
-      voucher.party_ledger_name || null,
-      voucher.customer_master_id || null,
-      voucher.total_amount || 0,
-      voucher.biller_id || null,
-      voucher.address || null,
-      voucher.state || null,
-      voucher.country || null,
-      voucher.company_name || null,
-      voucher.narration || null,
-      voucher.tally_alter_id,
-      voucher.voucher_data_json || null
-    );
-
-    return Number(info.lastInsertRowid);
-  }
-
-  async insertVoucherLedgers(voucherId: number, ledgers: VoucherLedgerData[]): Promise<void> {
-    const stmt = this.db!.prepare(`
-      INSERT INTO voucher_ledgers (voucher_id, ledger_name, amount, is_party_ledger, is_deemed_positive, parent)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
-    const insertMany = this.db!.transaction((ledgers: VoucherLedgerData[]) => {
-      for (const ledger of ledgers) {
-        stmt.run(
-          voucherId,
-          ledger.ledger_name,
-          ledger.amount,
-          ledger.is_party_ledger,
-          ledger.is_deemed_positive,
-          ledger.parent || null
-        );
-      }
-    });
-
-    insertMany(ledgers);
-  }
-
-  async getVouchersByAlterIdRange(fromAlterId: string, toAlterId: string): Promise<VoucherData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM vouchers 
-      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER) 
-        AND CAST(tally_alter_id AS INTEGER) <= CAST(? AS INTEGER)
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC
-    `);
-    return stmt.all(fromAlterId, toAlterId) as VoucherData[];
-  }
-
-  async getVouchersNotSyncedToApi(limit: number = 100): Promise<VoucherData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM vouchers 
-      WHERE synced_to_api = 0 
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC 
-      LIMIT ?
-    `);
-    return stmt.all(limit) as VoucherData[];
-  }
-
-  async markVoucherSyncedToApi(voucherId: number): Promise<void> {
-    const stmt = this.db!.prepare(`
-      UPDATE vouchers 
-      SET synced_to_api = 1, api_sync_at = datetime('now'), updated_at = datetime('now')
-      WHERE id = ?
-    `);
-    stmt.run(voucherId);
-  }
-
-  async getMaxVoucherAlterId(): Promise<string> {
-    const stmt = this.db!.prepare(`SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM vouchers`);
-    const row = stmt.get() as { max_id: number | null } | undefined;
-    return row?.max_id?.toString() || '0';
-  }
+  // Removed - voucher data now stored in backend
 
   // === Batch Tracking Operations ===
   async createSyncBatch(
@@ -1199,97 +820,8 @@ export class DatabaseService {
   }
 
   // === Dashboard Query Methods ===
-  async getDashboardStats(): Promise<{
-    totalCustomers: number;
-    totalVouchers: number;
-    invoiceCount: number;
-    receiptCount: number;
-    jvCount: number;
-    lastSyncTime: string | null;
-  }> {
-    const customerStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM customers`);
-    const customerCount = (customerStmt.get() as { count: number }).count;
-
-    const voucherStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers`);
-    const voucherCount = (voucherStmt.get() as { count: number }).count;
-
-    const invoiceStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type IN ('sales', 'credit_note')`);
-    const invoiceCount = (invoiceStmt.get() as { count: number }).count;
-
-    const receiptStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'`);
-    const receiptCount = (receiptStmt.get() as { count: number }).count;
-
-    const jvStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'journal'`);
-    const jvCount = (jvStmt.get() as { count: number }).count;
-
-    const lastSyncStmt = this.db!.prepare(`SELECT MAX(completed_at) as last_sync FROM sync_history WHERE status = 'SUCCESS'`);
-    const lastSync = (lastSyncStmt.get() as { last_sync: string | null }).last_sync;
-
-    return {
-      totalCustomers: customerCount,
-      totalVouchers: voucherCount,
-      invoiceCount,
-      receiptCount,
-      jvCount,
-      lastSyncTime: lastSync
-    };
-  }
-
-  async getCustomers(limit: number = 100, offset: number = 0, search?: string): Promise<CustomerData[]> {
-    let query = `SELECT * FROM customers WHERE 1=1`;
-    const params: any[] = [];
-
-    if (search) {
-      query += ` AND (ledger_name LIKE ? OR email LIKE ? OR phone LIKE ? OR mobile LIKE ?)`;
-      const searchPattern = `%${search}%`;
-      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
-    }
-
-    query += ` ORDER BY ledger_name ASC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
-
-    const stmt = this.db!.prepare(query);
-    return stmt.all(...params) as CustomerData[];
-  }
-
-  /**
-   * Get all customers for building in-memory map (no limit)
-   * Returns only ledger_name and tally_master_id for efficiency
-   */
-  async getAllCustomersForMap(): Promise<Array<{ ledger_name: string; tally_master_id: string }>> {
-    const stmt = this.db!.prepare(`
-      SELECT ledger_name, tally_master_id 
-      FROM customers 
-      WHERE ledger_name IS NOT NULL AND tally_master_id IS NOT NULL
-    `);
-    return stmt.all() as Array<{ ledger_name: string; tally_master_id: string }>;
-  }
-
-  async getVouchers(limit: number = 100, offset: number = 0, search?: string, voucherType?: string): Promise<VoucherData[]> {
-    let query = `SELECT * FROM vouchers WHERE 1=1`;
-    const params: any[] = [];
-
-    if (voucherType) {
-      if (voucherType === 'invoice') {
-        query += ` AND voucher_type IN ('sales', 'credit_note')`;
-      } else {
-        query += ` AND voucher_type = ?`;
-        params.push(voucherType);
-      }
-    }
-
-    if (search) {
-      query += ` AND (voucher_number LIKE ? OR party_ledger_name LIKE ?)`;
-      const searchPattern = `%${search}%`;
-      params.push(searchPattern, searchPattern);
-    }
-
-    query += ` ORDER BY voucher_date DESC, CAST(tally_alter_id AS INTEGER) DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
-
-    const stmt = this.db!.prepare(query);
-    return stmt.all(...params) as VoucherData[];
-  }
+  // Removed - customer/voucher queries now handled by backend APIs
+  // Use backend pagination APIs: GET /customers and GET /vouchers
 
   async getSyncHistoryWithBatches(limit: number = 50): Promise<any[]> {
     const stmt = this.db!.prepare(`

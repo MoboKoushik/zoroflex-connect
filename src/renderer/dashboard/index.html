@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
       /* ========================================
        CSS Variables - Modern Desktop Color Palette
@@ -1149,6 +1150,94 @@
       .empty-state-text {
         font-size: 13px;
       }
+
+      /* ========================================
+       Chart Containers
+       ======================================== */
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+
+      canvas {
+        max-height: 100%;
+      }
+
+      /* ========================================
+       Data Table Styles
+       ======================================== */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .data-table th {
+        background: var(--bg-hover);
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .data-table th:hover {
+        background: var(--bg-sidebar);
+      }
+
+      .data-table th.sorted {
+        color: var(--primary);
+      }
+
+      .data-table th .sort-icon {
+        margin-left: 4px;
+        font-size: 10px;
+        opacity: 0.5;
+      }
+
+      .data-table tbody tr:hover {
+        background: var(--bg-hover);
+      }
+
+      .data-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* ========================================
+       Pagination Styles
+       ======================================== */
+      .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 16px;
+      }
+
+      .pagination-info {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
@@ -1405,6 +1494,32 @@
                   <button id="syncBtn" class="btn btn-primary">
                     Manual Sync
                   </button>
+                </div>
+              </div>
+
+              <!-- Charts Section -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <!-- Sync Status Chart -->
+                <div class="history-panel" style="margin-bottom: 0;">
+                  <h2 class="panel-title">Sync Status Distribution</h2>
+                  <div style="padding: 20px; height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="syncStatusChart"></canvas>
+                  </div>
+                </div>
+                <!-- Entity Distribution Chart -->
+                <div class="history-panel" style="margin-bottom: 0;">
+                  <h2 class="panel-title">Entity Distribution</h2>
+                  <div style="padding: 20px; height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="entityDistributionChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sync Timeline Chart -->
+              <div class="history-panel" style="margin-bottom: 16px;">
+                <h2 class="panel-title">Sync Timeline (Last 7 Days)</h2>
+                <div style="padding: 20px; height: 300px;">
+                  <canvas id="syncTimelineChart"></canvas>
                 </div>
               </div>
 
@@ -1834,12 +1949,16 @@
                       <th>Email</th>
                       <th>Phone</th>
                       <th>Mobile</th>
-                      <th>GSTIN</th>
-                      <th>Current Balance</th>
+                      <th>Company Name</th>
+                      <th style="text-align: right;">Current Balance</th>
                     </tr>
                   </thead>
                   <tbody id="customersTableBody"></tbody>
                 </table>
+              </div>
+              <div class="pagination-container">
+                <div class="pagination-info" id="customersPaginationInfo">Showing 0-0 of 0 customers</div>
+                <div class="pagination-controls" id="customersPaginationControls"></div>
               </div>
             </div>
           </div>
@@ -1875,12 +1994,16 @@
                       <th>Type</th>
                       <th>Date</th>
                       <th>Party</th>
-                      <th>Amount</th>
+                      <th style="text-align: right;">Amount</th>
                       <th>API Status</th>
                     </tr>
                   </thead>
                   <tbody id="vouchersTableBody"></tbody>
                 </table>
+              </div>
+              <div class="pagination-container">
+                <div class="pagination-info" id="vouchersPaginationInfo">Showing 0-0 of 0 vouchers</div>
+                <div class="pagination-controls" id="vouchersPaginationControls"></div>
               </div>
             </div>
           </div>
@@ -2000,6 +2123,12 @@
             theme === "dark"
               ? '<i class="fas fa-sun"></i>'
               : '<i class="fas fa-moon"></i>';
+        }
+
+        // Update charts when theme changes
+        if (historyData && (syncStatusChart || entityDistributionChart || syncTimelineChart)) {
+          const dashboardStats = { totalCustomers: statCustomersEl?.textContent || 0, totalVouchers: statVouchersEl?.textContent || 0 };
+          updateAllCharts(historyData, dashboardStats);
         }
       };
 
@@ -2201,6 +2330,225 @@
         statFailedEl;
       let statTodayEl, statCustomersEl, statVouchersEl;
       let historyData = [];
+      
+      // Chart instances
+      let syncStatusChart = null;
+      let entityDistributionChart = null;
+      let syncTimelineChart = null;
+
+      // ========================================
+      // Chart Utilities
+      // ========================================
+      const getChartColors = () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+          background: isDark ? '#2d2d30' : '#ffffff',
+          text: isDark ? '#cccccc' : '#323130',
+          border: isDark ? '#3e3e42' : '#e1e1e1',
+          primary: '#0078d4',
+          success: '#107c10',
+          danger: '#d13438',
+          warning: '#ffaa44',
+          info: '#0078d4'
+        };
+      };
+
+      const destroyChart = (chart) => {
+        if (chart) {
+          chart.destroy();
+        }
+      };
+
+      const initSyncStatusChart = (history) => {
+        const canvas = document.getElementById('syncStatusChart');
+        if (!canvas) return;
+
+        destroyChart(syncStatusChart);
+
+        const successful = history.filter(h => h.status === 'SUCCESS').length;
+        const failed = history.filter(h => h.status === 'FAILED' || h.status === 'ERROR').length;
+        const partial = history.filter(h => h.status === 'PARTIAL').length;
+
+        const colors = getChartColors();
+        
+        syncStatusChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: ['Success', 'Failed', 'Partial'],
+            datasets: [{
+              data: [successful, failed, partial],
+              backgroundColor: [colors.success, colors.danger, colors.warning],
+              borderColor: colors.background,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: colors.text,
+                  padding: 15,
+                  font: { size: 12 }
+                }
+              },
+              tooltip: {
+                backgroundColor: colors.background,
+                titleColor: colors.text,
+                bodyColor: colors.text,
+                borderColor: colors.border,
+                borderWidth: 1
+              }
+            }
+          }
+        });
+      };
+
+      const initEntityDistributionChart = (dashboardStats) => {
+        const canvas = document.getElementById('entityDistributionChart');
+        if (!canvas) return;
+
+        destroyChart(entityDistributionChart);
+
+        const customers = dashboardStats?.totalCustomers || 0;
+        const vouchers = dashboardStats?.totalVouchers || 0;
+
+        const colors = getChartColors();
+        
+        entityDistributionChart = new Chart(canvas, {
+          type: 'pie',
+          data: {
+            labels: ['Customers', 'Vouchers'],
+            datasets: [{
+              data: [customers, vouchers],
+              backgroundColor: [colors.primary, colors.info],
+              borderColor: colors.background,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: colors.text,
+                  padding: 15,
+                  font: { size: 12 }
+                }
+              },
+              tooltip: {
+                backgroundColor: colors.background,
+                titleColor: colors.text,
+                bodyColor: colors.text,
+                borderColor: colors.border,
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return `${label}: ${value.toLocaleString()} (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      };
+
+      const initSyncTimelineChart = (history) => {
+        const canvas = document.getElementById('syncTimelineChart');
+        if (!canvas) return;
+
+        destroyChart(syncTimelineChart);
+
+        // Get last 7 days
+        const days = 7;
+        const labels = [];
+        const successData = [];
+        const failedData = [];
+        
+        for (let i = days - 1; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          labels.push(dayLabel);
+          
+          const dayHistory = history.filter(h => {
+            const syncDate = new Date(h.started_at).toISOString().split('T')[0];
+            return syncDate === dateStr;
+          });
+          
+          successData.push(dayHistory.filter(h => h.status === 'SUCCESS').length);
+          failedData.push(dayHistory.filter(h => h.status === 'FAILED' || h.status === 'ERROR').length);
+        }
+
+        const colors = getChartColors();
+        
+        syncTimelineChart = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Successful',
+              data: successData,
+              borderColor: colors.success,
+              backgroundColor: colors.success + '20',
+              tension: 0.4,
+              fill: true
+            }, {
+              label: 'Failed',
+              data: failedData,
+              borderColor: colors.danger,
+              backgroundColor: colors.danger + '20',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  color: colors.text,
+                  font: { size: 12 }
+                }
+              },
+              tooltip: {
+                backgroundColor: colors.background,
+                titleColor: colors.text,
+                bodyColor: colors.text,
+                borderColor: colors.border,
+                borderWidth: 1
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: colors.text },
+                grid: { color: colors.border }
+              },
+              y: {
+                ticks: { color: colors.text, beginAtZero: true },
+                grid: { color: colors.border }
+              }
+            }
+          }
+        });
+      };
+
+      const updateAllCharts = (history, dashboardStats) => {
+        initSyncStatusChart(history);
+        initEntityDistributionChart(dashboardStats);
+        initSyncTimelineChart(history);
+      };
 
       const formatDate = (dateStr) => {
         if (!dateStr || dateStr === "1970-01-01") return "Never";
@@ -2293,6 +2641,9 @@
             if (statVouchersEl)
               statVouchersEl.textContent = dashboardStats.totalVouchers || 0;
           }
+
+          // Update charts
+          updateAllCharts(historyData, dashboardStats);
         } catch (err) {
           console.error("Dashboard load error:", err);
           updateStatistics([]);
@@ -2648,39 +2999,171 @@
       // ========================================
       // Load Customers
       // ========================================
+      let customersData = [];
+      let customersCurrentPage = 1;
+      let customersPageSize = 50;
+      let customersSortColumn = 'name';
+      let customersSortDirection = 'asc';
+      let customersTotal = 0;
+
+      const formatCurrency = (value) => {
+        const num = parseFloat(value) || 0;
+        return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      const sortCustomers = (data, column, direction) => {
+        return [...data].sort((a, b) => {
+          let aVal = a[column] || '';
+          let bVal = b[column] || '';
+          
+          if (column === 'current_balance') {
+            aVal = parseFloat(aVal) || 0;
+            bVal = parseFloat(bVal) || 0;
+          } else {
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+          }
+
+          if (direction === 'asc') {
+            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+          } else {
+            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+          }
+        });
+      };
+
+      const renderCustomersTable = (customers) => {
+        const tbody = document.getElementById("customersTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!customers || customers.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No customers found</div></td></tr>';
+          return;
+        }
+
+        // Sort data
+        const sortedData = sortCustomers(customers, customersSortColumn, customersSortDirection);
+
+        // Apply pagination
+        const start = (customersCurrentPage - 1) * customersPageSize;
+        const end = start + customersPageSize;
+        const paginatedData = sortedData.slice(start, end);
+
+        paginatedData.forEach((customer) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(customer.name || "")}</td>
+            <td>${escapeHtml(customer.email || "")}</td>
+            <td>${escapeHtml(customer.phone || "")}</td>
+            <td>${escapeHtml(customer.mobile || "")}</td>
+            <td>${escapeHtml(customer.company_name || "")}</td>
+            <td style="text-align: right;">${formatCurrency(customer.current_balance || 0)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Update pagination controls
+        updateCustomersPagination();
+      };
+
+      const updateCustomersPagination = () => {
+        const paginationInfo = document.getElementById("customersPaginationInfo");
+        const paginationControls = document.getElementById("customersPaginationControls");
+        
+        if (paginationInfo) {
+          const start = (customersCurrentPage - 1) * customersPageSize + 1;
+          const end = Math.min(customersCurrentPage * customersPageSize, customersTotal || customersData.length);
+          paginationInfo.textContent = `Showing ${start}-${end} of ${customersTotal || customersData.length} customers`;
+        }
+
+        if (paginationControls) {
+          const totalPages = Math.ceil((customersTotal || customersData.length) / customersPageSize);
+          paginationControls.innerHTML = `
+            <button class="btn" ${customersCurrentPage === 1 ? 'disabled' : ''} onclick="customersPreviousPage()">Previous</button>
+            <span style="padding: 0 12px;">Page ${customersCurrentPage} of ${totalPages || 1}</span>
+            <button class="btn" ${customersCurrentPage >= totalPages ? 'disabled' : ''} onclick="customersNextPage()">Next</button>
+          `;
+        }
+      };
+
+      window.customersPreviousPage = () => {
+        if (customersCurrentPage > 1) {
+          customersCurrentPage--;
+          renderCustomersTable(customersData);
+        }
+      };
+
+      window.customersNextPage = () => {
+        const totalPages = Math.ceil((customersTotal || customersData.length) / customersPageSize);
+        if (customersCurrentPage < totalPages) {
+          customersCurrentPage++;
+          renderCustomersTable(customersData);
+        }
+      };
+
+      const setupCustomersTableSorting = () => {
+        const headers = document.querySelectorAll('#customersView .data-table th');
+        headers.forEach((header, index) => {
+          const columns = ['name', 'email', 'phone', 'mobile', 'company_name', 'current_balance'];
+          if (columns[index]) {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+              if (customersSortColumn === columns[index]) {
+                customersSortDirection = customersSortDirection === 'asc' ? 'desc' : 'asc';
+              } else {
+                customersSortColumn = columns[index];
+                customersSortDirection = 'asc';
+              }
+              
+              // Update sort indicators
+              headers.forEach(h => {
+                h.classList.remove('sorted');
+                const icon = h.querySelector('.sort-icon');
+                if (icon) icon.remove();
+              });
+              header.classList.add('sorted');
+              const icon = document.createElement('span');
+              icon.className = 'sort-icon';
+              icon.textContent = customersSortDirection === 'asc' ? '▲' : '▼';
+              header.appendChild(icon);
+              
+              renderCustomersTable(customersData);
+            });
+          }
+        });
+      };
+
       async function loadCustomers() {
         try {
           const search =
             document.getElementById("customerSearchInput")?.value || "";
-          const customers = await window.electronAPI.getCustomers(
-            100,
+          const result = await window.electronAPI.getCustomers(
+            customersPageSize * 10, // Load more for client-side pagination
             0,
             search
           );
-          const tbody = document.getElementById("customersTableBody");
-          if (!tbody) return;
+          
+          console.log("Customers API result:", result);
+          customersData = result.customers || [];
+          customersTotal = result.total || 0;
+          customersCurrentPage = 1;
 
-          tbody.innerHTML = "";
-          if (!customers || customers.length === 0) {
-            tbody.innerHTML =
-              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No customers found</div></td></tr>';
-            return;
+          if (customersData.length > 0) {
+            console.log("Sample customer data:", customersData[0]);
           }
 
-          customers.forEach((customer) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${escapeHtml(customer.ledger_name || "")}</td>
-              <td>${escapeHtml(customer.email || "")}</td>
-              <td>${escapeHtml(customer.phone || "")}</td>
-              <td>${escapeHtml(customer.mobile || "")}</td>
-              <td>${escapeHtml(customer.gstin || "")}</td>
-              <td>${(customer.current_balance || 0).toFixed(2)}</td>
-            `;
-            tbody.appendChild(tr);
-          });
+          renderCustomersTable(customersData);
+          setupCustomersTableSorting();
         } catch (err) {
           console.error("Failed to load customers:", err);
+          const tbody = document.getElementById("customersTableBody");
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load customers: ' + escapeHtml(err.message || String(err)) + '</div></td></tr>';
+          }
         }
       }
 
@@ -2701,46 +3184,186 @@
       // ========================================
       // Load Vouchers
       // ========================================
+      let vouchersData = [];
+      let vouchersCurrentPage = 1;
+      let vouchersPageSize = 50;
+      let vouchersSortColumn = 'date';
+      let vouchersSortDirection = 'desc';
+      let vouchersTotal = 0;
+
+      const sortVouchers = (data, column, direction) => {
+        return [...data].sort((a, b) => {
+          let aVal = a[column] || '';
+          let bVal = b[column] || '';
+          
+          // Handle date field
+          if (column === 'date') {
+            aVal = new Date(aVal).getTime() || 0;
+            bVal = new Date(bVal).getTime() || 0;
+          } 
+          // Handle total field
+          else if (column === 'total') {
+            aVal = parseFloat(aVal) || 0;
+            bVal = parseFloat(bVal) || 0;
+          }
+          // Handle Customer name (nested)
+          else if (column === 'customer_name') {
+            aVal = String(a.Customer?.name || '').toLowerCase();
+            bVal = String(b.Customer?.name || '').toLowerCase();
+          }
+          else {
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+          }
+
+          if (direction === 'asc') {
+            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+          } else {
+            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+          }
+        });
+      };
+
+      const renderVouchersTable = (vouchers) => {
+        const tbody = document.getElementById("vouchersTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!vouchers || vouchers.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No vouchers found</div></td></tr>';
+          return;
+        }
+
+        // Sort data
+        const sortedData = sortVouchers(vouchers, vouchersSortColumn, vouchersSortDirection);
+
+        // Apply pagination
+        const start = (vouchersCurrentPage - 1) * vouchersPageSize;
+        const end = start + vouchersPageSize;
+        const paginatedData = sortedData.slice(start, end);
+
+        paginatedData.forEach((voucher) => {
+          const tr = document.createElement("tr");
+          // TallyInvoice doesn't have synced_to_api field - all are synced
+          const apiStatus = '<span class="success">Synced</span>';
+          // Handle date - could be DateTime object or ISO string
+          const voucherDate = voucher.date ? (typeof voucher.date === 'string' ? voucher.date : voucher.date.toISOString()) : '';
+          
+          tr.innerHTML = `
+            <td>${escapeHtml(voucher.invoice_number || "")}</td>
+            <td>${escapeHtml(voucher.type || "invoice")}</td>
+            <td>${formatDate(voucherDate)}</td>
+            <td>${escapeHtml(voucher.Customer?.name || "")}</td>
+            <td style="text-align: right;">${formatCurrency(voucher.total || 0)}</td>
+            <td>${apiStatus}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Update pagination controls
+        updateVouchersPagination();
+      };
+
+      const updateVouchersPagination = () => {
+        const paginationInfo = document.getElementById("vouchersPaginationInfo");
+        const paginationControls = document.getElementById("vouchersPaginationControls");
+        
+        if (paginationInfo) {
+          const start = (vouchersCurrentPage - 1) * vouchersPageSize + 1;
+          const end = Math.min(vouchersCurrentPage * vouchersPageSize, vouchersTotal || vouchersData.length);
+          paginationInfo.textContent = `Showing ${start}-${end} of ${vouchersTotal || vouchersData.length} vouchers`;
+        }
+
+        if (paginationControls) {
+          const totalPages = Math.ceil((vouchersTotal || vouchersData.length) / vouchersPageSize);
+          paginationControls.innerHTML = `
+            <button class="btn" ${vouchersCurrentPage === 1 ? 'disabled' : ''} onclick="vouchersPreviousPage()">Previous</button>
+            <span style="padding: 0 12px;">Page ${vouchersCurrentPage} of ${totalPages || 1}</span>
+            <button class="btn" ${vouchersCurrentPage >= totalPages ? 'disabled' : ''} onclick="vouchersNextPage()">Next</button>
+          `;
+        }
+      };
+
+      window.vouchersPreviousPage = () => {
+        if (vouchersCurrentPage > 1) {
+          vouchersCurrentPage--;
+          renderVouchersTable(vouchersData);
+        }
+      };
+
+      window.vouchersNextPage = () => {
+        const totalPages = Math.ceil((vouchersTotal || vouchersData.length) / vouchersPageSize);
+        if (vouchersCurrentPage < totalPages) {
+          vouchersCurrentPage++;
+          renderVouchersTable(vouchersData);
+        }
+      };
+
+      const setupVouchersTableSorting = () => {
+        const headers = document.querySelectorAll('#vouchersView .data-table th');
+        headers.forEach((header, index) => {
+          const columns = ['invoice_number', 'type', 'date', 'customer_name', 'total', ''];
+          if (columns[index]) {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+              if (vouchersSortColumn === columns[index]) {
+                vouchersSortDirection = vouchersSortDirection === 'asc' ? 'desc' : 'asc';
+              } else {
+                vouchersSortColumn = columns[index];
+                vouchersSortDirection = 'asc';
+              }
+              
+              // Update sort indicators
+              headers.forEach(h => {
+                h.classList.remove('sorted');
+                const icon = h.querySelector('.sort-icon');
+                if (icon) icon.remove();
+              });
+              header.classList.add('sorted');
+              const icon = document.createElement('span');
+              icon.className = 'sort-icon';
+              icon.textContent = vouchersSortDirection === 'asc' ? '▲' : '▼';
+              header.appendChild(icon);
+              
+              renderVouchersTable(vouchersData);
+            });
+          }
+        });
+      };
+
       async function loadVouchers() {
         try {
           const search =
             document.getElementById("voucherSearchInput")?.value || "";
           const voucherType =
             document.getElementById("voucherTypeFilterView")?.value || "";
-          const vouchers = await window.electronAPI.getVouchers(
-            100,
+          const result = await window.electronAPI.getVouchers(
+            vouchersPageSize * 10, // Load more for client-side pagination
             0,
             search,
             voucherType
           );
-          const tbody = document.getElementById("vouchersTableBody");
-          if (!tbody) return;
+          
+          console.log("Vouchers API result:", result);
+          vouchersData = result.vouchers || [];
+          vouchersTotal = result.total || 0;
+          vouchersCurrentPage = 1;
 
-          tbody.innerHTML = "";
-          if (!vouchers || vouchers.length === 0) {
-            tbody.innerHTML =
-              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text">No vouchers found</div></td></tr>';
-            return;
+          if (vouchersData.length > 0) {
+            console.log("Sample voucher data:", vouchersData[0]);
           }
 
-          vouchers.forEach((voucher) => {
-            const tr = document.createElement("tr");
-            const apiStatus =
-              voucher.synced_to_api === 1
-                ? '<span class="success">Synced</span>'
-                : '<span class="error">Pending</span>';
-            tr.innerHTML = `
-              <td>${escapeHtml(voucher.voucher_number || "")}</td>
-              <td>${escapeHtml(voucher.voucher_type || "")}</td>
-              <td>${formatDate(voucher.voucher_date)}</td>
-              <td>${escapeHtml(voucher.party_ledger_name || "")}</td>
-              <td>${(voucher.total_amount || 0).toFixed(2)}</td>
-              <td>${apiStatus}</td>
-            `;
-            tbody.appendChild(tr);
-          });
+          renderVouchersTable(vouchersData);
+          setupVouchersTableSorting();
         } catch (err) {
           console.error("Failed to load vouchers:", err);
+          const tbody = document.getElementById("vouchersTableBody");
+          if (tbody) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load vouchers: ' + escapeHtml(err.message || String(err)) + '</div></td></tr>';
+          }
         }
       }
 
@@ -3011,6 +3634,10 @@
               loadData();
               loadRecentSyncHistory();
               loadVoucherSummary();
+              // Update charts when sync completes
+              if (historyData) {
+                updateAllCharts(historyData, null);
+              }
               if (statusEl) {
                 statusEl.textContent = "Connected";
                 statusEl.className = "status-badge status-connected";

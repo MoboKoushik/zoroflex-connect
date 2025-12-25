@@ -1,8 +1,9 @@
-// src/services/customer/syncCustomers.service.ts
+// src/services/sync/fetch-to-tally/fetchLedgers.ts
+// Simplified thin client - only fetches raw data and sends to backend
 
 import axios from 'axios';
 import fs from 'fs';
-import { DatabaseService, UserProfile, CustomerData } from '../../database/database.service';
+import { DatabaseService, UserProfile } from '../../database/database.service';
 import { getApiUrl } from '../../config/api-url-helper';
 import { fetchCustomersBatch, extractLedgersFromBatch } from '../../tally/batch-fetcher';
 
@@ -10,70 +11,12 @@ const db = new DatabaseService();
 
 const ENTITY_TYPE = 'CUSTOMER';
 const API_KEY = '7061797A6F72726F74616C6C79';
-const BATCH_SIZE = 20; // API batch size (for sending to API)
 const TALLY_BATCH_SIZE = 100; // Tally fetch batch size
-
-interface Customer {
-  name: string;
-  contact_person: string;
-  email: string;
-  email_cc: string;
-  phone: string;
-  mobile: string;
-  whatsapp_number: string;
-  company_name: string;
-  additional_address_lines: string[];
-  customer_id: string;
-  biller_id: string;
-  gstin: string;
-  gst_registration_type: string;
-  gst_state: string;
-  bank_details: Array<{
-    bank_name: string;
-    account_number: string;
-    ifsc_code: string;
-    branch: string;
-  }>;
-  opening_balance: number;
-  current_balance: number;
-  current_balance_at: string;
-  invoice_details: any[];
-}
-
 
 const getText = (obj: any, key: string): string => {
   const value = obj?.[key]?.[0];
   if (!value) return '';
   return (typeof value === 'string' ? value.trim() : value._?.trim() || '');
-};
-
-const getAddresses = (addressList: any[]): { company_name: string; additional_address: string[] } => {
-  if (!Array.isArray(addressList) || addressList.length === 0) {
-    return { company_name: '', additional_address: [] };
-  }
-  const lines: string[] = [];
-  addressList.forEach(block => {
-    if (Array.isArray(block.ADDRESS)) {
-      block.ADDRESS.forEach((addr: any) => {
-        const text = typeof addr === 'string' ? addr.trim() : addr._?.trim() || '';
-        if (text) lines.push(text);
-      });
-    }
-  });
-  return {
-    company_name: lines[0] || '',
-    additional_address: lines.slice(1)
-  };
-};
-
-const getBankDetails = (bankList: any[]): Customer['bank_details'] => {
-  if (!Array.isArray(bankList) || bankList.length === 0) return [];
-  return bankList.map(bank => ({
-    bank_name: getText(bank, 'BANKNAME') || '',
-    account_number: getText(bank, 'ACCOUNTNUMBER') || '',
-    ifsc_code: getText(bank, 'IFSCCODE') || '',
-    branch: getText(bank, 'BRANCHNAME') || ''
-  }));
 };
 
 export async function syncCustomers(profile: UserProfile): Promise<void> {
@@ -84,7 +27,12 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
 
   try {
     const baseUrl = await getApiUrl(db);
-    const API_URL = `${baseUrl}/customer/tally/create`;
+    const API_URL = `${baseUrl}/tally/customers/raw`;
+    
+    db.log('INFO', 'Customer sync configuration', {
+      api_url: API_URL,
+      base_url: baseUrl
+    });
 
     const lastMaxAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
     console.log('Last Max AlterID for Customer:', lastMaxAlterId);
@@ -97,10 +45,9 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
     let hasMoreBatches = true;
 
     // Process in batches from Tally
-    // If lastAlterId = 203 and size = 100, fetch all records with AlterID > 203, up to 100 records
     while (hasMoreBatches) {
       batchNumber++;
-      const fromAlterId = currentAlterId.toString(); // Start from last processed AlterID
+      const fromAlterId = currentAlterId.toString();
 
       // Create batch tracking record
       const batchId = await db.createSyncBatch(
@@ -109,28 +56,30 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
         batchNumber,
         TALLY_BATCH_SIZE,
         fromAlterId,
-        fromAlterId+TALLY_BATCH_SIZE // No upper bound
+        '' // No upper bound
       );
 
       let ledgersXml: any[] = [];
       try {
         // Fetch batch from Tally
-        // Pass TALLY_BATCH_SIZE as sizeMax to limit the number of records returned
-        console.log(`Fetching customers batch ${batchNumber}: AlterID > ${fromAlterId} (max ${TALLY_BATCH_SIZE} records)`);
+        console.log(`\n🔄 [Batch ${batchNumber}] Fetching customers from Tally: AlterID > ${fromAlterId} (max ${TALLY_BATCH_SIZE} records)`);
+        db.log('INFO', `Fetching customer batch ${batchNumber} from Tally`, { from_alter_id: fromAlterId });
+        
         const parsed = await fetchCustomersBatch(fromAlterId, TALLY_BATCH_SIZE);
-        fs.mkdirSync('./dump/customer', { recursive: true });
-        fs.writeFileSync(`./dump/customer/raw_batch_${batchNumber}.json`, JSON.stringify(parsed, null, 2));
+        // fs.mkdirSync('./dump/customer', { recursive: true });
+        // fs.writeFileSync(`./dump/customer/raw_batch_${batchNumber}.json`, JSON.stringify(parsed, null, 2));
 
         ledgersXml = extractLedgersFromBatch(parsed);
+        console.log(`   📥 Fetched ${ledgersXml.length} raw ledgers from Tally`);
 
         if (ledgersXml.length === 0) {
+          console.log(`   ✅ No more customers to fetch. Sync complete.`);
           hasMoreBatches = false;
           await db.updateSyncBatchStatus(batchId, 'COMPLETED', 0);
           break;
         }
 
         // Filter and sort by AlterID
-        // Fetch records with AlterID > fromAlterId (exclusive)
         const fromAlterIdNum = parseInt(fromAlterId, 10);
         ledgersXml = ledgersXml
           .filter((ledger: any) => {
@@ -152,141 +101,85 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
 
         await db.updateSyncBatchStatus(batchId, 'FETCHED', ledgersXml.length);
 
-        // Store customers in SQLite FIRST (before API send)
-        const customersForAPI: Customer[] = [];
+        // Calculate max AlterID from batch
         let batchHighestAlterId = currentAlterId;
-
+        let toAlterId = fromAlterId;
         for (const ledger of ledgersXml) {
           const alterIdStr = getText(ledger, 'ALTERID');
           const alterId = parseInt(alterIdStr || '0', 10);
-          if (alterId > batchHighestAlterId) batchHighestAlterId = alterId;
-
-          const addressInfo = getAddresses(ledger['ADDRESS.LIST'] || []);
-          const bankDetails = getBankDetails(ledger['BANKALLOCATIONS.LIST'] || []);
-          const ledgerName = getText(ledger, 'NAME') || ledger?.$?.NAME || '';
-          const masterId = getText(ledger, 'MASTERID');
-          const openingBalance = parseFloat(getText(ledger, 'OPENINGBALANCE').replace(/,/g, '') || '0');
-          const currentBalance = parseFloat(getText(ledger, 'CLOSINGBALANCE').replace(/,/g, '') || '0');
-          const currentBalanceAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-          // Store in SQLite
-          const customerData: CustomerData = {
-            tally_master_id: masterId,
-            ledger_name: ledgerName,
-            ledger_name_lower: ledgerName.toLowerCase(),
-            contact_person: getText(ledger, 'LEDGERCONTACT') || undefined,
-            email: getText(ledger, 'EMAIL') || undefined,
-            email_cc: getText(ledger, 'EMAILCC') || undefined,
-            phone: getText(ledger, 'LEDGERPHONE') || undefined,
-            mobile: getText(ledger, 'LEDGERMOBILE') || undefined,
-            company_name: addressInfo.company_name || undefined,
-            address_json: JSON.stringify(addressInfo.additional_address),
-            gstin: getText(ledger, 'PARTYGSTIN') || undefined,
-            gst_registration_type: getText(ledger, 'GSTREGISTRATIONTYPE') || undefined,
-            gst_state: getText(ledger, 'LEDGERSTATE') || undefined,
-            bank_details_json: JSON.stringify(bankDetails),
-            opening_balance: openingBalance,
-            current_balance: currentBalance,
-            current_balance_at: currentBalanceAt,
-            tally_alter_id: alterIdStr
-          };
-
-          await db.insertCustomer(customerData);
-
-          // Prepare for API (using existing Customer interface)
-          const customer: Customer = {
-            name: ledgerName,
-            contact_person: getText(ledger, 'LEDGERCONTACT'),
-            email: getText(ledger, 'EMAIL'),
-            email_cc: getText(ledger, 'EMAILCC'),
-            phone: getText(ledger, 'LEDGERPHONE'),
-            mobile: getText(ledger, 'LEDGERMOBILE'),
-            whatsapp_number: getText(ledger, 'LEDGERMOBILE'),
-            company_name: addressInfo.company_name,
-            additional_address_lines: addressInfo.additional_address,
-            customer_id: masterId,
-            biller_id: profile?.biller_id || '',
-            gstin: getText(ledger, 'PARTYGSTIN'),
-            gst_registration_type: getText(ledger, 'GSTREGISTRATIONTYPE'),
-            gst_state: getText(ledger, 'LEDGERSTATE'),
-            bank_details: bankDetails,
-            opening_balance: openingBalance,
-            current_balance: currentBalance,
-            current_balance_at: currentBalanceAt,
-            invoice_details: []
-          };
-
-          customersForAPI.push(customer);
-        }
-
-        await db.updateSyncBatchStatus(batchId, 'STORED', ledgersXml.length, ledgersXml.length);
-
-        // Update current AlterID for next batch
-        currentAlterId = batchHighestAlterId;
-        newMaxAlterId = currentAlterId.toString();
-
-        // Send to API in batches of 20
-        let apiSuccessCount = 0;
-        let apiFailedCount = 0;
-
-        for (let i = 0; i < customersForAPI.length; i += BATCH_SIZE) {
-          const apiBatch = customersForAPI.slice(i, i + BATCH_SIZE);
-          const payload = { customer: apiBatch };
-
-          try {
-            await axios.post(API_URL, payload, {
-              headers: {
-                'API-KEY': API_KEY,
-                'Content-Type': 'application/json'
-              },
-              timeout: 30000
-            });
-            apiSuccessCount += apiBatch.length;
-            successCount += apiBatch.length;
-
-            // Log individual customer records as successful
-            for (const customer of apiBatch) {
-              await db.logSyncRecordDetail(
-                runId,
-                customer.customer_id || 'unknown',
-                customer.name || 'Unknown Customer',
-                'CUSTOMER',
-                'SUCCESS',
-                null
-              );
-            }
-          } catch (err: any) {
-            apiFailedCount += apiBatch.length;
-            failedCount += apiBatch.length;
-            const errorMsg = err.response?.data || err.message || 'Unknown error';
-            db.log('ERROR', 'Customer API batch failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
-            fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
-
-            // Log individual customer records as failed
-            const errorMessage = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
-            for (const customer of apiBatch) {
-              await db.logSyncRecordDetail(
-                runId,
-                customer.customer_id || 'unknown',
-                customer.name || 'Unknown Customer',
-                'CUSTOMER',
-                'FAILED',
-                errorMessage
-              );
-            }
+          if (alterId > batchHighestAlterId) {
+            batchHighestAlterId = alterId;
+            toAlterId = alterIdStr;
           }
         }
 
-        await db.updateSyncBatchStatus(
-          batchId,
-          apiFailedCount === 0 ? 'API_SUCCESS' : 'API_FAILED',
-          ledgersXml.length,
-          ledgersXml.length,
-          apiSuccessCount,
-          apiFailedCount > 0 ? `API failed for ${apiFailedCount} records` : undefined
-        );
+        // Extract raw data structure from parsed response
+        // The COLLECTION contains the LEDGER array
+        const rawData = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0] || { LEDGER: ledgersXml };
 
-        // Check if we should continue (if we got less than batch size, we're done)
+        // Prepare payload for backend
+        const payload = {
+          entity: 'CUSTOMER',
+          from_alter_id: fromAlterId,
+          to_alter_id: toAlterId,
+          count: ledgersXml.length,
+          raw_data: rawData
+        };
+
+        // Send raw data to backend
+        try {
+          db.log('INFO', `Sending customer batch ${batchNumber} to backend`, {
+            count: ledgersXml.length,
+            from_alter_id: fromAlterId,
+            to_alter_id: toAlterId,
+            api_url: API_URL
+          });
+
+          const startTime = Date.now();
+          const response = await axios.post(API_URL, payload, {
+            headers: {
+              'API-KEY': API_KEY,
+              'Content-Type': 'application/json',
+              'Authorization': profile?.token ? `Bearer ${profile.token}` : undefined
+            },
+            timeout: 60000 // Increased timeout for large payloads
+          });
+          const duration = Date.now() - startTime;
+
+          successCount += ledgersXml.length;
+          await db.updateSyncBatchStatus(batchId, 'API_SUCCESS', ledgersXml.length, ledgersXml.length, ledgersXml.length);
+
+          // Update current AlterID for next batch
+          currentAlterId = batchHighestAlterId;
+          newMaxAlterId = currentAlterId.toString();
+
+          db.log('INFO', `Customer batch ${batchNumber} sent successfully`, {
+            count: ledgersXml.length,
+            response: response.data,
+            duration_ms: duration
+          });
+
+          console.log(`✅ Batch ${batchNumber}: ${ledgersXml.length} customers sent to backend (${duration}ms)`);
+
+        } catch (err: any) {
+          failedCount += ledgersXml.length;
+          const errorMsg = err.response?.data || err.message || 'Unknown error';
+          const statusCode = err.response?.status || 'N/A';
+          
+          db.log('ERROR', 'Customer API batch failed', {
+            batch_index: batchNumber,
+            count: ledgersXml.length,
+            error: errorMsg,
+            status_code: statusCode,
+            api_url: API_URL
+          });
+          
+          console.error(`❌ Batch ${batchNumber} failed:`, errorMsg);
+          // fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${batchNumber}.json`, JSON.stringify(payload, null, 2));
+          await db.updateSyncBatchStatus(batchId, 'API_FAILED', ledgersXml.length, ledgersXml.length, 0, errorMsg);
+        }
+
+        // Check if we should continue
         if (ledgersXml.length < TALLY_BATCH_SIZE) {
           hasMoreBatches = false;
         }
@@ -294,7 +187,6 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
       } catch (error: any) {
         await db.updateSyncBatchStatus(batchId, 'API_FAILED', 0, 0, 0, error.message);
         db.log('ERROR', `Customer batch ${batchNumber} failed`, { error: error.message });
-        // Continue with next batch even if this one failed
         if (ledgersXml?.length < TALLY_BATCH_SIZE) {
           hasMoreBatches = false;
         }
@@ -311,7 +203,18 @@ export async function syncCustomers(profile: UserProfile): Promise<void> {
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`, summary);
     await db.updateLastSuccessfulSync();
 
-    db.log('INFO', 'Customer sync completed', summary);
+    db.log('INFO', 'Customer sync completed', {
+      ...summary,
+      total_batches: batchNumber,
+      final_alter_id: newMaxAlterId
+    });
+    
+    console.log(`\n📊 Customer Sync Summary:`);
+    console.log(`   ✅ Success: ${successCount}`);
+    console.log(`   ❌ Failed: ${failedCount}`);
+    console.log(`   📦 Total Batches: ${batchNumber}`);
+    console.log(`   🔢 Final AlterID: ${newMaxAlterId}`);
+    console.log(`   📈 Status: ${status}\n`);
 
   } catch (error: any) {
     await db.logSyncEnd(runId, 'FAILED', successCount, failedCount, undefined, error.message || 'Unknown error');

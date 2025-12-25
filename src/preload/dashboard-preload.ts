@@ -34,7 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setSetting: (key: string, value: string) => ipcRenderer.invoke('set-setting', key, value),
   getAllSettings: () => ipcRenderer.invoke('get-all-settings'),
   // Log management
-  clearLogs: (logType: 'system' | 'api' | 'voucher') => ipcRenderer.invoke('clear-logs', logType),
+  clearLogs: (logType: 'system' | 'api') => ipcRenderer.invoke('clear-logs', logType),
   // Sound
   playSound: (soundType: string) => ipcRenderer.invoke('play-sound', soundType),
   // Recent Sync History

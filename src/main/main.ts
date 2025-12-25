@@ -210,6 +210,9 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
 
   try {
     const apiUrl = await getApiUrl(dbService);
+    // getApiUrl already normalizes localhost to 127.0.0.1
+    console.log(`Attempting login to: ${apiUrl}/billers/tally/login`);
+
     const { data } = await axios.post(`${apiUrl}/billers/tally/login`, credentials, {
       timeout: 15000,
     });
@@ -242,9 +245,24 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
     }
   } catch (error: any) {
     console.error('Login error:', error.message);
+
+    // Provide more helpful error messages
+    const apiUrl = await getApiUrl(dbService);
+    const normalizedUrl = apiUrl.replace('localhost', '127.0.0.1');
+    let errorMessage = 'Server not reachable';
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = `Cannot connect to backend at ${normalizedUrl}. Please ensure tally-gateway is running on port 5000. Run: npx nx run tally-gateway:serve`;
+    } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+      errorMessage = 'Connection timeout. Please check if the backend server is running.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      message: error.response?.data?.message || 'Server not reachable',
+      message: errorMessage,
     };
   }
 });
@@ -349,7 +367,7 @@ ipcMain.handle('get-all-settings', async () => {
 });
 
 // Log export/clear handlers
-ipcMain.handle('clear-logs', async (event, logType: 'system' | 'api' | 'voucher') => {
+ipcMain.handle('clear-logs', async (event, logType: 'system' | 'api') => {
   await dbService.clearLogs(logType);
   return { success: true };
 });
@@ -366,17 +384,71 @@ ipcMain.handle('get-recent-sync-history', async () => {
 });
 
 ipcMain.handle('get-sync-record-details', async (event, syncHistoryId: number, filters?: any) => {
-  return await dbService.getSyncRecordDetails(syncHistoryId, filters);
+  // sync_record_details table removed in thin client architecture
+  // Return sync batch details instead
+  try {
+    const batches = await dbService.getSyncBatchesByRunId(syncHistoryId);
+    return batches || [];
+  } catch (error: any) {
+    console.error('get-sync-record-details error:', error);
+    return [];
+  }
 });
 
 ipcMain.handle('get-voucher-sync-summary', async () => {
   return await dbService.getVoucherSyncSummary();
 });
 
-// Dashboard query handlers
+// Dashboard query handlers - Now fetch from backend API
 ipcMain.handle('get-dashboard-stats', async () => {
   try {
-    return await dbService.getDashboardStats();
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return {
+        totalCustomers: 0,
+        totalVouchers: 0,
+        invoiceCount: 0,
+        receiptCount: 0,
+        jvCount: 0,
+        lastSyncTime: null
+      };
+    }
+
+    const apiUrl = await getApiUrl(dbService);
+    // getApiUrl already normalizes localhost to 127.0.0.1, but ensure port 5000
+    const baseUrl = apiUrl.replace(/:\d+/, ':5000').replace('localhost', '127.0.0.1');
+
+    // Fetch customers and vouchers count from backend
+    const [customersRes, vouchersRes] = await Promise.allSettled([
+      axios.get(`${baseUrl}/customers`, {
+        headers: {
+          'API-KEY': profile.apikey || '7061797A6F72726F74616C6C79',
+          'Authorization': `Bearer ${profile.token}`
+        },
+        params: { page: 1, limit: 1 }
+      }),
+      axios.get(`${baseUrl}/vouchers`, {
+        headers: {
+          'API-KEY': profile.apikey || '7061797A6F72726F74616C6C79',
+          'Authorization': `Bearer ${profile.token}`
+        },
+        params: { page: 1, limit: 1 }
+      })
+    ]);
+
+    const totalCustomers = customersRes.status === 'fulfilled' ? customersRes.value.data?.pagination?.total || 0 : 0;
+    const totalVouchers = vouchersRes.status === 'fulfilled' ? vouchersRes.value.data?.pagination?.total || 0 : 0;
+
+    const lastSync = await dbService.getLastSync();
+
+    return {
+      totalCustomers,
+      totalVouchers,
+      invoiceCount: 0, // Can be calculated from vouchers if needed
+      receiptCount: 0,
+      jvCount: 0,
+      lastSyncTime: lastSync?.last_successful_sync || null
+    };
   } catch (error: any) {
     console.error('get-dashboard-stats error:', error);
     return {
@@ -391,11 +463,76 @@ ipcMain.handle('get-dashboard-stats', async () => {
 });
 
 ipcMain.handle('get-customers', async (event, limit?: number, offset?: number, search?: string) => {
-  return await dbService.getCustomers(limit, offset, search);
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { customers: [], total: 0 };
+    }
+
+    const apiUrl = await getApiUrl(dbService);
+    // getApiUrl already normalizes localhost to 127.0.0.1, but ensure port 5000
+    const baseUrl = apiUrl.replace(/:\d+/, ':5000').replace('localhost', '127.0.0.1');
+
+    const page = offset && limit ? Math.floor(offset / limit) + 1 : 1;
+    const pageLimit = limit || 20;
+
+    const response = await axios.get(`${baseUrl}/customers`, {
+      headers: {
+        'API-KEY': profile.apikey || '7061797A6F72726F74616C6C79',
+        'Authorization': `Bearer ${profile.token}`
+      },
+      params: {
+        page,
+        limit: pageLimit,
+        ...(search && { search })
+      }
+    });
+
+    return {
+      customers: response.data.data || [],
+      total: response.data.pagination?.total || 0
+    };
+  } catch (error: any) {
+    console.error('get-customers error:', error);
+    return { customers: [], total: 0 };
+  }
 });
 
 ipcMain.handle('get-vouchers', async (event, limit?: number, offset?: number, search?: string, voucherType?: string) => {
-  return await dbService.getVouchers(limit, offset, search, voucherType);
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { vouchers: [], total: 0 };
+    }
+
+    const apiUrl = await getApiUrl(dbService);
+    // getApiUrl already normalizes localhost to 127.0.0.1, but ensure port 5000
+    const baseUrl = apiUrl.replace(/:\d+/, ':5000').replace('localhost', '127.0.0.1');
+
+    const page = offset && limit ? Math.floor(offset / limit) + 1 : 1;
+    const pageLimit = limit || 20;
+
+    const response = await axios.get(`${baseUrl}/vouchers`, {
+      headers: {
+        'API-KEY': profile.apikey || '7061797A6F72726F74616C6C79',
+        'Authorization': `Bearer ${profile.token}`
+      },
+      params: {
+        page,
+        limit: pageLimit,
+        ...(voucherType && { type: voucherType }),
+        ...(search && { search })
+      }
+    });
+
+    return {
+      vouchers: response.data.data || [],
+      total: response.data.pagination?.total || 0
+    };
+  } catch (error: any) {
+    console.error('get-vouchers error:', error);
+    return { vouchers: [], total: 0 };
+  }
 });
 
 ipcMain.handle('get-sync-history-with-batches', async (event, limit?: number) => {

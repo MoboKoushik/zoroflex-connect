@@ -42,6 +42,8 @@ export class OrganizationService {
       this.dbService.log('INFO', 'Sending organization payload to API', { payload });
 
       const baseUrl = await getApiUrl(this.dbService);
+      // baseUrl is already normalized to use 127.0.0.1 instead of localhost
+      console.log(`Sending organization data to: ${baseUrl}/billers/tally/set-organization`);
       const response = await axios.post(`${baseUrl}/billers/tally/set-organization`, payload, {
         headers: { 'API-KEY': API_KEY },
         timeout: 20000
@@ -58,15 +60,7 @@ export class OrganizationService {
         synced_at: new Date().toISOString()
       });
 
-      // Log individual organization record
-      await this.dbService.logSyncRecordDetail(
-        runId,
-        organizationId || profile.biller_id || 'unknown',
-        tallyId,
-        'ORGANIZATION',
-        'SUCCESS',
-        null
-      );
+      // Log individual organization record (detailed logging now handled by backend)
 
       await this.dbService.logSyncEnd(runId, 'SUCCESS', 1, 0, undefined, 'Organization synced successfully');
       this.dbService.log('INFO', 'Organization synced successfully', {
@@ -88,17 +82,7 @@ export class OrganizationService {
         stack: error.stack
       });
 
-      // Log failed organization record
-      const tallyId = currentCompany?.BASICCOMPANYFORMALNAME || currentCompany?.NAME || 'TALLY_CO';
-      const organizationId = currentCompany?.COMPANYNUMBER || profile.biller_id || 'unknown';
-      await this.dbService.logSyncRecordDetail(
-        runId,
-        organizationId,
-        tallyId,
-        'ORGANIZATION',
-        'FAILED',
-        errorMsg
-      );
+      // Log failed organization record (detailed logging now handled by backend)
 
       await this.dbService.logSyncEnd(runId, 'FAILED', 0, 1, undefined, errorMsg);
       throw error;
