@@ -80,6 +80,17 @@ export interface AppSetting {
   updated_at: string;
 }
 
+export interface SyncSettings {
+  id: number;
+  from_date: string;
+  to_date: string;
+  is_first_sync_completed: number;
+  first_sync_started_at?: string;
+  first_sync_completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SyncRecordDetail {
   id: number;
   sync_history_id: number;
@@ -172,6 +183,10 @@ export interface SyncBatchRow {
   records_sent_to_api: number;
   status: string;
   error_message: string | null;
+  month_identifier?: string | null;
+  month_from_date?: string | null;
+  month_to_date?: string | null;
+  sync_mode?: string | null;
   started_at: string;
   completed_at: string | null;
 }
@@ -181,7 +196,7 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v406.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v413.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();
@@ -269,6 +284,17 @@ export class DatabaseService {
       CREATE TABLE IF NOT EXISTS app_settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS sync_settings (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        from_date TEXT NOT NULL DEFAULT '',
+        to_date TEXT NOT NULL DEFAULT '',
+        is_first_sync_completed INTEGER DEFAULT 0,
+        first_sync_started_at DATETIME,
+        first_sync_completed_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -378,6 +404,10 @@ export class DatabaseService {
         records_sent_to_api INTEGER DEFAULT 0,
         status TEXT NOT NULL,
         error_message TEXT,
+        month_identifier TEXT,
+        month_from_date TEXT,
+        month_to_date TEXT,
+        sync_mode TEXT DEFAULT 'incremental',
         started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         completed_at DATETIME,
         FOREIGN KEY (sync_run_id) REFERENCES sync_history(id)
@@ -385,8 +415,10 @@ export class DatabaseService {
 
       CREATE INDEX IF NOT EXISTS idx_sync_batches_sync_run_id ON sync_batches(sync_run_id);
       CREATE INDEX IF NOT EXISTS idx_sync_batches_status ON sync_batches(status);
+      CREATE INDEX IF NOT EXISTS idx_sync_batches_month ON sync_batches(month_identifier);
 
       INSERT OR IGNORE INTO global_sync_status (id) VALUES (1);
+      INSERT OR IGNORE INTO sync_settings (id, from_date, to_date) VALUES (1, '', '');
 
       INSERT OR IGNORE INTO entity_sync_status (entity, last_max_alter_id) VALUES
         ('CUSTOMER', '0'),
@@ -693,6 +725,65 @@ export class DatabaseService {
       settings[row.key] = row.value;
     });
     return settings;
+  }
+
+  // === Sync Settings Management ===
+  async getSyncSettings(): Promise<SyncSettings | null> {
+    const stmt = this.db!.prepare(`SELECT * FROM sync_settings WHERE id = 1`);
+    return stmt.get() as SyncSettings | null;
+  }
+
+  async updateSyncSettings(fromDate: string, toDate: string): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE sync_settings
+      SET from_date = ?, to_date = ?, updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run(fromDate, toDate);
+  }
+
+  async markFirstSyncStarted(): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE sync_settings
+      SET first_sync_started_at = datetime('now'), updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run();
+  }
+
+  async markFirstSyncCompleted(): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE sync_settings
+      SET is_first_sync_completed = 1,
+          first_sync_completed_at = datetime('now'),
+          updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run();
+  }
+
+  async resetFirstSyncFlag(): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE sync_settings
+      SET is_first_sync_completed = 0,
+          first_sync_started_at = NULL,
+          first_sync_completed_at = NULL,
+          updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run();
+  }
+
+  async getLastCompletedMonth(entityType: string, runId: number): Promise<string | null> {
+    const stmt = this.db!.prepare(`
+      SELECT month_identifier
+      FROM sync_batches
+      WHERE sync_run_id = ? AND entity_type = ? AND status = 'API_SUCCESS'
+      ORDER BY month_from_date DESC
+      LIMIT 1
+    `);
+    const row = stmt.get(runId, entityType) as { month_identifier: string } | undefined;
+    return row?.month_identifier || null;
   }
 
   // === Log Management ===
@@ -1141,13 +1232,28 @@ export class DatabaseService {
     batchNumber: number,
     batchSize: number,
     fromAlterId: string,
-    toAlterId: string
+    toAlterId: string,
+    monthIdentifier?: string,
+    monthFromDate?: string,
+    monthToDate?: string,
+    syncMode?: string
   ): Promise<number> {
     const stmt = this.db!.prepare(`
-      INSERT INTO sync_batches (sync_run_id, entity_type, batch_number, batch_size, from_alter_id, to_alter_id, status)
-      VALUES (?, ?, ?, ?, ?, ?, 'FETCHED')
+      INSERT INTO sync_batches (sync_run_id, entity_type, batch_number, batch_size, from_alter_id, to_alter_id, status, month_identifier, month_from_date, month_to_date, sync_mode)
+      VALUES (?, ?, ?, ?, ?, ?, 'FETCHED', ?, ?, ?, ?)
     `);
-    const info = stmt.run(runId, entityType, batchNumber, batchSize, fromAlterId, toAlterId);
+    const info = stmt.run(
+      runId,
+      entityType,
+      batchNumber,
+      batchSize,
+      fromAlterId,
+      toAlterId,
+      monthIdentifier || null,
+      monthFromDate || null,
+      monthToDate || null,
+      syncMode || 'incremental'
+    );
     return Number(info.lastInsertRowid);
   }
 

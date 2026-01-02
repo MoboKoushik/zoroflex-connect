@@ -280,3 +280,247 @@ export function extractLedgersFromBatch(parsed: any): any[] {
 export function extractVouchersFromBatch(parsed: any): any[] {
     return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
 }
+
+/**
+ * Fetches customers with date range filter (for first sync)
+ * @param fromDate Date range start (YYYYMMDD format, e.g., "20200401")
+ * @param toDate Date range end (YYYYMMDD format, e.g., "20200430")
+ * @param fromAlterId Starting AlterID (exclusive)
+ * @param sizeMax Maximum number of records to return per request
+ * @returns Parsed XML response with LEDGER array
+ */
+export async function fetchCustomersBatchByDateRange(
+    fromDate: string,
+    toDate: string,
+    fromAlterId: string,
+    sizeMax: number = 100
+): Promise<any> {
+    const xmlRequest = `
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>ARCUSTOMERS</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+        <SVFROMDATE>${fromDate}</SVFROMDATE>
+        <SVTODATE>${toDate}</SVTODATE>
+        <SVFromAlterID>${fromAlterId}</SVFromAlterID>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="ARCUSTOMERS" ISINITIALIZE="Yes" SIZEMAX="${sizeMax}">
+            <TYPE>Ledger</TYPE>
+            <BELONGSTO>Yes</BELONGSTO>
+            <CHILDOF>$$GroupSundryDebtors</CHILDOF>
+            <FILTERS>DateAndAlterFilter</FILTERS>
+            <NATIVEMETHOD>Name</NATIVEMETHOD>
+            <NATIVEMETHOD>LedgerContact</NATIVEMETHOD>
+            <NATIVEMETHOD>Email</NATIVEMETHOD>
+            <NATIVEMETHOD>EmailCC</NATIVEMETHOD>
+            <NATIVEMETHOD>LedgerPhone</NATIVEMETHOD>
+            <NATIVEMETHOD>LedgerMobile</NATIVEMETHOD>
+            <NATIVEMETHOD>OpeningBalance</NATIVEMETHOD>
+            <NATIVEMETHOD>ClosingBalance</NATIVEMETHOD>
+            <NATIVEMETHOD>Address.List</NATIVEMETHOD>
+            <NATIVEMETHOD>PartyGSTIN</NATIVEMETHOD>
+            <NATIVEMETHOD>GSTRegistrationType</NATIVEMETHOD>
+            <NATIVEMETHOD>LedgerState</NATIVEMETHOD>
+            <NATIVEMETHOD>BankAllocations.List</NATIVEMETHOD>
+            <NATIVEMETHOD>MasterID</NATIVEMETHOD>
+            <NATIVEMETHOD>AlterID</NATIVEMETHOD>
+          </COLLECTION>
+          <SYSTEM TYPE="Formulae" NAME="DateAndAlterFilter">
+            ($$Number:$AlterID > $$Number:##SVFromAlterID) AND
+            ($AlteredDate >= ##SVFROMDATE) AND
+            ($AlteredDate <= ##SVTODATE)
+          </SYSTEM>
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>
+`.trim();
+
+    return withRetry(async () => {
+        const response = await axios.post(TALLY_URL, xmlRequest, {
+            headers: { 'Content-Type': 'text/xml' },
+            timeout: 30000,
+            httpAgent: new http.Agent({ keepAlive: true }),
+            validateStatus: () => true
+        });
+
+        const parsed = await parseStringPromise(response.data);
+
+        // Check for Tally error response
+        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+                throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
+            }
+        }
+
+        return parsed;
+    }, `fetchCustomersBatchByDateRange(${fromDate} to ${toDate}, AlterID > ${fromAlterId})`).catch((error: any) => {
+        if (error.message && error.message.includes('Tally error')) {
+            throw error;
+        }
+        throw new Error(`Batch fetch customers by date range failed: ${error.message}`);
+    });
+}
+
+/**
+ * Fetches vouchers using ZeroFinnReceipt report with date range (for first sync only)
+ * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
+ * @param toDate Date range end (YYYYMMDD format, e.g., "20260331")
+ * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
+ */
+export async function fetchVouchersFromReportByDateRange(
+    fromDate: string,
+    toDate: string,
+    cullection: string
+): Promise<any> {
+    const xmlRequest = `
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Export Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <EXPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>${cullection}</REPORTNAME>
+        <STATICVARIABLES>
+          <SVFROMDATE>${fromDate}</SVFROMDATE>
+          <SVTODATE>${toDate}</SVTODATE>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA/>
+    </EXPORTDATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+    return withRetry(async () => {
+        const response = await axios.post(TALLY_URL, xmlRequest, {
+            headers: { 'Content-Type': 'text/plain' },
+            timeout: 120000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            httpAgent: new http.Agent({
+                keepAlive: true,
+                keepAliveMsecs: 1000,
+                maxSockets: 1,
+                maxFreeSockets: 1
+            }),
+            validateStatus: () => true
+        });
+
+        const parsed = await parseStringPromise(response.data);
+
+        // Check for Tally error response
+        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+                throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+            }
+        }
+
+        return parsed;
+    }, `fetchVouchersFromReportByDateRange(${fromDate} to ${toDate})`).catch((error: any) => {
+        console.log('Error in fetchVouchersFromReportByDateRange after retries:', error);
+        if (error.message && error.message.includes('Tally error')) {
+            throw error;
+        }
+        throw new Error(`Fetch vouchers from ZeroFinnReceipt report (date range) failed: ${error.message}`);
+    });
+}
+
+/**
+ * Fetches vouchers using ZeroFinnReceipt report with ALTER_ID only (for incremental sync)
+ * @param fromAlterId Starting ALTER_ID (exclusive)
+ * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
+ */
+export async function fetchVouchersFromReportByAlterId(
+fromAlterId: string,): Promise<any> {
+    const xmlRequest = `
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Export Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <EXPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>ZeroFinnReceipt</REPORTNAME>
+        <STATICVARIABLES>
+          <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA/>
+    </EXPORTDATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+    return withRetry(async () => {
+        const response = await axios.post(TALLY_URL, xmlRequest, {
+            headers: { 'Content-Type': 'text/plain' },
+            timeout: 120000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            httpAgent: new http.Agent({
+                keepAlive: true,
+                keepAliveMsecs: 1000,
+                maxSockets: 1,
+                maxFreeSockets: 1
+            }),
+            validateStatus: () => true
+        });
+
+        const parsed = await parseStringPromise(response.data);
+
+        // Check for Tally error response
+        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+                throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+            }
+        }
+
+        return parsed;
+    }, `fetchVouchersFromReportByAlterId(AlterID > ${fromAlterId})`).catch((error: any) => {
+        console.log('Error in fetchVouchersFromReportByAlterId after retries:', error);
+        if (error.message && error.message.includes('Tally error')) {
+            throw error;
+        }
+        throw new Error(`Fetch vouchers from ZeroFinnReceipt report (ALTER_ID) failed: ${error.message}`);
+    });
+}
+
+/**
+ * Extracts INVOICE array from ZeroFinnReceipt report response
+ */
+export function extractInvoicesFromReport(parsed: any): any[] {
+    return parsed.VOUCHERS?.INVOICE || [];
+}
+
+/**
+ * Extracts RECEIPT array from ZeroFinnReceipt report response
+ */
+export function extractReceiptsFromReport(parsed: any): any[] {
+    return parsed.VOUCHERS?.RECEIPT || [];
+}
+
+/**
+ * Helper to extract text from ZeroFinnReceipt report XML elements
+ * Report format uses simple text nodes, not the complex TDL format
+ */
+export function getReportText(obj: any, key: string): string {
+    if (!obj || !obj[key]) return '';
+    const value = obj[key];
+    if (Array.isArray(value) && value.length > 0) {
+        return String(value[0] || '').trim();
+    }
+    return String(value || '').trim();
+}

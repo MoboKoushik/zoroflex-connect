@@ -3,7 +3,6 @@ import { fetchCurrentCompany } from './fetch-to-tally/fetchCurrentCompany';
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { syncCustomers } from '../sync/fetch-to-tally/fetchLedgers';
 import { syncVouchers } from '../sync/fetch-to-tally/fetchVouchers';
-import { fetchAllVouchers } from './dump_data/fetchVoucherData';
 
 export class SyncService {
   private dbService: DatabaseService;
@@ -71,7 +70,7 @@ export class SyncService {
       await syncCustomers(profile);
 
       this.dbService.log('INFO', 'Starting voucher sync (Invoice, Receipt, Journal)');
-      await syncVouchers(profile);
+      await syncVouchers(profile, 'first', '2023-04-01','2026-03-31' );
 
       // this.dbService.log('INFO', 'Starting voucher dump');
       // await fetchAllVouchers();
