@@ -49,11 +49,6 @@ export async function fetchCurrentCompany(): Promise<Record<string, any> | null>
         });
 
         const parsed = await parseStringPromise(response.data);
-
-        fs.mkdirSync('./dump/company', { recursive: true });
-        const rawFile = './dump/company/current_company_raw.json';
-        fs.writeFileSync(rawFile, JSON.stringify(parsed, null, 2), 'utf8');
-
         const collection = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0];
         const companiesXml = collection?.COMPANY || [];
 
@@ -105,8 +100,6 @@ export async function fetchCurrentCompany(): Promise<Record<string, any> | null>
             currentCompany.LICENSEID ||
             '';
 
-        const fileName = './dump/company/current_company.json';
-        fs.writeFileSync(fileName, JSON.stringify(currentCompany, null, 2), 'utf8');
 
         db.log('INFO', 'Current company fetched successfully', {
             company_name: currentCompany.NAME,

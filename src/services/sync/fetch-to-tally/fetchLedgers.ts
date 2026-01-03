@@ -188,9 +188,6 @@ export async function syncCustomers(
             // Fetch batch from Tally with DATE RANGE filter
             console.log(`[First Sync] Month ${month}, Batch ${monthBatchNumber}: Date ${tallyFromDate}-${tallyToDate}, AlterID > ${fromAlterId}`);
             const parsed = await fetchCustomersBatchByDateRange(tallyFromDate, tallyToDate, fromAlterId, TALLY_BATCH_SIZE);
-            fs.mkdirSync('./dump/customer', { recursive: true });
-            fs.writeFileSync(`./dump/customer/first_sync_${month}_batch_${monthBatchNumber}.json`, JSON.stringify(parsed, null, 2));
-
             ledgersXml = extractLedgersFromBatch(parsed);
 
             if (ledgersXml.length === 0) {
@@ -325,7 +322,6 @@ export async function syncCustomers(
                 failedCount += apiBatch.length;
                 const errorMsg = err.response?.data || err.message || 'Unknown error';
                 db.log('ERROR', `Customer API batch failed (Month ${month})`, { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
-                fs.writeFileSync(`./dump/customer/failed_${month}_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
 
                 const errorMessage = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
                 for (const customer of apiBatch) {
@@ -390,8 +386,6 @@ export async function syncCustomers(
         // Pass TALLY_BATCH_SIZE as sizeMax to limit the number of records returned
         console.log(`Fetching customers batch ${batchNumber}: AlterID > ${fromAlterId} (max ${TALLY_BATCH_SIZE} records)`);
         const parsed = await fetchCustomersBatch(fromAlterId, TALLY_BATCH_SIZE);
-        fs.mkdirSync('./dump/customer', { recursive: true });
-        fs.writeFileSync(`./dump/customer/raw_batch_${batchNumber}.json`, JSON.stringify(parsed, null, 2));
 
         ledgersXml = extractLedgersFromBatch(parsed);
 
@@ -532,7 +526,6 @@ export async function syncCustomers(
             failedCount += apiBatch.length;
             const errorMsg = err.response?.data || err.message || 'Unknown error';
             db.log('ERROR', 'Customer API batch failed', { batch_index: i / BATCH_SIZE + 1, error: errorMsg });
-            fs.writeFileSync(`./dump/customer/failed_batch_${Date.now()}_${i}.json`, JSON.stringify(payload, null, 2));
 
             // Log individual customer records as failed
             const errorMessage = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);

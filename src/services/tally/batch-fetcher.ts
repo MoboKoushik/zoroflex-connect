@@ -245,10 +245,6 @@ export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 
 
         const parsed = await parseStringPromise(response.data);
 
-        // Ensure dump directory exists
-        fs.mkdirSync('./dump/voucher', { recursive: true });
-        fs.writeFileSync(`./dump/voucher/raw_data_${fromAlterId}.json`, JSON.stringify(parsed, null, 2));
-
         // Check for Tally error response
         if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
             const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
