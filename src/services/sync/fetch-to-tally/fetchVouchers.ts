@@ -10,7 +10,7 @@ import { fetchVouchersBatch, extractVouchersFromBatch } from '../../tally/batch-
 const db = new DatabaseService();
 
 const ENTITY_TYPE = 'VOUCHER';
-const TALLY_BATCH_SIZE = 200;
+const TALLY_BATCH_SIZE = 20;
 const BATCH_DELAY_MS = 2000;
 const API_KEY = '7061797A6F72726F74616C6C79';
 
@@ -66,8 +66,8 @@ export async function syncVouchers(profile: UserProfile): Promise<void> {
         db.log('INFO', `Fetching voucher batch ${batchNumber} from Tally`, { from_alter_id: fromAlterId });
         
         const parsed = await fetchVouchersBatch(fromAlterId, TALLY_BATCH_SIZE);
-        // fs.mkdirSync('./dump/voucher', { recursive: true });
-        // fs.writeFileSync(`./dump/voucher/raw_batch_${batchNumber}.json`, JSON.stringify(parsed, null, 2));
+        fs.mkdirSync('./dump/voucher', { recursive: true });
+        fs.writeFileSync(`./dump/voucher/raw_batch_data_${batchNumber}.json`, JSON.stringify(parsed, null, 2));
 
         vouchersXml = extractVouchersFromBatch(parsed);
         console.log(`   📥 Fetched ${vouchersXml.length} raw vouchers from Tally`);

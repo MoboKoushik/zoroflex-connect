@@ -1,0 +1,7814 @@
+[
+  {
+    "$MasterId": 507,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 508,
+    "$OpeningRate": 412.28
+  },
+  {
+    "$MasterId": 1341,
+    "$OpeningRate": 8814
+  },
+  {
+    "$MasterId": 1253,
+    "$OpeningRate": 2350
+  },
+  {
+    "$MasterId": 1047,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 504,
+    "$OpeningRate": 510.5
+  },
+  {
+    "$MasterId": 1295,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1314,
+    "$OpeningRate": 2.25
+  },
+  {
+    "$MasterId": 1159,
+    "$OpeningRate": 221.18
+  },
+  {
+    "$MasterId": 423,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 176,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 174,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 175,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 424,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 173,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4111,
+    "$OpeningRate": 121.77
+  },
+  {
+    "$MasterId": 3629,
+    "$OpeningRate": 121.78
+  },
+  {
+    "$MasterId": 1048,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 505,
+    "$OpeningRate": 1546
+  },
+  {
+    "$MasterId": 1296,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1315,
+    "$OpeningRate": 3.5
+  },
+  {
+    "$MasterId": 318,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3630,
+    "$OpeningRate": 153.43
+  },
+  {
+    "$MasterId": 3772,
+    "$OpeningRate": 173.73
+  },
+  {
+    "$MasterId": 1144,
+    "$OpeningRate": 83.05
+  },
+  {
+    "$MasterId": 404,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1160,
+    "$OpeningRate": 273.79
+  },
+  {
+    "$MasterId": 1154,
+    "$OpeningRate": 16
+  },
+  {
+    "$MasterId": 1140,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1143,
+    "$OpeningRate": 28.5
+  },
+  {
+    "$MasterId": 3634,
+    "$OpeningRate": 233.75
+  },
+  {
+    "$MasterId": 3748,
+    "$OpeningRate": 239.47
+  },
+  {
+    "$MasterId": 320,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 511,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 972,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1049,
+    "$OpeningRate": 413.38
+  },
+  {
+    "$MasterId": 1028,
+    "$OpeningRate": 928.13
+  },
+  {
+    "$MasterId": 1297,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1316,
+    "$OpeningRate": 5.25
+  },
+  {
+    "$MasterId": 1300,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1042,
+    "$OpeningRate": 15.02
+  },
+  {
+    "$MasterId": 973,
+    "$OpeningRate": 12
+  },
+  {
+    "$MasterId": 971,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 981,
+    "$OpeningRate": 32
+  },
+  {
+    "$MasterId": 506,
+    "$OpeningRate": 50.61
+  },
+  {
+    "$MasterId": 1302,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1043,
+    "$OpeningRate": 16.82
+  },
+  {
+    "$MasterId": 1155,
+    "$OpeningRate": 70.33
+  },
+  {
+    "$MasterId": 1152,
+    "$OpeningRate": 71.44
+  },
+  {
+    "$MasterId": 1141,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1311,
+    "$OpeningRate": 154
+  },
+  {
+    "$MasterId": 1142,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1301,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 976,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 974,
+    "$OpeningRate": 32.6
+  },
+  {
+    "$MasterId": 1039,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1029,
+    "$OpeningRate": 45.14
+  },
+  {
+    "$MasterId": 1065,
+    "$OpeningRate": 19.78
+  },
+  {
+    "$MasterId": 1031,
+    "$OpeningRate": 24.73
+  },
+  {
+    "$MasterId": 1189,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3532,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1156,
+    "$OpeningRate": 29.5
+  },
+  {
+    "$MasterId": 2358,
+    "$OpeningRate": 2
+  },
+  {
+    "$MasterId": 1062,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 509,
+    "$OpeningRate": 2047
+  },
+  {
+    "$MasterId": 1298,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2420,
+    "$OpeningRate": 27.6
+  },
+  {
+    "$MasterId": 2439,
+    "$OpeningRate": 27.6
+  },
+  {
+    "$MasterId": 2429,
+    "$OpeningRate": 38
+  },
+  {
+    "$MasterId": 3052,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2424,
+    "$OpeningRate": 39.5
+  },
+  {
+    "$MasterId": 2426,
+    "$OpeningRate": 27.8
+  },
+  {
+    "$MasterId": 2441,
+    "$OpeningRate": 123.5
+  },
+  {
+    "$MasterId": 2442,
+    "$OpeningRate": 21
+  },
+  {
+    "$MasterId": 2440,
+    "$OpeningRate": 25.8
+  },
+  {
+    "$MasterId": 2443,
+    "$OpeningRate": 7.25
+  },
+  {
+    "$MasterId": 2444,
+    "$OpeningRate": 21
+  },
+  {
+    "$MasterId": 2445,
+    "$OpeningRate": 30.5
+  },
+  {
+    "$MasterId": 2446,
+    "$OpeningRate": 34.4
+  },
+  {
+    "$MasterId": 2427,
+    "$OpeningRate": 50
+  },
+  {
+    "$MasterId": 2447,
+    "$OpeningRate": 66
+  },
+  {
+    "$MasterId": 2448,
+    "$OpeningRate": 88.5
+  },
+  {
+    "$MasterId": 319,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 425,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1063,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1064,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1081,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1030,
+    "$OpeningRate": 54.47
+  },
+  {
+    "$MasterId": 3533,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2529,
+    "$OpeningRate": 103.38
+  },
+  {
+    "$MasterId": 256,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 254,
+    "$OpeningRate": 102.4
+  },
+  {
+    "$MasterId": 490,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 172,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 170,
+    "$OpeningRate": 30
+  },
+  {
+    "$MasterId": 1103,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 510,
+    "$OpeningRate": 1649
+  },
+  {
+    "$MasterId": 1299,
+    "$OpeningRate": 5409
+  },
+  {
+    "$MasterId": 1147,
+    "$OpeningRate": 114.4
+  },
+  {
+    "$MasterId": 2484,
+    "$OpeningRate": 25.25
+  },
+  {
+    "$MasterId": 2488,
+    "$OpeningRate": 46.29
+  },
+  {
+    "$MasterId": 3063,
+    "$OpeningRate": 47.87
+  },
+  {
+    "$MasterId": 2540,
+    "$OpeningRate": 51.55
+  },
+  {
+    "$MasterId": 3064,
+    "$OpeningRate": 64.7
+  },
+  {
+    "$MasterId": 3073,
+    "$OpeningRate": 66.8
+  },
+  {
+    "$MasterId": 2494,
+    "$OpeningRate": 136.08
+  },
+  {
+    "$MasterId": 2541,
+    "$OpeningRate": 195.67
+  },
+  {
+    "$MasterId": 2657,
+    "$OpeningRate": 146.75
+  },
+  {
+    "$MasterId": 2542,
+    "$OpeningRate": 44.4
+  },
+  {
+    "$MasterId": 2485,
+    "$OpeningRate": 54.7
+  },
+  {
+    "$MasterId": 3065,
+    "$OpeningRate": 84.69
+  },
+  {
+    "$MasterId": 2486,
+    "$OpeningRate": 89.95
+  },
+  {
+    "$MasterId": 2658,
+    "$OpeningRate": 29.4
+  },
+  {
+    "$MasterId": 2543,
+    "$OpeningRate": 29.4
+  },
+  {
+    "$MasterId": 2489,
+    "$OpeningRate": 39
+  },
+  {
+    "$MasterId": 2490,
+    "$OpeningRate": 49.44
+  },
+  {
+    "$MasterId": 2491,
+    "$OpeningRate": 61.02
+  },
+  {
+    "$MasterId": 2492,
+    "$OpeningRate": 64.26
+  },
+  {
+    "$MasterId": 2493,
+    "$OpeningRate": 103.8
+  },
+  {
+    "$MasterId": 2496,
+    "$OpeningRate": 144.72
+  },
+  {
+    "$MasterId": 2487,
+    "$OpeningRate": 10.2
+  },
+  {
+    "$MasterId": 3066,
+    "$OpeningRate": 58.91
+  },
+  {
+    "$MasterId": 2495,
+    "$OpeningRate": 191.46
+  },
+  {
+    "$MasterId": 2527,
+    "$OpeningRate": 133.05
+  },
+  {
+    "$MasterId": 420,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1125,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3635,
+    "$OpeningRate": 69.42
+  },
+  {
+    "$MasterId": 3633,
+    "$OpeningRate": 42.62
+  },
+  {
+    "$MasterId": 1158,
+    "$OpeningRate": 177.96
+  },
+  {
+    "$MasterId": 3632,
+    "$OpeningRate": 24.04
+  },
+  {
+    "$MasterId": 3596,
+    "$OpeningRate": 70.07
+  },
+  {
+    "$MasterId": 3771,
+    "$OpeningRate": 101.7
+  },
+  {
+    "$MasterId": 311,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2894,
+    "$OpeningRate": 440.09
+  },
+  {
+    "$MasterId": 444,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 460,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1087,
+    "$OpeningRate": 6451
+  },
+  {
+    "$MasterId": 3592,
+    "$OpeningRate": 846
+  },
+  {
+    "$MasterId": 5104,
+    "$OpeningRate": 15.34
+  },
+  {
+    "$MasterId": 359,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2878,
+    "$OpeningRate": 596.81
+  },
+  {
+    "$MasterId": 999,
+    "$OpeningRate": 573
+  },
+  {
+    "$MasterId": 1001,
+    "$OpeningRate": 573
+  },
+  {
+    "$MasterId": 1003,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1000,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1002,
+    "$OpeningRate": 1146
+  },
+  {
+    "$MasterId": 3942,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3763,
+    "$OpeningRate": 214
+  },
+  {
+    "$MasterId": 3727,
+    "$OpeningRate": 267
+  },
+  {
+    "$MasterId": 4065,
+    "$OpeningRate": 267
+  },
+  {
+    "$MasterId": 4879,
+    "$OpeningRate": 106.99
+  },
+  {
+    "$MasterId": 3782,
+    "$OpeningRate": 20.6
+  },
+  {
+    "$MasterId": 2618,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 360,
+    "$OpeningRate": 390.83
+  },
+  {
+    "$MasterId": 1004,
+    "$OpeningRate": 846
+  },
+  {
+    "$MasterId": 370,
+    "$OpeningRate": 1002.45
+  },
+  {
+    "$MasterId": 2877,
+    "$OpeningRate": 917.92
+  },
+  {
+    "$MasterId": 1006,
+    "$OpeningRate": 931
+  },
+  {
+    "$MasterId": 1008,
+    "$OpeningRate": 931
+  },
+  {
+    "$MasterId": 1010,
+    "$OpeningRate": 764.84
+  },
+  {
+    "$MasterId": 1007,
+    "$OpeningRate": 931
+  },
+  {
+    "$MasterId": 1009,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4971,
+    "$OpeningRate": 163
+  },
+  {
+    "$MasterId": 4045,
+    "$OpeningRate": 166
+  },
+  {
+    "$MasterId": 4066,
+    "$OpeningRate": 166
+  },
+  {
+    "$MasterId": 4046,
+    "$OpeningRate": 166
+  },
+  {
+    "$MasterId": 1088,
+    "$OpeningRate": 6081.43
+  },
+  {
+    "$MasterId": 445,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 411,
+    "$OpeningRate": 32.59
+  },
+  {
+    "$MasterId": 514,
+    "$OpeningRate": 21.27
+  },
+  {
+    "$MasterId": 446,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 461,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 399,
+    "$OpeningRate": 63.2
+  },
+  {
+    "$MasterId": 3654,
+    "$OpeningRate": 362
+  },
+  {
+    "$MasterId": 2617,
+    "$OpeningRate": 1.87
+  },
+  {
+    "$MasterId": 361,
+    "$OpeningRate": 617.68
+  },
+  {
+    "$MasterId": 314,
+    "$OpeningRate": 1365
+  },
+  {
+    "$MasterId": 376,
+    "$OpeningRate": 1160.16
+  },
+  {
+    "$MasterId": 2876,
+    "$OpeningRate": 1427.38
+  },
+  {
+    "$MasterId": 375,
+    "$OpeningRate": 1449.94
+  },
+  {
+    "$MasterId": 1011,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1013,
+    "$OpeningRate": 1474.97
+  },
+  {
+    "$MasterId": 1015,
+    "$OpeningRate": 1474.98
+  },
+  {
+    "$MasterId": 1012,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1014,
+    "$OpeningRate": 1474.98
+  },
+  {
+    "$MasterId": 3764,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2516,
+    "$OpeningRate": 23.43
+  },
+  {
+    "$MasterId": 5071,
+    "$OpeningRate": 29.4
+  },
+  {
+    "$MasterId": 4062,
+    "$OpeningRate": 28.35
+  },
+  {
+    "$MasterId": 5070,
+    "$OpeningRate": 29.4
+  },
+  {
+    "$MasterId": 4063,
+    "$OpeningRate": 28.35
+  },
+  {
+    "$MasterId": 447,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 448,
+    "$OpeningRate": 195.76
+  },
+  {
+    "$MasterId": 449,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 450,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 464,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 462,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3716,
+    "$OpeningRate": 447
+  },
+  {
+    "$MasterId": 2517,
+    "$OpeningRate": 32.45
+  },
+  {
+    "$MasterId": 1293,
+    "$OpeningRate": 42.02
+  },
+  {
+    "$MasterId": 2518,
+    "$OpeningRate": 52.73
+  },
+  {
+    "$MasterId": 3515,
+    "$OpeningRate": 76.6
+  },
+  {
+    "$MasterId": 480,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2615,
+    "$OpeningRate": 25.61
+  },
+  {
+    "$MasterId": 3733,
+    "$OpeningRate": 38.33
+  },
+  {
+    "$MasterId": 3731,
+    "$OpeningRate": 38
+  },
+  {
+    "$MasterId": 3736,
+    "$OpeningRate": 38.33
+  },
+  {
+    "$MasterId": 3734,
+    "$OpeningRate": 38.33
+  },
+  {
+    "$MasterId": 3735,
+    "$OpeningRate": 38.33
+  },
+  {
+    "$MasterId": 3732,
+    "$OpeningRate": 41
+  },
+  {
+    "$MasterId": 2619,
+    "$OpeningRate": 2.99
+  },
+  {
+    "$MasterId": 377,
+    "$OpeningRate": 2112.94
+  },
+  {
+    "$MasterId": 379,
+    "$OpeningRate": 2056.18
+  },
+  {
+    "$MasterId": 381,
+    "$OpeningRate": 1570.3
+  },
+  {
+    "$MasterId": 2903,
+    "$OpeningRate": 2132.7
+  },
+  {
+    "$MasterId": 380,
+    "$OpeningRate": 2047
+  },
+  {
+    "$MasterId": 1016,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1018,
+    "$OpeningRate": 1515.5
+  },
+  {
+    "$MasterId": 1020,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1017,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1019,
+    "$OpeningRate": 2329
+  },
+  {
+    "$MasterId": 1110,
+    "$OpeningRate": 66.4
+  },
+  {
+    "$MasterId": 3717,
+    "$OpeningRate": 578
+  },
+  {
+    "$MasterId": 5015,
+    "$OpeningRate": 45.15
+  },
+  {
+    "$MasterId": 4072,
+    "$OpeningRate": 44.13
+  },
+  {
+    "$MasterId": 5017,
+    "$OpeningRate": 44.1
+  },
+  {
+    "$MasterId": 5016,
+    "$OpeningRate": 45.15
+  },
+  {
+    "$MasterId": 4073,
+    "$OpeningRate": 44.1
+  },
+  {
+    "$MasterId": 5081,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5085,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5084,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5083,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5082,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3104,
+    "$OpeningRate": 3.19
+  },
+  {
+    "$MasterId": 382,
+    "$OpeningRate": 3180
+  },
+  {
+    "$MasterId": 987,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 384,
+    "$OpeningRate": 3180
+  },
+  {
+    "$MasterId": 1021,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 386,
+    "$OpeningRate": 1515.5
+  },
+  {
+    "$MasterId": 1023,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3126,
+    "$OpeningRate": 3233.2
+  },
+  {
+    "$MasterId": 383,
+    "$OpeningRate": 3179
+  },
+  {
+    "$MasterId": 986,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 385,
+    "$OpeningRate": 3179
+  },
+  {
+    "$MasterId": 1022,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1069,
+    "$OpeningRate": 8
+  },
+  {
+    "$MasterId": 451,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 463,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3759,
+    "$OpeningRate": 152
+  },
+  {
+    "$MasterId": 3762,
+    "$OpeningRate": 201
+  },
+  {
+    "$MasterId": 3737,
+    "$OpeningRate": 201
+  },
+  {
+    "$MasterId": 4064,
+    "$OpeningRate": 194.61
+  },
+  {
+    "$MasterId": 416,
+    "$OpeningRate": 18.45
+  },
+  {
+    "$MasterId": 417,
+    "$OpeningRate": 30.84
+  },
+  {
+    "$MasterId": 410,
+    "$OpeningRate": 21.95
+  },
+  {
+    "$MasterId": 1077,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4881,
+    "$OpeningRate": 51.5
+  },
+  {
+    "$MasterId": 5004,
+    "$OpeningRate": 51.5
+  },
+  {
+    "$MasterId": 4897,
+    "$OpeningRate": 63
+  },
+  {
+    "$MasterId": 4878,
+    "$OpeningRate": 71.2
+  },
+  {
+    "$MasterId": 5014,
+    "$OpeningRate": 80
+  },
+  {
+    "$MasterId": 5013,
+    "$OpeningRate": 80
+  },
+  {
+    "$MasterId": 414,
+    "$OpeningRate": 13.69
+  },
+  {
+    "$MasterId": 412,
+    "$OpeningRate": 12.01
+  },
+  {
+    "$MasterId": 515,
+    "$OpeningRate": 14.65
+  },
+  {
+    "$MasterId": 413,
+    "$OpeningRate": 12.41
+  },
+  {
+    "$MasterId": 468,
+    "$OpeningRate": 1491
+  },
+  {
+    "$MasterId": 469,
+    "$OpeningRate": 3320.41
+  },
+  {
+    "$MasterId": 470,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 472,
+    "$OpeningRate": 384.75
+  },
+  {
+    "$MasterId": 471,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 473,
+    "$OpeningRate": 971.25
+  },
+  {
+    "$MasterId": 415,
+    "$OpeningRate": 9.53
+  },
+  {
+    "$MasterId": 492,
+    "$OpeningRate": 106.64
+  },
+  {
+    "$MasterId": 493,
+    "$OpeningRate": 130.99
+  },
+  {
+    "$MasterId": 494,
+    "$OpeningRate": 106.64
+  },
+  {
+    "$MasterId": 3661,
+    "$OpeningRate": 852.63
+  },
+  {
+    "$MasterId": 3660,
+    "$OpeningRate": 526.32
+  },
+  {
+    "$MasterId": 1276,
+    "$OpeningRate": 401.36
+  },
+  {
+    "$MasterId": 1164,
+    "$OpeningRate": 579.12
+  },
+  {
+    "$MasterId": 1162,
+    "$OpeningRate": 525.04
+  },
+  {
+    "$MasterId": 1166,
+    "$OpeningRate": 806.03
+  },
+  {
+    "$MasterId": 1165,
+    "$OpeningRate": 1336.97
+  },
+  {
+    "$MasterId": 1238,
+    "$OpeningRate": 1934.92
+  },
+  {
+    "$MasterId": 1239,
+    "$OpeningRate": 2821
+  },
+  {
+    "$MasterId": 342,
+    "$OpeningRate": 101
+  },
+  {
+    "$MasterId": 418,
+    "$OpeningRate": 197
+  },
+  {
+    "$MasterId": 343,
+    "$OpeningRate": 106.67
+  },
+  {
+    "$MasterId": 419,
+    "$OpeningRate": 197
+  },
+  {
+    "$MasterId": 344,
+    "$OpeningRate": 50.17
+  },
+  {
+    "$MasterId": 465,
+    "$OpeningRate": 47.27
+  },
+  {
+    "$MasterId": 345,
+    "$OpeningRate": 49.89
+  },
+  {
+    "$MasterId": 390,
+    "$OpeningRate": 64.15
+  },
+  {
+    "$MasterId": 474,
+    "$OpeningRate": 112.5
+  },
+  {
+    "$MasterId": 346,
+    "$OpeningRate": 49.51
+  },
+  {
+    "$MasterId": 391,
+    "$OpeningRate": 72.76
+  },
+  {
+    "$MasterId": 475,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1426,
+    "$OpeningRate": 107.15
+  },
+  {
+    "$MasterId": 347,
+    "$OpeningRate": 49.89
+  },
+  {
+    "$MasterId": 466,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1427,
+    "$OpeningRate": 104.69
+  },
+  {
+    "$MasterId": 348,
+    "$OpeningRate": 49.67
+  },
+  {
+    "$MasterId": 392,
+    "$OpeningRate": 50.21
+  },
+  {
+    "$MasterId": 351,
+    "$OpeningRate": 117.36
+  },
+  {
+    "$MasterId": 355,
+    "$OpeningRate": 241.21
+  },
+  {
+    "$MasterId": 349,
+    "$OpeningRate": 49.56
+  },
+  {
+    "$MasterId": 393,
+    "$OpeningRate": 70.54
+  },
+  {
+    "$MasterId": 353,
+    "$OpeningRate": 173.92
+  },
+  {
+    "$MasterId": 352,
+    "$OpeningRate": 139.36
+  },
+  {
+    "$MasterId": 356,
+    "$OpeningRate": 274.43
+  },
+  {
+    "$MasterId": 350,
+    "$OpeningRate": 61
+  },
+  {
+    "$MasterId": 354,
+    "$OpeningRate": 182.91
+  },
+  {
+    "$MasterId": 476,
+    "$OpeningRate": 194.73
+  },
+  {
+    "$MasterId": 477,
+    "$OpeningRate": 403.33
+  },
+  {
+    "$MasterId": 1252,
+    "$OpeningRate": 114.38
+  },
+  {
+    "$MasterId": 478,
+    "$OpeningRate": 299.25
+  },
+  {
+    "$MasterId": 250,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 965,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 968,
+    "$OpeningRate": 840
+  },
+  {
+    "$MasterId": 967,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2557,
+    "$OpeningRate": 5.18
+  },
+  {
+    "$MasterId": 2556,
+    "$OpeningRate": 5.95
+  },
+  {
+    "$MasterId": 2458,
+    "$OpeningRate": 53.69
+  },
+  {
+    "$MasterId": 2559,
+    "$OpeningRate": 81.03
+  },
+  {
+    "$MasterId": 2558,
+    "$OpeningRate": 17.13
+  },
+  {
+    "$MasterId": 2460,
+    "$OpeningRate": 19.74
+  },
+  {
+    "$MasterId": 2462,
+    "$OpeningRate": 22.8
+  },
+  {
+    "$MasterId": 2459,
+    "$OpeningRate": 27.68
+  },
+  {
+    "$MasterId": 2457,
+    "$OpeningRate": 35.05
+  },
+  {
+    "$MasterId": 2461,
+    "$OpeningRate": 43.68
+  },
+  {
+    "$MasterId": 2463,
+    "$OpeningRate": 44.93
+  },
+  {
+    "$MasterId": 269,
+    "$OpeningRate": 5.11
+  },
+  {
+    "$MasterId": 337,
+    "$OpeningRate": 1200.14
+  },
+  {
+    "$MasterId": 338,
+    "$OpeningRate": 616.16
+  },
+  {
+    "$MasterId": 341,
+    "$OpeningRate": 708.75
+  },
+  {
+    "$MasterId": 2453,
+    "$OpeningRate": 7.12
+  },
+  {
+    "$MasterId": 4043,
+    "$OpeningRate": 218.4
+  },
+  {
+    "$MasterId": 3714,
+    "$OpeningRate": 152.04
+  },
+  {
+    "$MasterId": 3715,
+    "$OpeningRate": 228.09
+  },
+  {
+    "$MasterId": 3713,
+    "$OpeningRate": 90.3
+  },
+  {
+    "$MasterId": 4836,
+    "$OpeningRate": 96.6
+  },
+  {
+    "$MasterId": 4896,
+    "$OpeningRate": 142.8
+  },
+  {
+    "$MasterId": 3970,
+    "$OpeningRate": 784.29
+  },
+  {
+    "$MasterId": 3971,
+    "$OpeningRate": 769
+  },
+  {
+    "$MasterId": 3972,
+    "$OpeningRate": 769
+  },
+  {
+    "$MasterId": 3929,
+    "$OpeningRate": 792.75
+  },
+  {
+    "$MasterId": 1411,
+    "$OpeningRate": 1297
+  },
+  {
+    "$MasterId": 1425,
+    "$OpeningRate": 1236
+  },
+  {
+    "$MasterId": 1415,
+    "$OpeningRate": 1263.01
+  },
+  {
+    "$MasterId": 2640,
+    "$OpeningRate": 102.85
+  },
+  {
+    "$MasterId": 2641,
+    "$OpeningRate": 135.71
+  },
+  {
+    "$MasterId": 2633,
+    "$OpeningRate": 30.25
+  },
+  {
+    "$MasterId": 2624,
+    "$OpeningRate": 27.75
+  },
+  {
+    "$MasterId": 2622,
+    "$OpeningRate": 16.8
+  },
+  {
+    "$MasterId": 2623,
+    "$OpeningRate": 24.78
+  },
+  {
+    "$MasterId": 2634,
+    "$OpeningRate": 30.42
+  },
+  {
+    "$MasterId": 2678,
+    "$OpeningRate": 23
+  },
+  {
+    "$MasterId": 3738,
+    "$OpeningRate": 36
+  },
+  {
+    "$MasterId": 2626,
+    "$OpeningRate": 22.95
+  },
+  {
+    "$MasterId": 2635,
+    "$OpeningRate": 38
+  },
+  {
+    "$MasterId": 2636,
+    "$OpeningRate": 45.62
+  },
+  {
+    "$MasterId": 2630,
+    "$OpeningRate": 66.45
+  },
+  {
+    "$MasterId": 2631,
+    "$OpeningRate": 84.84
+  },
+  {
+    "$MasterId": 2625,
+    "$OpeningRate": 42.43
+  },
+  {
+    "$MasterId": 2637,
+    "$OpeningRate": 64.05
+  },
+  {
+    "$MasterId": 2639,
+    "$OpeningRate": 71.86
+  },
+  {
+    "$MasterId": 2638,
+    "$OpeningRate": 82.18
+  },
+  {
+    "$MasterId": 3431,
+    "$OpeningRate": 37
+  },
+  {
+    "$MasterId": 2627,
+    "$OpeningRate": 19.77
+  },
+  {
+    "$MasterId": 2628,
+    "$OpeningRate": 5.67
+  },
+  {
+    "$MasterId": 2629,
+    "$OpeningRate": 73.24
+  },
+  {
+    "$MasterId": 5037,
+    "$OpeningRate": 18.48
+  },
+  {
+    "$MasterId": 2780,
+    "$OpeningRate": 72.57
+  },
+  {
+    "$MasterId": 1394,
+    "$OpeningRate": 74.72
+  },
+  {
+    "$MasterId": 1395,
+    "$OpeningRate": 107.41
+  },
+  {
+    "$MasterId": 1387,
+    "$OpeningRate": 33.68
+  },
+  {
+    "$MasterId": 1374,
+    "$OpeningRate": 24.22
+  },
+  {
+    "$MasterId": 1372,
+    "$OpeningRate": 15.38
+  },
+  {
+    "$MasterId": 1385,
+    "$OpeningRate": 22.17
+  },
+  {
+    "$MasterId": 1388,
+    "$OpeningRate": 21.61
+  },
+  {
+    "$MasterId": 2385,
+    "$OpeningRate": 29.05
+  },
+  {
+    "$MasterId": 1373,
+    "$OpeningRate": 20.93
+  },
+  {
+    "$MasterId": 2435,
+    "$OpeningRate": 230.68
+  },
+  {
+    "$MasterId": 1389,
+    "$OpeningRate": 28.46
+  },
+  {
+    "$MasterId": 1390,
+    "$OpeningRate": 35.5
+  },
+  {
+    "$MasterId": 1375,
+    "$OpeningRate": 65.1
+  },
+  {
+    "$MasterId": 1383,
+    "$OpeningRate": 78.8
+  },
+  {
+    "$MasterId": 1378,
+    "$OpeningRate": 40.21
+  },
+  {
+    "$MasterId": 1391,
+    "$OpeningRate": 49.01
+  },
+  {
+    "$MasterId": 1392,
+    "$OpeningRate": 54.48
+  },
+  {
+    "$MasterId": 1393,
+    "$OpeningRate": 56.41
+  },
+  {
+    "$MasterId": 1379,
+    "$OpeningRate": 17.21
+  },
+  {
+    "$MasterId": 2434,
+    "$OpeningRate": 33.02
+  },
+  {
+    "$MasterId": 1376,
+    "$OpeningRate": 4.35
+  },
+  {
+    "$MasterId": 1381,
+    "$OpeningRate": 78.17
+  },
+  {
+    "$MasterId": 1380,
+    "$OpeningRate": 16.96
+  },
+  {
+    "$MasterId": 2596,
+    "$OpeningRate": 132.68
+  },
+  {
+    "$MasterId": 2433,
+    "$OpeningRate": 87.91
+  },
+  {
+    "$MasterId": 1382,
+    "$OpeningRate": 45.56
+  },
+  {
+    "$MasterId": 2675,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1377,
+    "$OpeningRate": 68.29
+  },
+  {
+    "$MasterId": 1384,
+    "$OpeningRate": 126.07
+  },
+  {
+    "$MasterId": 2602,
+    "$OpeningRate": 1241.15
+  },
+  {
+    "$MasterId": 2567,
+    "$OpeningRate": 1266
+  },
+  {
+    "$MasterId": 2367,
+    "$OpeningRate": 1210.25
+  },
+  {
+    "$MasterId": 307,
+    "$OpeningRate": 56.5
+  },
+  {
+    "$MasterId": 296,
+    "$OpeningRate": 25
+  },
+  {
+    "$MasterId": 272,
+    "$OpeningRate": 69.29
+  },
+  {
+    "$MasterId": 297,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 298,
+    "$OpeningRate": 32.35
+  },
+  {
+    "$MasterId": 299,
+    "$OpeningRate": 42.8
+  },
+  {
+    "$MasterId": 300,
+    "$OpeningRate": 48
+  },
+  {
+    "$MasterId": 273,
+    "$OpeningRate": 98.92
+  },
+  {
+    "$MasterId": 427,
+    "$OpeningRate": 19.98
+  },
+  {
+    "$MasterId": 274,
+    "$OpeningRate": 26.03
+  },
+  {
+    "$MasterId": 275,
+    "$OpeningRate": 13.51
+  },
+  {
+    "$MasterId": 276,
+    "$OpeningRate": 21.19
+  },
+  {
+    "$MasterId": 277,
+    "$OpeningRate": 20.63
+  },
+  {
+    "$MasterId": 306,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1200,
+    "$OpeningRate": 50.51
+  },
+  {
+    "$MasterId": 278,
+    "$OpeningRate": 42.74
+  },
+  {
+    "$MasterId": 279,
+    "$OpeningRate": 22.56
+  },
+  {
+    "$MasterId": 280,
+    "$OpeningRate": 39.4
+  },
+  {
+    "$MasterId": 281,
+    "$OpeningRate": 73.86
+  },
+  {
+    "$MasterId": 282,
+    "$OpeningRate": 55.01
+  },
+  {
+    "$MasterId": 283,
+    "$OpeningRate": 32.74
+  },
+  {
+    "$MasterId": 284,
+    "$OpeningRate": 44.81
+  },
+  {
+    "$MasterId": 285,
+    "$OpeningRate": 43.66
+  },
+  {
+    "$MasterId": 286,
+    "$OpeningRate": 61.76
+  },
+  {
+    "$MasterId": 985,
+    "$OpeningRate": 139.38
+  },
+  {
+    "$MasterId": 287,
+    "$OpeningRate": 22.36
+  },
+  {
+    "$MasterId": 288,
+    "$OpeningRate": 5.98
+  },
+  {
+    "$MasterId": 289,
+    "$OpeningRate": 48.33
+  },
+  {
+    "$MasterId": 290,
+    "$OpeningRate": 70.38
+  },
+  {
+    "$MasterId": 291,
+    "$OpeningRate": 15.68
+  },
+  {
+    "$MasterId": 1073,
+    "$OpeningRate": 119.91
+  },
+  {
+    "$MasterId": 400,
+    "$OpeningRate": 186.1
+  },
+  {
+    "$MasterId": 292,
+    "$OpeningRate": 38.36
+  },
+  {
+    "$MasterId": 489,
+    "$OpeningRate": 70.68
+  },
+  {
+    "$MasterId": 491,
+    "$OpeningRate": 56.29
+  },
+  {
+    "$MasterId": 293,
+    "$OpeningRate": 113.2
+  },
+  {
+    "$MasterId": 294,
+    "$OpeningRate": 19.12
+  },
+  {
+    "$MasterId": 1196,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1195,
+    "$OpeningRate": 12.92
+  },
+  {
+    "$MasterId": 1199,
+    "$OpeningRate": 23.2
+  },
+  {
+    "$MasterId": 1197,
+    "$OpeningRate": 57.34
+  },
+  {
+    "$MasterId": 1198,
+    "$OpeningRate": 32.21
+  },
+  {
+    "$MasterId": 1084,
+    "$OpeningRate": 550
+  },
+  {
+    "$MasterId": 3933,
+    "$OpeningRate": 1059.38
+  },
+  {
+    "$MasterId": 3931,
+    "$OpeningRate": 859.59
+  },
+  {
+    "$MasterId": 3932,
+    "$OpeningRate": 793
+  },
+  {
+    "$MasterId": 3930,
+    "$OpeningRate": 1021.56
+  },
+  {
+    "$MasterId": 429,
+    "$OpeningRate": 375.39
+  },
+  {
+    "$MasterId": 431,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 432,
+    "$OpeningRate": 454.13
+  },
+  {
+    "$MasterId": 433,
+    "$OpeningRate": 415.83
+  },
+  {
+    "$MasterId": 2545,
+    "$OpeningRate": 612.95
+  },
+  {
+    "$MasterId": 434,
+    "$OpeningRate": 319.49
+  },
+  {
+    "$MasterId": 435,
+    "$OpeningRate": 273.09
+  },
+  {
+    "$MasterId": 3742,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 436,
+    "$OpeningRate": 315.37
+  },
+  {
+    "$MasterId": 437,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 438,
+    "$OpeningRate": 355.27
+  },
+  {
+    "$MasterId": 439,
+    "$OpeningRate": 152.54
+  },
+  {
+    "$MasterId": 2754,
+    "$OpeningRate": 346.13
+  },
+  {
+    "$MasterId": 4812,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 496,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1423,
+    "$OpeningRate": 1266
+  },
+  {
+    "$MasterId": 585,
+    "$OpeningRate": 207.64
+  },
+  {
+    "$MasterId": 3241,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1424,
+    "$OpeningRate": 892.32
+  },
+  {
+    "$MasterId": 1407,
+    "$OpeningRate": 873.13
+  },
+  {
+    "$MasterId": 1408,
+    "$OpeningRate": 906.09
+  },
+  {
+    "$MasterId": 1409,
+    "$OpeningRate": 896.1
+  },
+  {
+    "$MasterId": 1410,
+    "$OpeningRate": 893
+  },
+  {
+    "$MasterId": 479,
+    "$OpeningRate": 24.03
+  },
+  {
+    "$MasterId": 486,
+    "$OpeningRate": 57.01
+  },
+  {
+    "$MasterId": 5498,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5421,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5499,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5422,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5423,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5424,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 481,
+    "$OpeningRate": 31.07
+  },
+  {
+    "$MasterId": 225,
+    "$OpeningRate": 16.49
+  },
+  {
+    "$MasterId": 482,
+    "$OpeningRate": 32.41
+  },
+  {
+    "$MasterId": 5561,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5408,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5409,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5514,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5443,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5500,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5425,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 303,
+    "$OpeningRate": 17.15
+  },
+  {
+    "$MasterId": 5501,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5426,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5513,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5444,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5427,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5646,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5502,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5428,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5420,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 483,
+    "$OpeningRate": 19.08
+  },
+  {
+    "$MasterId": 484,
+    "$OpeningRate": 51.68
+  },
+  {
+    "$MasterId": 485,
+    "$OpeningRate": 44.61
+  },
+  {
+    "$MasterId": 2382,
+    "$OpeningRate": 844.06
+  },
+  {
+    "$MasterId": 5445,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5520,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5430,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5431,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3229,
+    "$OpeningRate": 19.71
+  },
+  {
+    "$MasterId": 3228,
+    "$OpeningRate": 12.55
+  },
+  {
+    "$MasterId": 3662,
+    "$OpeningRate": 24.69
+  },
+  {
+    "$MasterId": 3231,
+    "$OpeningRate": 16.81
+  },
+  {
+    "$MasterId": 5519,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5432,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5522,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5433,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5521,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5434,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3230,
+    "$OpeningRate": 15.22
+  },
+  {
+    "$MasterId": 5504,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5447,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5505,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5506,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5525,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2592,
+    "$OpeningRate": 29.98
+  },
+  {
+    "$MasterId": 2576,
+    "$OpeningRate": 15.16
+  },
+  {
+    "$MasterId": 5507,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5453,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2594,
+    "$OpeningRate": 28.7
+  },
+  {
+    "$MasterId": 2593,
+    "$OpeningRate": 29.32
+  },
+  {
+    "$MasterId": 5508,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5448,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5509,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5449,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5510,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5450,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5511,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5451,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5452,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5512,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2595,
+    "$OpeningRate": 22.55
+  },
+  {
+    "$MasterId": 1334,
+    "$OpeningRate": 12.11
+  },
+  {
+    "$MasterId": 5665,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 398,
+    "$OpeningRate": 48.08
+  },
+  {
+    "$MasterId": 5442,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2644,
+    "$OpeningRate": 19.09
+  },
+  {
+    "$MasterId": 2643,
+    "$OpeningRate": 9.92
+  },
+  {
+    "$MasterId": 564,
+    "$OpeningRate": 154.07
+  },
+  {
+    "$MasterId": 216,
+    "$OpeningRate": 30.87
+  },
+  {
+    "$MasterId": 190,
+    "$OpeningRate": 62.44
+  },
+  {
+    "$MasterId": 1349,
+    "$OpeningRate": 63.13
+  },
+  {
+    "$MasterId": 533,
+    "$OpeningRate": 136.37
+  },
+  {
+    "$MasterId": 524,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 593,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 554,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 584,
+    "$OpeningRate": 154.07
+  },
+  {
+    "$MasterId": 542,
+    "$OpeningRate": 150.53
+  },
+  {
+    "$MasterId": 574,
+    "$OpeningRate": 109.04
+  },
+  {
+    "$MasterId": 1086,
+    "$OpeningRate": 23.57
+  },
+  {
+    "$MasterId": 487,
+    "$OpeningRate": 82.54
+  },
+  {
+    "$MasterId": 217,
+    "$OpeningRate": 94.67
+  },
+  {
+    "$MasterId": 1350,
+    "$OpeningRate": 85.68
+  },
+  {
+    "$MasterId": 565,
+    "$OpeningRate": 208.18
+  },
+  {
+    "$MasterId": 534,
+    "$OpeningRate": 172.17
+  },
+  {
+    "$MasterId": 525,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 555,
+    "$OpeningRate": 202.58
+  },
+  {
+    "$MasterId": 543,
+    "$OpeningRate": 394.17
+  },
+  {
+    "$MasterId": 575,
+    "$OpeningRate": 269.79
+  },
+  {
+    "$MasterId": 594,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 218,
+    "$OpeningRate": 22.38
+  },
+  {
+    "$MasterId": 1343,
+    "$OpeningRate": 22.37
+  },
+  {
+    "$MasterId": 526,
+    "$OpeningRate": 35.25
+  },
+  {
+    "$MasterId": 517,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 587,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 544,
+    "$OpeningRate": 38.57
+  },
+  {
+    "$MasterId": 577,
+    "$OpeningRate": 49.59
+  },
+  {
+    "$MasterId": 535,
+    "$OpeningRate": 47.33
+  },
+  {
+    "$MasterId": 567,
+    "$OpeningRate": 49.34
+  },
+  {
+    "$MasterId": 557,
+    "$OpeningRate": 50.21
+  },
+  {
+    "$MasterId": 2862,
+    "$OpeningRate": 13.13
+  },
+  {
+    "$MasterId": 224,
+    "$OpeningRate": 11.85
+  },
+  {
+    "$MasterId": 186,
+    "$OpeningRate": 20.44
+  },
+  {
+    "$MasterId": 220,
+    "$OpeningRate": 19.14
+  },
+  {
+    "$MasterId": 1344,
+    "$OpeningRate": 21.97
+  },
+  {
+    "$MasterId": 558,
+    "$OpeningRate": 44.55
+  },
+  {
+    "$MasterId": 527,
+    "$OpeningRate": 47.74
+  },
+  {
+    "$MasterId": 518,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 588,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 549,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 578,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 536,
+    "$OpeningRate": 44.62
+  },
+  {
+    "$MasterId": 568,
+    "$OpeningRate": 47.74
+  },
+  {
+    "$MasterId": 226,
+    "$OpeningRate": 14.27
+  },
+  {
+    "$MasterId": 2611,
+    "$OpeningRate": 26.8
+  },
+  {
+    "$MasterId": 219,
+    "$OpeningRate": 24.41
+  },
+  {
+    "$MasterId": 1345,
+    "$OpeningRate": 25.16
+  },
+  {
+    "$MasterId": 559,
+    "$OpeningRate": 56.82
+  },
+  {
+    "$MasterId": 528,
+    "$OpeningRate": 73.65
+  },
+  {
+    "$MasterId": 519,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 589,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 550,
+    "$OpeningRate": 41.12
+  },
+  {
+    "$MasterId": 579,
+    "$OpeningRate": 73.65
+  },
+  {
+    "$MasterId": 537,
+    "$OpeningRate": 52.95
+  },
+  {
+    "$MasterId": 569,
+    "$OpeningRate": 58.46
+  },
+  {
+    "$MasterId": 5324,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 188,
+    "$OpeningRate": 29.62
+  },
+  {
+    "$MasterId": 1346,
+    "$OpeningRate": 28.51
+  },
+  {
+    "$MasterId": 560,
+    "$OpeningRate": 65.03
+  },
+  {
+    "$MasterId": 529,
+    "$OpeningRate": 45.18
+  },
+  {
+    "$MasterId": 520,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 590,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 595,
+    "$OpeningRate": 51.7
+  },
+  {
+    "$MasterId": 580,
+    "$OpeningRate": 65.95
+  },
+  {
+    "$MasterId": 538,
+    "$OpeningRate": 64.85
+  },
+  {
+    "$MasterId": 570,
+    "$OpeningRate": 70.89
+  },
+  {
+    "$MasterId": 227,
+    "$OpeningRate": 47.96
+  },
+  {
+    "$MasterId": 228,
+    "$OpeningRate": 81.37
+  },
+  {
+    "$MasterId": 187,
+    "$OpeningRate": 34.53
+  },
+  {
+    "$MasterId": 3491,
+    "$OpeningRate": 34.1
+  },
+  {
+    "$MasterId": 189,
+    "$OpeningRate": 39.51
+  },
+  {
+    "$MasterId": 1347,
+    "$OpeningRate": 41.86
+  },
+  {
+    "$MasterId": 561,
+    "$OpeningRate": 62.44
+  },
+  {
+    "$MasterId": 530,
+    "$OpeningRate": 58.36
+  },
+  {
+    "$MasterId": 521,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 591,
+    "$OpeningRate": 96.49
+  },
+  {
+    "$MasterId": 551,
+    "$OpeningRate": 70.77
+  },
+  {
+    "$MasterId": 581,
+    "$OpeningRate": 145.54
+  },
+  {
+    "$MasterId": 539,
+    "$OpeningRate": 95.34
+  },
+  {
+    "$MasterId": 571,
+    "$OpeningRate": 118.94
+  },
+  {
+    "$MasterId": 562,
+    "$OpeningRate": 102.2
+  },
+  {
+    "$MasterId": 531,
+    "$OpeningRate": 90.27
+  },
+  {
+    "$MasterId": 522,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 592,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1369,
+    "$OpeningRate": 46.4
+  },
+  {
+    "$MasterId": 552,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 582,
+    "$OpeningRate": 106.19
+  },
+  {
+    "$MasterId": 540,
+    "$OpeningRate": 90.94
+  },
+  {
+    "$MasterId": 572,
+    "$OpeningRate": 103.27
+  },
+  {
+    "$MasterId": 221,
+    "$OpeningRate": 47.96
+  },
+  {
+    "$MasterId": 229,
+    "$OpeningRate": 44.2
+  },
+  {
+    "$MasterId": 563,
+    "$OpeningRate": 105.9
+  },
+  {
+    "$MasterId": 532,
+    "$OpeningRate": 77.61
+  },
+  {
+    "$MasterId": 523,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 596,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1348,
+    "$OpeningRate": 46.43
+  },
+  {
+    "$MasterId": 553,
+    "$OpeningRate": 147.65
+  },
+  {
+    "$MasterId": 583,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 541,
+    "$OpeningRate": 423.6
+  },
+  {
+    "$MasterId": 573,
+    "$OpeningRate": 442.94
+  },
+  {
+    "$MasterId": 230,
+    "$OpeningRate": 14.94
+  },
+  {
+    "$MasterId": 1026,
+    "$OpeningRate": 30.43
+  },
+  {
+    "$MasterId": 1078,
+    "$OpeningRate": 25.97
+  },
+  {
+    "$MasterId": 222,
+    "$OpeningRate": 3.48
+  },
+  {
+    "$MasterId": 231,
+    "$OpeningRate": 56.15
+  },
+  {
+    "$MasterId": 232,
+    "$OpeningRate": 63.38
+  },
+  {
+    "$MasterId": 5062,
+    "$OpeningRate": 18.8
+  },
+  {
+    "$MasterId": 233,
+    "$OpeningRate": 13.65
+  },
+  {
+    "$MasterId": 394,
+    "$OpeningRate": 47.27
+  },
+  {
+    "$MasterId": 395,
+    "$OpeningRate": 43.44
+  },
+  {
+    "$MasterId": 396,
+    "$OpeningRate": 44.83
+  },
+  {
+    "$MasterId": 397,
+    "$OpeningRate": 44.89
+  },
+  {
+    "$MasterId": 1101,
+    "$OpeningRate": 104.8
+  },
+  {
+    "$MasterId": 1080,
+    "$OpeningRate": 87.14
+  },
+  {
+    "$MasterId": 513,
+    "$OpeningRate": 147.16
+  },
+  {
+    "$MasterId": 2684,
+    "$OpeningRate": 162.44
+  },
+  {
+    "$MasterId": 5436,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5437,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5567,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5537,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5438,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5538,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5439,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5440,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1222,
+    "$OpeningRate": 54.32
+  },
+  {
+    "$MasterId": 1223,
+    "$OpeningRate": 78.28
+  },
+  {
+    "$MasterId": 1215,
+    "$OpeningRate": 21.21
+  },
+  {
+    "$MasterId": 1335,
+    "$OpeningRate": 25.25
+  },
+  {
+    "$MasterId": 1216,
+    "$OpeningRate": 20.48
+  },
+  {
+    "$MasterId": 1338,
+    "$OpeningRate": 27.02
+  },
+  {
+    "$MasterId": 1337,
+    "$OpeningRate": 18.26
+  },
+  {
+    "$MasterId": 1217,
+    "$OpeningRate": 22.42
+  },
+  {
+    "$MasterId": 1218,
+    "$OpeningRate": 24.93
+  },
+  {
+    "$MasterId": 1219,
+    "$OpeningRate": 37.84
+  },
+  {
+    "$MasterId": 1221,
+    "$OpeningRate": 41.53
+  },
+  {
+    "$MasterId": 1220,
+    "$OpeningRate": 42.11
+  },
+  {
+    "$MasterId": 1336,
+    "$OpeningRate": 20.61
+  },
+  {
+    "$MasterId": 5476,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5478,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5654,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5411,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5486,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5412,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5577,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5413,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5655,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5477,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5414,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5480,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5415,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5481,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5416,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5482,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5417,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5483,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5418,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5485,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5419,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5484,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 234,
+    "$OpeningRate": 25.67
+  },
+  {
+    "$MasterId": 5467,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2705,
+    "$OpeningRate": 70.36
+  },
+  {
+    "$MasterId": 2706,
+    "$OpeningRate": 101.04
+  },
+  {
+    "$MasterId": 2698,
+    "$OpeningRate": 24.57
+  },
+  {
+    "$MasterId": 2699,
+    "$OpeningRate": 22.42
+  },
+  {
+    "$MasterId": 2700,
+    "$OpeningRate": 28.51
+  },
+  {
+    "$MasterId": 2701,
+    "$OpeningRate": 34.27
+  },
+  {
+    "$MasterId": 2702,
+    "$OpeningRate": 42.12
+  },
+  {
+    "$MasterId": 2704,
+    "$OpeningRate": 52.47
+  },
+  {
+    "$MasterId": 2703,
+    "$OpeningRate": 50.46
+  },
+  {
+    "$MasterId": 235,
+    "$OpeningRate": 21.98
+  },
+  {
+    "$MasterId": 1414,
+    "$OpeningRate": 748.25
+  },
+  {
+    "$MasterId": 2376,
+    "$OpeningRate": 835.03
+  },
+  {
+    "$MasterId": 1413,
+    "$OpeningRate": 822.14
+  },
+  {
+    "$MasterId": 3480,
+    "$OpeningRate": 815
+  },
+  {
+    "$MasterId": 1406,
+    "$OpeningRate": 1016.95
+  },
+  {
+    "$MasterId": 2437,
+    "$OpeningRate": 784.04
+  },
+  {
+    "$MasterId": 238,
+    "$OpeningRate": 26.86
+  },
+  {
+    "$MasterId": 239,
+    "$OpeningRate": 8.1
+  },
+  {
+    "$MasterId": 240,
+    "$OpeningRate": 8.85
+  },
+  {
+    "$MasterId": 389,
+    "$OpeningRate": 5.68
+  },
+  {
+    "$MasterId": 2566,
+    "$OpeningRate": 36.76
+  },
+  {
+    "$MasterId": 241,
+    "$OpeningRate": 10.56
+  },
+  {
+    "$MasterId": 242,
+    "$OpeningRate": 29.22
+  },
+  {
+    "$MasterId": 1436,
+    "$OpeningRate": 89.56
+  },
+  {
+    "$MasterId": 243,
+    "$OpeningRate": 14.35
+  },
+  {
+    "$MasterId": 248,
+    "$OpeningRate": 62.56
+  },
+  {
+    "$MasterId": 2438,
+    "$OpeningRate": 815
+  },
+  {
+    "$MasterId": 244,
+    "$OpeningRate": 8.97
+  },
+  {
+    "$MasterId": 2553,
+    "$OpeningRate": 30.39
+  },
+  {
+    "$MasterId": 2554,
+    "$OpeningRate": 27.22
+  },
+  {
+    "$MasterId": 2569,
+    "$OpeningRate": 7.19
+  },
+  {
+    "$MasterId": 2570,
+    "$OpeningRate": 9.25
+  },
+  {
+    "$MasterId": 2571,
+    "$OpeningRate": 11.19
+  },
+  {
+    "$MasterId": 2552,
+    "$OpeningRate": 17.86
+  },
+  {
+    "$MasterId": 2577,
+    "$OpeningRate": 16.5
+  },
+  {
+    "$MasterId": 2572,
+    "$OpeningRate": 22.23
+  },
+  {
+    "$MasterId": 2578,
+    "$OpeningRate": 57.42
+  },
+  {
+    "$MasterId": 2573,
+    "$OpeningRate": 28.31
+  },
+  {
+    "$MasterId": 2708,
+    "$OpeningRate": 30.49
+  },
+  {
+    "$MasterId": 245,
+    "$OpeningRate": 10.21
+  },
+  {
+    "$MasterId": 246,
+    "$OpeningRate": 15.85
+  },
+  {
+    "$MasterId": 2378,
+    "$OpeningRate": 11.37
+  },
+  {
+    "$MasterId": 2390,
+    "$OpeningRate": 17.88
+  },
+  {
+    "$MasterId": 247,
+    "$OpeningRate": 54.53
+  },
+  {
+    "$MasterId": 488,
+    "$OpeningRate": 59.76
+  },
+  {
+    "$MasterId": 1061,
+    "$OpeningRate": 51.16
+  },
+  {
+    "$MasterId": 249,
+    "$OpeningRate": 38.09
+  },
+  {
+    "$MasterId": 440,
+    "$OpeningRate": 830.25
+  },
+  {
+    "$MasterId": 441,
+    "$OpeningRate": 944.87
+  },
+  {
+    "$MasterId": 442,
+    "$OpeningRate": 986.46
+  },
+  {
+    "$MasterId": 387,
+    "$OpeningRate": 447.09
+  },
+  {
+    "$MasterId": 312,
+    "$OpeningRate": 668
+  },
+  {
+    "$MasterId": 363,
+    "$OpeningRate": 570.07
+  },
+  {
+    "$MasterId": 365,
+    "$OpeningRate": 543
+  },
+  {
+    "$MasterId": 2590,
+    "$OpeningRate": 642.28
+  },
+  {
+    "$MasterId": 362,
+    "$OpeningRate": 667.69
+  },
+  {
+    "$MasterId": 366,
+    "$OpeningRate": 566.29
+  },
+  {
+    "$MasterId": 364,
+    "$OpeningRate": 568.14
+  },
+  {
+    "$MasterId": 313,
+    "$OpeningRate": 974.05
+  },
+  {
+    "$MasterId": 368,
+    "$OpeningRate": 944.89
+  },
+  {
+    "$MasterId": 2591,
+    "$OpeningRate": 950.99
+  },
+  {
+    "$MasterId": 367,
+    "$OpeningRate": 944.76
+  },
+  {
+    "$MasterId": 371,
+    "$OpeningRate": 835.48
+  },
+  {
+    "$MasterId": 369,
+    "$OpeningRate": 907.82
+  },
+  {
+    "$MasterId": 372,
+    "$OpeningRate": 1497.67
+  },
+  {
+    "$MasterId": 374,
+    "$OpeningRate": 1518.51
+  },
+  {
+    "$MasterId": 2533,
+    "$OpeningRate": 1476.71
+  },
+  {
+    "$MasterId": 373,
+    "$OpeningRate": 1499.42
+  },
+  {
+    "$MasterId": 2534,
+    "$OpeningRate": 2159.26
+  },
+  {
+    "$MasterId": 378,
+    "$OpeningRate": 2123.29
+  },
+  {
+    "$MasterId": 497,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 498,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 499,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 500,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 501,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 317,
+    "$OpeningRate": 30
+  },
+  {
+    "$MasterId": 194,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2830,
+    "$OpeningRate": 64.3
+  },
+  {
+    "$MasterId": 3597,
+    "$OpeningRate": 60.71
+  },
+  {
+    "$MasterId": 3655,
+    "$OpeningRate": 57.99
+  },
+  {
+    "$MasterId": 1126,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1275,
+    "$OpeningRate": 108
+  },
+  {
+    "$MasterId": 2422,
+    "$OpeningRate": 90
+  },
+  {
+    "$MasterId": 2508,
+    "$OpeningRate": 72.25
+  },
+  {
+    "$MasterId": 2417,
+    "$OpeningRate": 55
+  },
+  {
+    "$MasterId": 2418,
+    "$OpeningRate": 17
+  },
+  {
+    "$MasterId": 2509,
+    "$OpeningRate": 21
+  },
+  {
+    "$MasterId": 2511,
+    "$OpeningRate": 27.6
+  },
+  {
+    "$MasterId": 2421,
+    "$OpeningRate": 30.5
+  },
+  {
+    "$MasterId": 2419,
+    "$OpeningRate": 56
+  },
+  {
+    "$MasterId": 2512,
+    "$OpeningRate": 125
+  },
+  {
+    "$MasterId": 2423,
+    "$OpeningRate": 42.25
+  },
+  {
+    "$MasterId": 2428,
+    "$OpeningRate": 60
+  },
+  {
+    "$MasterId": 2510,
+    "$OpeningRate": 70
+  },
+  {
+    "$MasterId": 2513,
+    "$OpeningRate": 8
+  },
+  {
+    "$MasterId": 3640,
+    "$OpeningRate": 221.92
+  },
+  {
+    "$MasterId": 3561,
+    "$OpeningRate": 35.33
+  },
+  {
+    "$MasterId": 3562,
+    "$OpeningRate": 319
+  },
+  {
+    "$MasterId": 3534,
+    "$OpeningRate": 89.83
+  },
+  {
+    "$MasterId": 3535,
+    "$OpeningRate": 471.19
+  },
+  {
+    "$MasterId": 1105,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4821,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1306,
+    "$OpeningRate": 24.5
+  },
+  {
+    "$MasterId": 1307,
+    "$OpeningRate": 161
+  },
+  {
+    "$MasterId": 3896,
+    "$OpeningRate": 1820.69
+  },
+  {
+    "$MasterId": 3863,
+    "$OpeningRate": 3412.25
+  },
+  {
+    "$MasterId": 3861,
+    "$OpeningRate": 1334.95
+  },
+  {
+    "$MasterId": 3862,
+    "$OpeningRate": 2574.78
+  },
+  {
+    "$MasterId": 331,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1185,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 979,
+    "$OpeningRate": 651.35
+  },
+  {
+    "$MasterId": 980,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1260,
+    "$OpeningRate": 162
+  },
+  {
+    "$MasterId": 3501,
+    "$OpeningRate": 123.5
+  },
+  {
+    "$MasterId": 3500,
+    "$OpeningRate": 446.61
+  },
+  {
+    "$MasterId": 4840,
+    "$OpeningRate": 3491.53
+  },
+  {
+    "$MasterId": 4849,
+    "$OpeningRate": 1079.2
+  },
+  {
+    "$MasterId": 4850,
+    "$OpeningRate": 293.55
+  },
+  {
+    "$MasterId": 4839,
+    "$OpeningRate": 3601.69
+  },
+  {
+    "$MasterId": 4851,
+    "$OpeningRate": 1129.55
+  },
+  {
+    "$MasterId": 4846,
+    "$OpeningRate": 296.4
+  },
+  {
+    "$MasterId": 4838,
+    "$OpeningRate": 3601.69
+  },
+  {
+    "$MasterId": 4847,
+    "$OpeningRate": 1134.3
+  },
+  {
+    "$MasterId": 4843,
+    "$OpeningRate": 1957.99
+  },
+  {
+    "$MasterId": 4844,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4854,
+    "$OpeningRate": 698.25
+  },
+  {
+    "$MasterId": 4842,
+    "$OpeningRate": 9893.22
+  },
+  {
+    "$MasterId": 4845,
+    "$OpeningRate": 2727.45
+  },
+  {
+    "$MasterId": 4841,
+    "$OpeningRate": 2437.6
+  },
+  {
+    "$MasterId": 3498,
+    "$OpeningRate": 184.6
+  },
+  {
+    "$MasterId": 3499,
+    "$OpeningRate": 631.75
+  },
+  {
+    "$MasterId": 4848,
+    "$OpeningRate": 282.15
+  },
+  {
+    "$MasterId": 5569,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5048,
+    "$OpeningRate": 4958
+  },
+  {
+    "$MasterId": 5172,
+    "$OpeningRate": 1888.77
+  },
+  {
+    "$MasterId": 5112,
+    "$OpeningRate": 4196.96
+  },
+  {
+    "$MasterId": 5113,
+    "$OpeningRate": 4832.49
+  },
+  {
+    "$MasterId": 3814,
+    "$OpeningRate": 846.64
+  },
+  {
+    "$MasterId": 3809,
+    "$OpeningRate": 416.98
+  },
+  {
+    "$MasterId": 3829,
+    "$OpeningRate": 311.36
+  },
+  {
+    "$MasterId": 5532,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4799,
+    "$OpeningRate": 1590.51
+  },
+  {
+    "$MasterId": 5089,
+    "$OpeningRate": 1607.3
+  },
+  {
+    "$MasterId": 3973,
+    "$OpeningRate": 2280.55
+  },
+  {
+    "$MasterId": 3974,
+    "$OpeningRate": 2555.75
+  },
+  {
+    "$MasterId": 4966,
+    "$OpeningRate": 1067.57
+  },
+  {
+    "$MasterId": 5601,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5611,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4950,
+    "$OpeningRate": 3690.15
+  },
+  {
+    "$MasterId": 4097,
+    "$OpeningRate": 818.4
+  },
+  {
+    "$MasterId": 3817,
+    "$OpeningRate": 898.22
+  },
+  {
+    "$MasterId": 3816,
+    "$OpeningRate": 835.86
+  },
+  {
+    "$MasterId": 3994,
+    "$OpeningRate": 2517.49
+  },
+  {
+    "$MasterId": 3995,
+    "$OpeningRate": 2516.97
+  },
+  {
+    "$MasterId": 3827,
+    "$OpeningRate": 389.56
+  },
+  {
+    "$MasterId": 5132,
+    "$OpeningRate": 448.89
+  },
+  {
+    "$MasterId": 5556,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5557,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5534,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3939,
+    "$OpeningRate": 914.31
+  },
+  {
+    "$MasterId": 3808,
+    "$OpeningRate": 496.09
+  },
+  {
+    "$MasterId": 5133,
+    "$OpeningRate": 2602.59
+  },
+  {
+    "$MasterId": 5251,
+    "$OpeningRate": 3785.32
+  },
+  {
+    "$MasterId": 4107,
+    "$OpeningRate": 2078.18
+  },
+  {
+    "$MasterId": 3938,
+    "$OpeningRate": 1428.32
+  },
+  {
+    "$MasterId": 3877,
+    "$OpeningRate": 807.18
+  },
+  {
+    "$MasterId": 4883,
+    "$OpeningRate": 1226.68
+  },
+  {
+    "$MasterId": 3996,
+    "$OpeningRate": 1745.94
+  },
+  {
+    "$MasterId": 5576,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5177,
+    "$OpeningRate": 525.72
+  },
+  {
+    "$MasterId": 5128,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3815,
+    "$OpeningRate": 477.43
+  },
+  {
+    "$MasterId": 3830,
+    "$OpeningRate": 518.27
+  },
+  {
+    "$MasterId": 3810,
+    "$OpeningRate": 494.89
+  },
+  {
+    "$MasterId": 5136,
+    "$OpeningRate": 1263.75
+  },
+  {
+    "$MasterId": 3831,
+    "$OpeningRate": 1355.78
+  },
+  {
+    "$MasterId": 5286,
+    "$OpeningRate": 1538.14
+  },
+  {
+    "$MasterId": 4095,
+    "$OpeningRate": 2032.11
+  },
+  {
+    "$MasterId": 4917,
+    "$OpeningRate": 1748.31
+  },
+  {
+    "$MasterId": 3821,
+    "$OpeningRate": 768.69
+  },
+  {
+    "$MasterId": 3828,
+    "$OpeningRate": 1901.6
+  },
+  {
+    "$MasterId": 4912,
+    "$OpeningRate": 1577.15
+  },
+  {
+    "$MasterId": 5058,
+    "$OpeningRate": 1551.12
+  },
+  {
+    "$MasterId": 5088,
+    "$OpeningRate": 839.13
+  },
+  {
+    "$MasterId": 5260,
+    "$OpeningRate": 1061.5
+  },
+  {
+    "$MasterId": 5253,
+    "$OpeningRate": 1056.62
+  },
+  {
+    "$MasterId": 5612,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3818,
+    "$OpeningRate": 1386.6
+  },
+  {
+    "$MasterId": 5283,
+    "$OpeningRate": 1501.34
+  },
+  {
+    "$MasterId": 3811,
+    "$OpeningRate": 313.41
+  },
+  {
+    "$MasterId": 4908,
+    "$OpeningRate": 1354.74
+  },
+  {
+    "$MasterId": 3819,
+    "$OpeningRate": 2024.49
+  },
+  {
+    "$MasterId": 3820,
+    "$OpeningRate": 1513.63
+  },
+  {
+    "$MasterId": 4951,
+    "$OpeningRate": 990.78
+  },
+  {
+    "$MasterId": 5170,
+    "$OpeningRate": 4830.51
+  },
+  {
+    "$MasterId": 5171,
+    "$OpeningRate": 5423.73
+  },
+  {
+    "$MasterId": 3812,
+    "$OpeningRate": 743.53
+  },
+  {
+    "$MasterId": 3813,
+    "$OpeningRate": 773.77
+  },
+  {
+    "$MasterId": 5114,
+    "$OpeningRate": 5769.06
+  },
+  {
+    "$MasterId": 5134,
+    "$OpeningRate": 6368.12
+  },
+  {
+    "$MasterId": 5533,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3940,
+    "$OpeningRate": 940.06
+  },
+  {
+    "$MasterId": 5246,
+    "$OpeningRate": 1020.51
+  },
+  {
+    "$MasterId": 5247,
+    "$OpeningRate": 1021.33
+  },
+  {
+    "$MasterId": 5641,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5642,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5180,
+    "$OpeningRate": 4145.1
+  },
+  {
+    "$MasterId": 5181,
+    "$OpeningRate": 5055
+  },
+  {
+    "$MasterId": 5165,
+    "$OpeningRate": 1813.65
+  },
+  {
+    "$MasterId": 5517,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5566,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5583,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5535,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5582,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5516,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5495,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 213,
+    "$OpeningRate": 7
+  },
+  {
+    "$MasterId": 983,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 966,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3067,
+    "$OpeningRate": 7203
+  },
+  {
+    "$MasterId": 1149,
+    "$OpeningRate": 25.6
+  },
+  {
+    "$MasterId": 1259,
+    "$OpeningRate": 99.44
+  },
+  {
+    "$MasterId": 1255,
+    "$OpeningRate": 74
+  },
+  {
+    "$MasterId": 1258,
+    "$OpeningRate": 99.44
+  },
+  {
+    "$MasterId": 1256,
+    "$OpeningRate": 99.44
+  },
+  {
+    "$MasterId": 1257,
+    "$OpeningRate": 99.44
+  },
+  {
+    "$MasterId": 1272,
+    "$OpeningRate": 99.44
+  },
+  {
+    "$MasterId": 1313,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5542,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3594,
+    "$OpeningRate": 29.27
+  },
+  {
+    "$MasterId": 2536,
+    "$OpeningRate": 418.68
+  },
+  {
+    "$MasterId": 2537,
+    "$OpeningRate": 603.72
+  },
+  {
+    "$MasterId": 2538,
+    "$OpeningRate": 902.17
+  },
+  {
+    "$MasterId": 3123,
+    "$OpeningRate": 28.75
+  },
+  {
+    "$MasterId": 2755,
+    "$OpeningRate": 1430.39
+  },
+  {
+    "$MasterId": 2539,
+    "$OpeningRate": 2143.18
+  },
+  {
+    "$MasterId": 3122,
+    "$OpeningRate": 18.82
+  },
+  {
+    "$MasterId": 2791,
+    "$OpeningRate": 14.63
+  },
+  {
+    "$MasterId": 2588,
+    "$OpeningRate": 1116.25
+  },
+  {
+    "$MasterId": 2587,
+    "$OpeningRate": 973.75
+  },
+  {
+    "$MasterId": 2586,
+    "$OpeningRate": 1204.38
+  },
+  {
+    "$MasterId": 2388,
+    "$OpeningRate": 68.97
+  },
+  {
+    "$MasterId": 2583,
+    "$OpeningRate": 891.75
+  },
+  {
+    "$MasterId": 2582,
+    "$OpeningRate": 843.07
+  },
+  {
+    "$MasterId": 3937,
+    "$OpeningRate": 14.63
+  },
+  {
+    "$MasterId": 1353,
+    "$OpeningRate": 722.63
+  },
+  {
+    "$MasterId": 2666,
+    "$OpeningRate": 64.09
+  },
+  {
+    "$MasterId": 2467,
+    "$OpeningRate": 29.4
+  },
+  {
+    "$MasterId": 2465,
+    "$OpeningRate": 11.52
+  },
+  {
+    "$MasterId": 3702,
+    "$OpeningRate": 35.91
+  },
+  {
+    "$MasterId": 2466,
+    "$OpeningRate": 15.76
+  },
+  {
+    "$MasterId": 2477,
+    "$OpeningRate": 23.11
+  },
+  {
+    "$MasterId": 2472,
+    "$OpeningRate": 16.55
+  },
+  {
+    "$MasterId": 2476,
+    "$OpeningRate": 27.32
+  },
+  {
+    "$MasterId": 2475,
+    "$OpeningRate": 31.52
+  },
+  {
+    "$MasterId": 2469,
+    "$OpeningRate": 57.71
+  },
+  {
+    "$MasterId": 2470,
+    "$OpeningRate": 68.29
+  },
+  {
+    "$MasterId": 2468,
+    "$OpeningRate": 33.62
+  },
+  {
+    "$MasterId": 3768,
+    "$OpeningRate": 34.65
+  },
+  {
+    "$MasterId": 2474,
+    "$OpeningRate": 43.07
+  },
+  {
+    "$MasterId": 2473,
+    "$OpeningRate": 49.38
+  },
+  {
+    "$MasterId": 2671,
+    "$OpeningRate": 4.73
+  },
+  {
+    "$MasterId": 2663,
+    "$OpeningRate": 44
+  },
+  {
+    "$MasterId": 2471,
+    "$OpeningRate": 17.86
+  },
+  {
+    "$MasterId": 2662,
+    "$OpeningRate": 24.69
+  },
+  {
+    "$MasterId": 2661,
+    "$OpeningRate": 12.61
+  },
+  {
+    "$MasterId": 2664,
+    "$OpeningRate": 16.81
+  },
+  {
+    "$MasterId": 2665,
+    "$OpeningRate": 11.56
+  },
+  {
+    "$MasterId": 3981,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4005,
+    "$OpeningRate": 769
+  },
+  {
+    "$MasterId": 2672,
+    "$OpeningRate": 49.35
+  },
+  {
+    "$MasterId": 2673,
+    "$OpeningRate": 50.4
+  },
+  {
+    "$MasterId": 2668,
+    "$OpeningRate": 48.3
+  },
+  {
+    "$MasterId": 2674,
+    "$OpeningRate": 48.3
+  },
+  {
+    "$MasterId": 2646,
+    "$OpeningRate": 112.69
+  },
+  {
+    "$MasterId": 2667,
+    "$OpeningRate": 45.86
+  },
+  {
+    "$MasterId": 2647,
+    "$OpeningRate": 146.82
+  },
+  {
+    "$MasterId": 2778,
+    "$OpeningRate": 128
+  },
+  {
+    "$MasterId": 2648,
+    "$OpeningRate": 182.77
+  },
+  {
+    "$MasterId": 2581,
+    "$OpeningRate": 898.3
+  },
+  {
+    "$MasterId": 2580,
+    "$OpeningRate": 748.25
+  },
+  {
+    "$MasterId": 2579,
+    "$OpeningRate": 789.25
+  },
+  {
+    "$MasterId": 2589,
+    "$OpeningRate": 707.25
+  },
+  {
+    "$MasterId": 2585,
+    "$OpeningRate": 1330.43
+  },
+  {
+    "$MasterId": 2613,
+    "$OpeningRate": 1266
+  },
+  {
+    "$MasterId": 2584,
+    "$OpeningRate": 999.38
+  },
+  {
+    "$MasterId": 2614,
+    "$OpeningRate": 999.38
+  },
+  {
+    "$MasterId": 1366,
+    "$OpeningRate": 4.5
+  },
+  {
+    "$MasterId": 3854,
+    "$OpeningRate": 157
+  },
+  {
+    "$MasterId": 3853,
+    "$OpeningRate": 99
+  },
+  {
+    "$MasterId": 3977,
+    "$OpeningRate": 793
+  },
+  {
+    "$MasterId": 2752,
+    "$OpeningRate": 335.79
+  },
+  {
+    "$MasterId": 1261,
+    "$OpeningRate": 136
+  },
+  {
+    "$MasterId": 4869,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4870,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4856,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4871,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4873,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3455,
+    "$OpeningRate": 137.5
+  },
+  {
+    "$MasterId": 4875,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2690,
+    "$OpeningRate": 4092.66
+  },
+  {
+    "$MasterId": 2689,
+    "$OpeningRate": 1829.52
+  },
+  {
+    "$MasterId": 2691,
+    "$OpeningRate": 2278.32
+  },
+  {
+    "$MasterId": 2692,
+    "$OpeningRate": 2733.06
+  },
+  {
+    "$MasterId": 2371,
+    "$OpeningRate": 7
+  },
+  {
+    "$MasterId": 1308,
+    "$OpeningRate": 17
+  },
+  {
+    "$MasterId": 4816,
+    "$OpeningRate": 847.46
+  },
+  {
+    "$MasterId": 180,
+    "$OpeningRate": 172
+  },
+  {
+    "$MasterId": 1186,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1309,
+    "$OpeningRate": 351.5
+  },
+  {
+    "$MasterId": 253,
+    "$OpeningRate": 4.2
+  },
+  {
+    "$MasterId": 257,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 258,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 259,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 260,
+    "$OpeningRate": 16.5
+  },
+  {
+    "$MasterId": 255,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1145,
+    "$OpeningRate": 13.58
+  },
+  {
+    "$MasterId": 1169,
+    "$OpeningRate": 57.15
+  },
+  {
+    "$MasterId": 1146,
+    "$OpeningRate": 46
+  },
+  {
+    "$MasterId": 1157,
+    "$OpeningRate": 81.45
+  },
+  {
+    "$MasterId": 1150,
+    "$OpeningRate": 260
+  },
+  {
+    "$MasterId": 262,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 252,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 261,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3069,
+    "$OpeningRate": 0.85
+  },
+  {
+    "$MasterId": 2975,
+    "$OpeningRate": 1080.51
+  },
+  {
+    "$MasterId": 2976,
+    "$OpeningRate": 1080.51
+  },
+  {
+    "$MasterId": 2977,
+    "$OpeningRate": 1313.77
+  },
+  {
+    "$MasterId": 2978,
+    "$OpeningRate": 1261.08
+  },
+  {
+    "$MasterId": 3007,
+    "$OpeningRate": 1261.08
+  },
+  {
+    "$MasterId": 3030,
+    "$OpeningRate": 5932.5
+  },
+  {
+    "$MasterId": 2979,
+    "$OpeningRate": 793.26
+  },
+  {
+    "$MasterId": 2980,
+    "$OpeningRate": 872.93
+  },
+  {
+    "$MasterId": 3033,
+    "$OpeningRate": 4277.33
+  },
+  {
+    "$MasterId": 2985,
+    "$OpeningRate": 3823.07
+  },
+  {
+    "$MasterId": 3032,
+    "$OpeningRate": 1122.94
+  },
+  {
+    "$MasterId": 3008,
+    "$OpeningRate": 1494.99
+  },
+  {
+    "$MasterId": 2974,
+    "$OpeningRate": 1494.99
+  },
+  {
+    "$MasterId": 2973,
+    "$OpeningRate": 1494.99
+  },
+  {
+    "$MasterId": 3485,
+    "$OpeningRate": 1251.48
+  },
+  {
+    "$MasterId": 2982,
+    "$OpeningRate": 1869.59
+  },
+  {
+    "$MasterId": 2983,
+    "$OpeningRate": 1869.59
+  },
+  {
+    "$MasterId": 2984,
+    "$OpeningRate": 1869.59
+  },
+  {
+    "$MasterId": 3031,
+    "$OpeningRate": 7542.75
+  },
+  {
+    "$MasterId": 5357,
+    "$OpeningRate": 498.75
+  },
+  {
+    "$MasterId": 5358,
+    "$OpeningRate": 708.64
+  },
+  {
+    "$MasterId": 2711,
+    "$OpeningRate": 166.07
+  },
+  {
+    "$MasterId": 2924,
+    "$OpeningRate": 237
+  },
+  {
+    "$MasterId": 3026,
+    "$OpeningRate": 1110.71
+  },
+  {
+    "$MasterId": 3027,
+    "$OpeningRate": 255
+  },
+  {
+    "$MasterId": 3100,
+    "$OpeningRate": 365
+  },
+  {
+    "$MasterId": 2650,
+    "$OpeningRate": 107.14
+  },
+  {
+    "$MasterId": 2849,
+    "$OpeningRate": 305
+  },
+  {
+    "$MasterId": 2846,
+    "$OpeningRate": 385
+  },
+  {
+    "$MasterId": 2847,
+    "$OpeningRate": 465
+  },
+  {
+    "$MasterId": 2925,
+    "$OpeningRate": 465
+  },
+  {
+    "$MasterId": 2928,
+    "$OpeningRate": 1750
+  },
+  {
+    "$MasterId": 2962,
+    "$OpeningRate": 91.53
+  },
+  {
+    "$MasterId": 2895,
+    "$OpeningRate": 120.84
+  },
+  {
+    "$MasterId": 2898,
+    "$OpeningRate": 125
+  },
+  {
+    "$MasterId": 2939,
+    "$OpeningRate": 59.6
+  },
+  {
+    "$MasterId": 2944,
+    "$OpeningRate": 62.6
+  },
+  {
+    "$MasterId": 2943,
+    "$OpeningRate": 52.54
+  },
+  {
+    "$MasterId": 2923,
+    "$OpeningRate": 54.46
+  },
+  {
+    "$MasterId": 2907,
+    "$OpeningRate": 53.57
+  },
+  {
+    "$MasterId": 2853,
+    "$OpeningRate": 53.39
+  },
+  {
+    "$MasterId": 2938,
+    "$OpeningRate": 50.1
+  },
+  {
+    "$MasterId": 2929,
+    "$OpeningRate": 66.1
+  },
+  {
+    "$MasterId": 2942,
+    "$OpeningRate": 53.39
+  },
+  {
+    "$MasterId": 2926,
+    "$OpeningRate": 162.5
+  },
+  {
+    "$MasterId": 3117,
+    "$OpeningRate": 241.96
+  },
+  {
+    "$MasterId": 2833,
+    "$OpeningRate": 243.75
+  },
+  {
+    "$MasterId": 2888,
+    "$OpeningRate": 241.96
+  },
+  {
+    "$MasterId": 2879,
+    "$OpeningRate": 241.96
+  },
+  {
+    "$MasterId": 2889,
+    "$OpeningRate": 167
+  },
+  {
+    "$MasterId": 2880,
+    "$OpeningRate": 162.5
+  },
+  {
+    "$MasterId": 2902,
+    "$OpeningRate": 1250
+  },
+  {
+    "$MasterId": 2940,
+    "$OpeningRate": 320.25
+  },
+  {
+    "$MasterId": 2941,
+    "$OpeningRate": 54.47
+  },
+  {
+    "$MasterId": 2825,
+    "$OpeningRate": 105.93
+  },
+  {
+    "$MasterId": 3071,
+    "$OpeningRate": 133.93
+  },
+  {
+    "$MasterId": 2856,
+    "$OpeningRate": 76.27
+  },
+  {
+    "$MasterId": 2882,
+    "$OpeningRate": 142.86
+  },
+  {
+    "$MasterId": 2859,
+    "$OpeningRate": 349.14
+  },
+  {
+    "$MasterId": 2854,
+    "$OpeningRate": 181.21
+  },
+  {
+    "$MasterId": 2883,
+    "$OpeningRate": 205
+  },
+  {
+    "$MasterId": 3046,
+    "$OpeningRate": 240
+  },
+  {
+    "$MasterId": 2839,
+    "$OpeningRate": 669.64
+  },
+  {
+    "$MasterId": 2927,
+    "$OpeningRate": 2800
+  },
+  {
+    "$MasterId": 2817,
+    "$OpeningRate": 516
+  },
+  {
+    "$MasterId": 2890,
+    "$OpeningRate": 516
+  },
+  {
+    "$MasterId": 2818,
+    "$OpeningRate": 428
+  },
+  {
+    "$MasterId": 2931,
+    "$OpeningRate": 207
+  },
+  {
+    "$MasterId": 2906,
+    "$OpeningRate": 930
+  },
+  {
+    "$MasterId": 3092,
+    "$OpeningRate": 1200
+  },
+  {
+    "$MasterId": 2826,
+    "$OpeningRate": 355
+  },
+  {
+    "$MasterId": 264,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 266,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 268,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 265,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 323,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 267,
+    "$OpeningRate": 208
+  },
+  {
+    "$MasterId": 324,
+    "$OpeningRate": 38.13
+  },
+  {
+    "$MasterId": 1212,
+    "$OpeningRate": 22.6
+  },
+  {
+    "$MasterId": 1267,
+    "$OpeningRate": 140
+  },
+  {
+    "$MasterId": 1174,
+    "$OpeningRate": 106.25
+  },
+  {
+    "$MasterId": 1179,
+    "$OpeningRate": 120.54
+  },
+  {
+    "$MasterId": 1180,
+    "$OpeningRate": 164
+  },
+  {
+    "$MasterId": 1225,
+    "$OpeningRate": 171.68
+  },
+  {
+    "$MasterId": 1182,
+    "$OpeningRate": 135
+  },
+  {
+    "$MasterId": 1245,
+    "$OpeningRate": 245.08
+  },
+  {
+    "$MasterId": 1181,
+    "$OpeningRate": 200
+  },
+  {
+    "$MasterId": 1268,
+    "$OpeningRate": 85
+  },
+  {
+    "$MasterId": 1269,
+    "$OpeningRate": 85
+  },
+  {
+    "$MasterId": 1270,
+    "$OpeningRate": 75.9
+  },
+  {
+    "$MasterId": 1271,
+    "$OpeningRate": 75.9
+  },
+  {
+    "$MasterId": 1191,
+    "$OpeningRate": 296.62
+  },
+  {
+    "$MasterId": 1176,
+    "$OpeningRate": 50
+  },
+  {
+    "$MasterId": 1192,
+    "$OpeningRate": 408
+  },
+  {
+    "$MasterId": 1193,
+    "$OpeningRate": 466.1
+  },
+  {
+    "$MasterId": 1177,
+    "$OpeningRate": 50
+  },
+  {
+    "$MasterId": 1178,
+    "$OpeningRate": 50
+  },
+  {
+    "$MasterId": 1175,
+    "$OpeningRate": 54.47
+  },
+  {
+    "$MasterId": 1228,
+    "$OpeningRate": 265
+  },
+  {
+    "$MasterId": 1229,
+    "$OpeningRate": 265
+  },
+  {
+    "$MasterId": 1202,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1227,
+    "$OpeningRate": 171
+  },
+  {
+    "$MasterId": 1201,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1264,
+    "$OpeningRate": 281.25
+  },
+  {
+    "$MasterId": 1265,
+    "$OpeningRate": 390
+  },
+  {
+    "$MasterId": 1266,
+    "$OpeningRate": 515
+  },
+  {
+    "$MasterId": 3919,
+    "$OpeningRate": 571.73
+  },
+  {
+    "$MasterId": 1151,
+    "$OpeningRate": 13.44
+  },
+  {
+    "$MasterId": 2526,
+    "$OpeningRate": 100
+  },
+  {
+    "$MasterId": 2524,
+    "$OpeningRate": 40
+  },
+  {
+    "$MasterId": 2523,
+    "$OpeningRate": 65
+  },
+  {
+    "$MasterId": 2528,
+    "$OpeningRate": 35
+  },
+  {
+    "$MasterId": 2521,
+    "$OpeningRate": 16
+  },
+  {
+    "$MasterId": 2522,
+    "$OpeningRate": 35
+  },
+  {
+    "$MasterId": 2525,
+    "$OpeningRate": 128
+  },
+  {
+    "$MasterId": 2361,
+    "$OpeningRate": 550
+  },
+  {
+    "$MasterId": 995,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 996,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1046,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3864,
+    "$OpeningRate": 48.29
+  },
+  {
+    "$MasterId": 3825,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3826,
+    "$OpeningRate": 825
+  },
+  {
+    "$MasterId": 3790,
+    "$OpeningRate": 111.49
+  },
+  {
+    "$MasterId": 4034,
+    "$OpeningRate": 247.73
+  },
+  {
+    "$MasterId": 4944,
+    "$OpeningRate": 245.74
+  },
+  {
+    "$MasterId": 4945,
+    "$OpeningRate": 245
+  },
+  {
+    "$MasterId": 4024,
+    "$OpeningRate": 302.4
+  },
+  {
+    "$MasterId": 3962,
+    "$OpeningRate": 380
+  },
+  {
+    "$MasterId": 4777,
+    "$OpeningRate": 413.89
+  },
+  {
+    "$MasterId": 4801,
+    "$OpeningRate": 508.8
+  },
+  {
+    "$MasterId": 4802,
+    "$OpeningRate": 734.4
+  },
+  {
+    "$MasterId": 2930,
+    "$OpeningRate": 63.1
+  },
+  {
+    "$MasterId": 4997,
+    "$OpeningRate": 650
+  },
+  {
+    "$MasterId": 3851,
+    "$OpeningRate": 72.96
+  },
+  {
+    "$MasterId": 5021,
+    "$OpeningRate": 1020
+  },
+  {
+    "$MasterId": 4028,
+    "$OpeningRate": 482.67
+  },
+  {
+    "$MasterId": 4998,
+    "$OpeningRate": 480
+  },
+  {
+    "$MasterId": 4120,
+    "$OpeningRate": 619.5
+  },
+  {
+    "$MasterId": 4027,
+    "$OpeningRate": 618.82
+  },
+  {
+    "$MasterId": 5055,
+    "$OpeningRate": 480
+  },
+  {
+    "$MasterId": 4029,
+    "$OpeningRate": 1008.74
+  },
+  {
+    "$MasterId": 4025,
+    "$OpeningRate": 648
+  },
+  {
+    "$MasterId": 4053,
+    "$OpeningRate": 926.4
+  },
+  {
+    "$MasterId": 3969,
+    "$OpeningRate": 830.1
+  },
+  {
+    "$MasterId": 3918,
+    "$OpeningRate": 528.55
+  },
+  {
+    "$MasterId": 3781,
+    "$OpeningRate": 533.5
+  },
+  {
+    "$MasterId": 5077,
+    "$OpeningRate": 422
+  },
+  {
+    "$MasterId": 3761,
+    "$OpeningRate": 426.71
+  },
+  {
+    "$MasterId": 4022,
+    "$OpeningRate": 622.5
+  },
+  {
+    "$MasterId": 4023,
+    "$OpeningRate": 979.2
+  },
+  {
+    "$MasterId": 4857,
+    "$OpeningRate": 528.89
+  },
+  {
+    "$MasterId": 4858,
+    "$OpeningRate": 532.86
+  },
+  {
+    "$MasterId": 4020,
+    "$OpeningRate": 876.15
+  },
+  {
+    "$MasterId": 5152,
+    "$OpeningRate": 885
+  },
+  {
+    "$MasterId": 5022,
+    "$OpeningRate": 425
+  },
+  {
+    "$MasterId": 5020,
+    "$OpeningRate": 425
+  },
+  {
+    "$MasterId": 4011,
+    "$OpeningRate": 417.21
+  },
+  {
+    "$MasterId": 5010,
+    "$OpeningRate": 450
+  },
+  {
+    "$MasterId": 5147,
+    "$OpeningRate": 450
+  },
+  {
+    "$MasterId": 3954,
+    "$OpeningRate": 581.6
+  },
+  {
+    "$MasterId": 4947,
+    "$OpeningRate": 566.4
+  },
+  {
+    "$MasterId": 3961,
+    "$OpeningRate": 672
+  },
+  {
+    "$MasterId": 4825,
+    "$OpeningRate": 672
+  },
+  {
+    "$MasterId": 5033,
+    "$OpeningRate": 800
+  },
+  {
+    "$MasterId": 5023,
+    "$OpeningRate": 801.65
+  },
+  {
+    "$MasterId": 4743,
+    "$OpeningRate": 790.86
+  },
+  {
+    "$MasterId": 3955,
+    "$OpeningRate": 294.88
+  },
+  {
+    "$MasterId": 4824,
+    "$OpeningRate": 288
+  },
+  {
+    "$MasterId": 4047,
+    "$OpeningRate": 296.15
+  },
+  {
+    "$MasterId": 4992,
+    "$OpeningRate": 349.27
+  },
+  {
+    "$MasterId": 4996,
+    "$OpeningRate": 350
+  },
+  {
+    "$MasterId": 4010,
+    "$OpeningRate": 345.42
+  },
+  {
+    "$MasterId": 4964,
+    "$OpeningRate": 400
+  },
+  {
+    "$MasterId": 3750,
+    "$OpeningRate": 163.38
+  },
+  {
+    "$MasterId": 3708,
+    "$OpeningRate": 470.84
+  },
+  {
+    "$MasterId": 3909,
+    "$OpeningRate": 445
+  },
+  {
+    "$MasterId": 3910,
+    "$OpeningRate": 427.2
+  },
+  {
+    "$MasterId": 3935,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3936,
+    "$OpeningRate": 744.96
+  },
+  {
+    "$MasterId": 3966,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3679,
+    "$OpeningRate": 107.98
+  },
+  {
+    "$MasterId": 5318,
+    "$OpeningRate": 283
+  },
+  {
+    "$MasterId": 3743,
+    "$OpeningRate": 278.91
+  },
+  {
+    "$MasterId": 5319,
+    "$OpeningRate": 187
+  },
+  {
+    "$MasterId": 3699,
+    "$OpeningRate": 183.8
+  },
+  {
+    "$MasterId": 3676,
+    "$OpeningRate": 279.69
+  },
+  {
+    "$MasterId": 5320,
+    "$OpeningRate": 283
+  },
+  {
+    "$MasterId": 3700,
+    "$OpeningRate": 278.47
+  },
+  {
+    "$MasterId": 3666,
+    "$OpeningRate": 184.81
+  },
+  {
+    "$MasterId": 3744,
+    "$OpeningRate": 183.38
+  },
+  {
+    "$MasterId": 3698,
+    "$OpeningRate": 125.5
+  },
+  {
+    "$MasterId": 3751,
+    "$OpeningRate": 122.77
+  },
+  {
+    "$MasterId": 3754,
+    "$OpeningRate": 123.61
+  },
+  {
+    "$MasterId": 3681,
+    "$OpeningRate": 378.63
+  },
+  {
+    "$MasterId": 3680,
+    "$OpeningRate": 295.36
+  },
+  {
+    "$MasterId": 3667,
+    "$OpeningRate": 3342.65
+  },
+  {
+    "$MasterId": 3692,
+    "$OpeningRate": 3455.7
+  },
+  {
+    "$MasterId": 3693,
+    "$OpeningRate": 3772.8
+  },
+  {
+    "$MasterId": 3694,
+    "$OpeningRate": 3561.4
+  },
+  {
+    "$MasterId": 3874,
+    "$OpeningRate": 48.96
+  },
+  {
+    "$MasterId": 3769,
+    "$OpeningRate": 50.79
+  },
+  {
+    "$MasterId": 3875,
+    "$OpeningRate": 48.96
+  },
+  {
+    "$MasterId": 3876,
+    "$OpeningRate": 48.96
+  },
+  {
+    "$MasterId": 3770,
+    "$OpeningRate": 50.75
+  },
+  {
+    "$MasterId": 4955,
+    "$OpeningRate": 260.5
+  },
+  {
+    "$MasterId": 3916,
+    "$OpeningRate": 258.86
+  },
+  {
+    "$MasterId": 4974,
+    "$OpeningRate": 120
+  },
+  {
+    "$MasterId": 3765,
+    "$OpeningRate": 121.62
+  },
+  {
+    "$MasterId": 4826,
+    "$OpeningRate": 117.12
+  },
+  {
+    "$MasterId": 3934,
+    "$OpeningRate": 89.55
+  },
+  {
+    "$MasterId": 3697,
+    "$OpeningRate": 142.59
+  },
+  {
+    "$MasterId": 3766,
+    "$OpeningRate": 146.55
+  },
+  {
+    "$MasterId": 3959,
+    "$OpeningRate": 344
+  },
+  {
+    "$MasterId": 5240,
+    "$OpeningRate": 205
+  },
+  {
+    "$MasterId": 3669,
+    "$OpeningRate": 350.4
+  },
+  {
+    "$MasterId": 3683,
+    "$OpeningRate": 23.53
+  },
+  {
+    "$MasterId": 3703,
+    "$OpeningRate": 23.46
+  },
+  {
+    "$MasterId": 3684,
+    "$OpeningRate": 23.86
+  },
+  {
+    "$MasterId": 3709,
+    "$OpeningRate": 23.53
+  },
+  {
+    "$MasterId": 3685,
+    "$OpeningRate": 23.86
+  },
+  {
+    "$MasterId": 5102,
+    "$OpeningRate": 23
+  },
+  {
+    "$MasterId": 3704,
+    "$OpeningRate": 23.38
+  },
+  {
+    "$MasterId": 3670,
+    "$OpeningRate": 103.68
+  },
+  {
+    "$MasterId": 3671,
+    "$OpeningRate": 103.68
+  },
+  {
+    "$MasterId": 3832,
+    "$OpeningRate": 108.84
+  },
+  {
+    "$MasterId": 3672,
+    "$OpeningRate": 138.84
+  },
+  {
+    "$MasterId": 3673,
+    "$OpeningRate": 137.56
+  },
+  {
+    "$MasterId": 3833,
+    "$OpeningRate": 138.32
+  },
+  {
+    "$MasterId": 3674,
+    "$OpeningRate": 163.47
+  },
+  {
+    "$MasterId": 3675,
+    "$OpeningRate": 162.15
+  },
+  {
+    "$MasterId": 5012,
+    "$OpeningRate": 166
+  },
+  {
+    "$MasterId": 3677,
+    "$OpeningRate": 105.6
+  },
+  {
+    "$MasterId": 3678,
+    "$OpeningRate": 106.44
+  },
+  {
+    "$MasterId": 4121,
+    "$OpeningRate": 2448
+  },
+  {
+    "$MasterId": 5141,
+    "$OpeningRate": 1375.01
+  },
+  {
+    "$MasterId": 3718,
+    "$OpeningRate": 1160
+  },
+  {
+    "$MasterId": 4026,
+    "$OpeningRate": 354.54
+  },
+  {
+    "$MasterId": 3920,
+    "$OpeningRate": 340.8
+  },
+  {
+    "$MasterId": 5335,
+    "$OpeningRate": 504
+  },
+  {
+    "$MasterId": 3915,
+    "$OpeningRate": 371.52
+  },
+  {
+    "$MasterId": 4911,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3965,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3682,
+    "$OpeningRate": 412
+  },
+  {
+    "$MasterId": 4118,
+    "$OpeningRate": 393.6
+  },
+  {
+    "$MasterId": 4119,
+    "$OpeningRate": 1281.6
+  },
+  {
+    "$MasterId": 3784,
+    "$OpeningRate": 72.96
+  },
+  {
+    "$MasterId": 3921,
+    "$OpeningRate": 417.35
+  },
+  {
+    "$MasterId": 3980,
+    "$OpeningRate": 435
+  },
+  {
+    "$MasterId": 3922,
+    "$OpeningRate": 590.4
+  },
+  {
+    "$MasterId": 3924,
+    "$OpeningRate": 590.4
+  },
+  {
+    "$MasterId": 3993,
+    "$OpeningRate": 1344
+  },
+  {
+    "$MasterId": 4741,
+    "$OpeningRate": 3050
+  },
+  {
+    "$MasterId": 4742,
+    "$OpeningRate": 4000
+  },
+  {
+    "$MasterId": 3668,
+    "$OpeningRate": 119.72
+  },
+  {
+    "$MasterId": 4934,
+    "$OpeningRate": 250
+  },
+  {
+    "$MasterId": 4108,
+    "$OpeningRate": 39.68
+  },
+  {
+    "$MasterId": 4021,
+    "$OpeningRate": 39.29
+  },
+  {
+    "$MasterId": 5135,
+    "$OpeningRate": 40.5
+  },
+  {
+    "$MasterId": 4109,
+    "$OpeningRate": 38.88
+  },
+  {
+    "$MasterId": 4745,
+    "$OpeningRate": 38.88
+  },
+  {
+    "$MasterId": 4110,
+    "$OpeningRate": 38.88
+  },
+  {
+    "$MasterId": 4078,
+    "$OpeningRate": 39.64
+  },
+  {
+    "$MasterId": 4935,
+    "$OpeningRate": 128.27
+  },
+  {
+    "$MasterId": 3964,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3729,
+    "$OpeningRate": 44.76
+  },
+  {
+    "$MasterId": 3967,
+    "$OpeningRate": 44.15
+  },
+  {
+    "$MasterId": 3968,
+    "$OpeningRate": 44.1
+  },
+  {
+    "$MasterId": 3785,
+    "$OpeningRate": 43.92
+  },
+  {
+    "$MasterId": 3687,
+    "$OpeningRate": 69.16
+  },
+  {
+    "$MasterId": 4855,
+    "$OpeningRate": 62.07
+  },
+  {
+    "$MasterId": 3688,
+    "$OpeningRate": 134.3
+  },
+  {
+    "$MasterId": 3686,
+    "$OpeningRate": 56.07
+  },
+  {
+    "$MasterId": 5103,
+    "$OpeningRate": 58
+  },
+  {
+    "$MasterId": 3963,
+    "$OpeningRate": 41.58
+  },
+  {
+    "$MasterId": 5221,
+    "$OpeningRate": 42
+  },
+  {
+    "$MasterId": 3690,
+    "$OpeningRate": 44.72
+  },
+  {
+    "$MasterId": 5236,
+    "$OpeningRate": 45
+  },
+  {
+    "$MasterId": 3752,
+    "$OpeningRate": 72.11
+  },
+  {
+    "$MasterId": 5220,
+    "$OpeningRate": 69.4
+  },
+  {
+    "$MasterId": 4076,
+    "$OpeningRate": 80.27
+  },
+  {
+    "$MasterId": 3917,
+    "$OpeningRate": 192.26
+  },
+  {
+    "$MasterId": 4032,
+    "$OpeningRate": 836.64
+  },
+  {
+    "$MasterId": 4074,
+    "$OpeningRate": 1406.91
+  },
+  {
+    "$MasterId": 4030,
+    "$OpeningRate": 360
+  },
+  {
+    "$MasterId": 4031,
+    "$OpeningRate": 552
+  },
+  {
+    "$MasterId": 3923,
+    "$OpeningRate": 415.87
+  },
+  {
+    "$MasterId": 3804,
+    "$OpeningRate": 896.6
+  },
+  {
+    "$MasterId": 3844,
+    "$OpeningRate": 53.61
+  },
+  {
+    "$MasterId": 3689,
+    "$OpeningRate": 57
+  },
+  {
+    "$MasterId": 3691,
+    "$OpeningRate": 57.11
+  },
+  {
+    "$MasterId": 3976,
+    "$OpeningRate": 235.2
+  },
+  {
+    "$MasterId": 5034,
+    "$OpeningRate": 245
+  },
+  {
+    "$MasterId": 5035,
+    "$OpeningRate": 384.16
+  },
+  {
+    "$MasterId": 3837,
+    "$OpeningRate": 237.7
+  },
+  {
+    "$MasterId": 5054,
+    "$OpeningRate": 245
+  },
+  {
+    "$MasterId": 4008,
+    "$OpeningRate": 456
+  },
+  {
+    "$MasterId": 4007,
+    "$OpeningRate": 467.17
+  },
+  {
+    "$MasterId": 3850,
+    "$OpeningRate": 111.36
+  },
+  {
+    "$MasterId": 3836,
+    "$OpeningRate": 178.56
+  },
+  {
+    "$MasterId": 4009,
+    "$OpeningRate": 175.68
+  },
+  {
+    "$MasterId": 3723,
+    "$OpeningRate": 241.68
+  },
+  {
+    "$MasterId": 3801,
+    "$OpeningRate": 190.05
+  },
+  {
+    "$MasterId": 3802,
+    "$OpeningRate": 235.2
+  },
+  {
+    "$MasterId": 3721,
+    "$OpeningRate": 310
+  },
+  {
+    "$MasterId": 3791,
+    "$OpeningRate": 274.45
+  },
+  {
+    "$MasterId": 3792,
+    "$OpeningRate": 259.33
+  },
+  {
+    "$MasterId": 3793,
+    "$OpeningRate": 268.8
+  },
+  {
+    "$MasterId": 3795,
+    "$OpeningRate": 466.28
+  },
+  {
+    "$MasterId": 3796,
+    "$OpeningRate": 475
+  },
+  {
+    "$MasterId": 3797,
+    "$OpeningRate": 456
+  },
+  {
+    "$MasterId": 3798,
+    "$OpeningRate": 111.36
+  },
+  {
+    "$MasterId": 3799,
+    "$OpeningRate": 111.36
+  },
+  {
+    "$MasterId": 3834,
+    "$OpeningRate": 111.36
+  },
+  {
+    "$MasterId": 3800,
+    "$OpeningRate": 175.6
+  },
+  {
+    "$MasterId": 3835,
+    "$OpeningRate": 174.28
+  },
+  {
+    "$MasterId": 5107,
+    "$OpeningRate": 180
+  },
+  {
+    "$MasterId": 3888,
+    "$OpeningRate": 272.22
+  },
+  {
+    "$MasterId": 4054,
+    "$OpeningRate": 268.8
+  },
+  {
+    "$MasterId": 4761,
+    "$OpeningRate": 171.66
+  },
+  {
+    "$MasterId": 4794,
+    "$OpeningRate": 175
+  },
+  {
+    "$MasterId": 4919,
+    "$OpeningRate": 168
+  },
+  {
+    "$MasterId": 4781,
+    "$OpeningRate": 173.16
+  },
+  {
+    "$MasterId": 5237,
+    "$OpeningRate": 175
+  },
+  {
+    "$MasterId": 5137,
+    "$OpeningRate": 175
+  },
+  {
+    "$MasterId": 4762,
+    "$OpeningRate": 208.06
+  },
+  {
+    "$MasterId": 4818,
+    "$OpeningRate": 208.38
+  },
+  {
+    "$MasterId": 5155,
+    "$OpeningRate": 203.52
+  },
+  {
+    "$MasterId": 4946,
+    "$OpeningRate": 212
+  },
+  {
+    "$MasterId": 5060,
+    "$OpeningRate": 212
+  },
+  {
+    "$MasterId": 4960,
+    "$OpeningRate": 151.35
+  },
+  {
+    "$MasterId": 4965,
+    "$OpeningRate": 153
+  },
+  {
+    "$MasterId": 5069,
+    "$OpeningRate": 153
+  },
+  {
+    "$MasterId": 5101,
+    "$OpeningRate": 161.46
+  },
+  {
+    "$MasterId": 5059,
+    "$OpeningRate": 153
+  },
+  {
+    "$MasterId": 5138,
+    "$OpeningRate": 153
+  },
+  {
+    "$MasterId": 3956,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3958,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3957,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4792,
+    "$OpeningRate": 406.7
+  },
+  {
+    "$MasterId": 3975,
+    "$OpeningRate": 123.99
+  },
+  {
+    "$MasterId": 3787,
+    "$OpeningRate": 53.76
+  },
+  {
+    "$MasterId": 3778,
+    "$OpeningRate": 54.91
+  },
+  {
+    "$MasterId": 3803,
+    "$OpeningRate": 53.76
+  },
+  {
+    "$MasterId": 3788,
+    "$OpeningRate": 53.76
+  },
+  {
+    "$MasterId": 3997,
+    "$OpeningRate": 53.76
+  },
+  {
+    "$MasterId": 3789,
+    "$OpeningRate": 55.36
+  },
+  {
+    "$MasterId": 3779,
+    "$OpeningRate": 54.85
+  },
+  {
+    "$MasterId": 3889,
+    "$OpeningRate": 71.95
+  },
+  {
+    "$MasterId": 3893,
+    "$OpeningRate": 83.38
+  },
+  {
+    "$MasterId": 3890,
+    "$OpeningRate": 68.2
+  },
+  {
+    "$MasterId": 3891,
+    "$OpeningRate": 74.19
+  },
+  {
+    "$MasterId": 3894,
+    "$OpeningRate": 71.95
+  },
+  {
+    "$MasterId": 4755,
+    "$OpeningRate": 63.15
+  },
+  {
+    "$MasterId": 3892,
+    "$OpeningRate": 70.22
+  },
+  {
+    "$MasterId": 5153,
+    "$OpeningRate": 65
+  },
+  {
+    "$MasterId": 3895,
+    "$OpeningRate": 72.42
+  },
+  {
+    "$MasterId": 4079,
+    "$OpeningRate": 979.2
+  },
+  {
+    "$MasterId": 4768,
+    "$OpeningRate": 594.92
+  },
+  {
+    "$MasterId": 3904,
+    "$OpeningRate": 895.45
+  },
+  {
+    "$MasterId": 5156,
+    "$OpeningRate": 900
+  },
+  {
+    "$MasterId": 4961,
+    "$OpeningRate": 520
+  },
+  {
+    "$MasterId": 4033,
+    "$OpeningRate": 883.2
+  },
+  {
+    "$MasterId": 1112,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5206,
+    "$OpeningRate": 2029.66
+  },
+  {
+    "$MasterId": 5207,
+    "$OpeningRate": 2191.28
+  },
+  {
+    "$MasterId": 5208,
+    "$OpeningRate": 2203.39
+  },
+  {
+    "$MasterId": 5651,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5209,
+    "$OpeningRate": 2025.42
+  },
+  {
+    "$MasterId": 5363,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5321,
+    "$OpeningRate": 1902.54
+  },
+  {
+    "$MasterId": 5322,
+    "$OpeningRate": 1872.88
+  },
+  {
+    "$MasterId": 5349,
+    "$OpeningRate": 1872.88
+  },
+  {
+    "$MasterId": 5213,
+    "$OpeningRate": 2033.9
+  },
+  {
+    "$MasterId": 5214,
+    "$OpeningRate": 2033.9
+  },
+  {
+    "$MasterId": 5396,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5379,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5345,
+    "$OpeningRate": 0.85
+  },
+  {
+    "$MasterId": 5359,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5406,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5370,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5594,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5282,
+    "$OpeningRate": 8473.73
+  },
+  {
+    "$MasterId": 5203,
+    "$OpeningRate": 5296.61
+  },
+  {
+    "$MasterId": 5204,
+    "$OpeningRate": 7415.25
+  },
+  {
+    "$MasterId": 5205,
+    "$OpeningRate": 5296.61
+  },
+  {
+    "$MasterId": 5560,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5603,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5395,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5216,
+    "$OpeningRate": 4237.29
+  },
+  {
+    "$MasterId": 5217,
+    "$OpeningRate": 4237.29
+  },
+  {
+    "$MasterId": 5194,
+    "$OpeningRate": 10381.36
+  },
+  {
+    "$MasterId": 5195,
+    "$OpeningRate": 12500
+  },
+  {
+    "$MasterId": 5196,
+    "$OpeningRate": 10381.36
+  },
+  {
+    "$MasterId": 5362,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5635,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5602,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5633,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5202,
+    "$OpeningRate": 9957.63
+  },
+  {
+    "$MasterId": 5201,
+    "$OpeningRate": 12076.27
+  },
+  {
+    "$MasterId": 5200,
+    "$OpeningRate": 9957.63
+  },
+  {
+    "$MasterId": 5197,
+    "$OpeningRate": 10381.36
+  },
+  {
+    "$MasterId": 5198,
+    "$OpeningRate": 12500
+  },
+  {
+    "$MasterId": 5199,
+    "$OpeningRate": 10381.36
+  },
+  {
+    "$MasterId": 5626,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5666,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5350,
+    "$OpeningRate": 8834.75
+  },
+  {
+    "$MasterId": 5333,
+    "$OpeningRate": 6716.1
+  },
+  {
+    "$MasterId": 5210,
+    "$OpeningRate": 4957.63
+  },
+  {
+    "$MasterId": 5211,
+    "$OpeningRate": 5516.95
+  },
+  {
+    "$MasterId": 3643,
+    "$OpeningRate": 906.78
+  },
+  {
+    "$MasterId": 3564,
+    "$OpeningRate": 940.17
+  },
+  {
+    "$MasterId": 3486,
+    "$OpeningRate": 2452.8
+  },
+  {
+    "$MasterId": 2504,
+    "$OpeningRate": 100
+  },
+  {
+    "$MasterId": 2505,
+    "$OpeningRate": 140
+  },
+  {
+    "$MasterId": 2502,
+    "$OpeningRate": 30
+  },
+  {
+    "$MasterId": 2503,
+    "$OpeningRate": 70
+  },
+  {
+    "$MasterId": 2507,
+    "$OpeningRate": 90
+  },
+  {
+    "$MasterId": 2530,
+    "$OpeningRate": 110
+  },
+  {
+    "$MasterId": 2506,
+    "$OpeningRate": 280
+  },
+  {
+    "$MasterId": 2994,
+    "$OpeningRate": 650
+  },
+  {
+    "$MasterId": 2988,
+    "$OpeningRate": 80
+  },
+  {
+    "$MasterId": 2987,
+    "$OpeningRate": 30
+  },
+  {
+    "$MasterId": 2991,
+    "$OpeningRate": 180
+  },
+  {
+    "$MasterId": 2990,
+    "$OpeningRate": 140
+  },
+  {
+    "$MasterId": 2989,
+    "$OpeningRate": 90
+  },
+  {
+    "$MasterId": 2996,
+    "$OpeningRate": 190
+  },
+  {
+    "$MasterId": 2993,
+    "$OpeningRate": 75
+  },
+  {
+    "$MasterId": 2992,
+    "$OpeningRate": 120
+  },
+  {
+    "$MasterId": 1305,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1203,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1082,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1045,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 989,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 990,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 991,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 993,
+    "$OpeningRate": 370
+  },
+  {
+    "$MasterId": 992,
+    "$OpeningRate": 135
+  },
+  {
+    "$MasterId": 1083,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1095,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 994,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1044,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1310,
+    "$OpeningRate": 25
+  },
+  {
+    "$MasterId": 1033,
+    "$OpeningRate": 840
+  },
+  {
+    "$MasterId": 1339,
+    "$OpeningRate": 127.5
+  },
+  {
+    "$MasterId": 1340,
+    "$OpeningRate": 288.5
+  },
+  {
+    "$MasterId": 1148,
+    "$OpeningRate": 21.28
+  },
+  {
+    "$MasterId": 1153,
+    "$OpeningRate": 3.08
+  },
+  {
+    "$MasterId": 3142,
+    "$OpeningRate": 6355.93
+  },
+  {
+    "$MasterId": 2799,
+    "$OpeningRate": 7847
+  },
+  {
+    "$MasterId": 2787,
+    "$OpeningRate": 412.78
+  },
+  {
+    "$MasterId": 2802,
+    "$OpeningRate": 1525
+  },
+  {
+    "$MasterId": 2827,
+    "$OpeningRate": 1864.5
+  },
+  {
+    "$MasterId": 3044,
+    "$OpeningRate": 2415.25
+  },
+  {
+    "$MasterId": 3040,
+    "$OpeningRate": 2415.25
+  },
+  {
+    "$MasterId": 3039,
+    "$OpeningRate": 2375
+  },
+  {
+    "$MasterId": 3200,
+    "$OpeningRate": 4278.26
+  },
+  {
+    "$MasterId": 3201,
+    "$OpeningRate": 4278.26
+  },
+  {
+    "$MasterId": 3198,
+    "$OpeningRate": 5628.39
+  },
+  {
+    "$MasterId": 3029,
+    "$OpeningRate": 7158.28
+  },
+  {
+    "$MasterId": 3011,
+    "$OpeningRate": 3464.41
+  },
+  {
+    "$MasterId": 2954,
+    "$OpeningRate": 3243.7
+  },
+  {
+    "$MasterId": 3002,
+    "$OpeningRate": 4380.24
+  },
+  {
+    "$MasterId": 3199,
+    "$OpeningRate": 3464.41
+  },
+  {
+    "$MasterId": 2946,
+    "$OpeningRate": 935
+  },
+  {
+    "$MasterId": 2957,
+    "$OpeningRate": 724.58
+  },
+  {
+    "$MasterId": 3105,
+    "$OpeningRate": 676.27
+  },
+  {
+    "$MasterId": 3014,
+    "$OpeningRate": 724.58
+  },
+  {
+    "$MasterId": 3003,
+    "$OpeningRate": 724.58
+  },
+  {
+    "$MasterId": 2958,
+    "$OpeningRate": 822.08
+  },
+  {
+    "$MasterId": 2959,
+    "$OpeningRate": 724.58
+  },
+  {
+    "$MasterId": 3004,
+    "$OpeningRate": 724.58
+  },
+  {
+    "$MasterId": 3089,
+    "$OpeningRate": 696.4
+  },
+  {
+    "$MasterId": 3015,
+    "$OpeningRate": 738.5
+  },
+  {
+    "$MasterId": 3090,
+    "$OpeningRate": 676.27
+  },
+  {
+    "$MasterId": 2953,
+    "$OpeningRate": 2280.7
+  },
+  {
+    "$MasterId": 2956,
+    "$OpeningRate": 1103.64
+  },
+  {
+    "$MasterId": 3006,
+    "$OpeningRate": 2319.49
+  },
+  {
+    "$MasterId": 2951,
+    "$OpeningRate": 2203.52
+  },
+  {
+    "$MasterId": 3087,
+    "$OpeningRate": 684.32
+  },
+  {
+    "$MasterId": 2949,
+    "$OpeningRate": 763.56
+  },
+  {
+    "$MasterId": 2937,
+    "$OpeningRate": 593.25
+  },
+  {
+    "$MasterId": 2950,
+    "$OpeningRate": 684.32
+  },
+  {
+    "$MasterId": 2948,
+    "$OpeningRate": 932.25
+  },
+  {
+    "$MasterId": 2952,
+    "$OpeningRate": 2203.52
+  },
+  {
+    "$MasterId": 2955,
+    "$OpeningRate": 2397.27
+  },
+  {
+    "$MasterId": 2945,
+    "$OpeningRate": 3464.41
+  },
+  {
+    "$MasterId": 3197,
+    "$OpeningRate": 2360.16
+  },
+  {
+    "$MasterId": 3005,
+    "$OpeningRate": 3271.19
+  },
+  {
+    "$MasterId": 2947,
+    "$OpeningRate": 2944.52
+  },
+  {
+    "$MasterId": 5650,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4051,
+    "$OpeningRate": 429.17
+  },
+  {
+    "$MasterId": 5393,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 4052,
+    "$OpeningRate": 134.05
+  },
+  {
+    "$MasterId": 5572,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5571,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5558,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5586,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5394,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5385,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5329,
+    "$OpeningRate": 201.39
+  },
+  {
+    "$MasterId": 5457,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5540,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5328,
+    "$OpeningRate": 322.42
+  },
+  {
+    "$MasterId": 978,
+    "$OpeningRate": 660
+  },
+  {
+    "$MasterId": 2765,
+    "$OpeningRate": 720.5
+  },
+  {
+    "$MasterId": 2766,
+    "$OpeningRate": 844.25
+  },
+  {
+    "$MasterId": 2767,
+    "$OpeningRate": 1201.75
+  },
+  {
+    "$MasterId": 2768,
+    "$OpeningRate": 1919.5
+  },
+  {
+    "$MasterId": 2769,
+    "$OpeningRate": 2939.75
+  },
+  {
+    "$MasterId": 2770,
+    "$OpeningRate": 4922.5
+  },
+  {
+    "$MasterId": 3081,
+    "$OpeningRate": 715.28
+  },
+  {
+    "$MasterId": 3082,
+    "$OpeningRate": 926.89
+  },
+  {
+    "$MasterId": 3083,
+    "$OpeningRate": 1354.66
+  },
+  {
+    "$MasterId": 3084,
+    "$OpeningRate": 2150.17
+  },
+  {
+    "$MasterId": 3085,
+    "$OpeningRate": 3265.92
+  },
+  {
+    "$MasterId": 3086,
+    "$OpeningRate": 4936.88
+  },
+  {
+    "$MasterId": 3332,
+    "$OpeningRate": 1882.45
+  },
+  {
+    "$MasterId": 3178,
+    "$OpeningRate": 2857.55
+  },
+  {
+    "$MasterId": 3179,
+    "$OpeningRate": 6098.4
+  },
+  {
+    "$MasterId": 3180,
+    "$OpeningRate": 6172.98
+  },
+  {
+    "$MasterId": 3192,
+    "$OpeningRate": 9756.7
+  },
+  {
+    "$MasterId": 4059,
+    "$OpeningRate": 856.8
+  },
+  {
+    "$MasterId": 3911,
+    "$OpeningRate": 2109.33
+  },
+  {
+    "$MasterId": 1034,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5470,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3154,
+    "$OpeningRate": 344.63
+  },
+  {
+    "$MasterId": 5383,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5545,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2921,
+    "$OpeningRate": 32.07
+  },
+  {
+    "$MasterId": 3258,
+    "$OpeningRate": 292.68
+  },
+  {
+    "$MasterId": 2915,
+    "$OpeningRate": 102.85
+  },
+  {
+    "$MasterId": 3193,
+    "$OpeningRate": 1246.92
+  },
+  {
+    "$MasterId": 5257,
+    "$OpeningRate": 3656.78
+  },
+  {
+    "$MasterId": 5668,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3366,
+    "$OpeningRate": 39.77
+  },
+  {
+    "$MasterId": 3261,
+    "$OpeningRate": 52.66
+  },
+  {
+    "$MasterId": 3194,
+    "$OpeningRate": 1256.14
+  },
+  {
+    "$MasterId": 3263,
+    "$OpeningRate": 388
+  },
+  {
+    "$MasterId": 2914,
+    "$OpeningRate": 133.05
+  },
+  {
+    "$MasterId": 3267,
+    "$OpeningRate": 84.87
+  },
+  {
+    "$MasterId": 3577,
+    "$OpeningRate": 1067.8
+  },
+  {
+    "$MasterId": 3157,
+    "$OpeningRate": 398.71
+  },
+  {
+    "$MasterId": 5369,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5351,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5290,
+    "$OpeningRate": 154.94
+  },
+  {
+    "$MasterId": 5352,
+    "$OpeningRate": 16687
+  },
+  {
+    "$MasterId": 5585,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 975,
+    "$OpeningRate": 15.39
+  },
+  {
+    "$MasterId": 5300,
+    "$OpeningRate": 32.84
+  },
+  {
+    "$MasterId": 5302,
+    "$OpeningRate": 54.12
+  },
+  {
+    "$MasterId": 5550,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3377,
+    "$OpeningRate": 84.87
+  },
+  {
+    "$MasterId": 3367,
+    "$OpeningRate": 189.15
+  },
+  {
+    "$MasterId": 3555,
+    "$OpeningRate": 184.3
+  },
+  {
+    "$MasterId": 3399,
+    "$OpeningRate": 182.68
+  },
+  {
+    "$MasterId": 3280,
+    "$OpeningRate": 126.1
+  },
+  {
+    "$MasterId": 5346,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5614,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5390,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5573,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5584,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5241,
+    "$OpeningRate": 4697.87
+  },
+  {
+    "$MasterId": 5225,
+    "$OpeningRate": 7565.64
+  },
+  {
+    "$MasterId": 5293,
+    "$OpeningRate": 11480
+  },
+  {
+    "$MasterId": 3284,
+    "$OpeningRate": 108.78
+  },
+  {
+    "$MasterId": 2920,
+    "$OpeningRate": 37.67
+  },
+  {
+    "$MasterId": 3372,
+    "$OpeningRate": 23.28
+  },
+  {
+    "$MasterId": 3151,
+    "$OpeningRate": 217.23
+  },
+  {
+    "$MasterId": 3156,
+    "$OpeningRate": 525.35
+  },
+  {
+    "$MasterId": 3152,
+    "$OpeningRate": 418.65
+  },
+  {
+    "$MasterId": 3450,
+    "$OpeningRate": 1169.8
+  },
+  {
+    "$MasterId": 3487,
+    "$OpeningRate": 351.92
+  },
+  {
+    "$MasterId": 5623,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5539,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5620,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5224,
+    "$OpeningRate": 10239.75
+  },
+  {
+    "$MasterId": 5278,
+    "$OpeningRate": 15451.5
+  },
+  {
+    "$MasterId": 5551,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2919,
+    "$OpeningRate": 44.57
+  },
+  {
+    "$MasterId": 3326,
+    "$OpeningRate": 124.35
+  },
+  {
+    "$MasterId": 3368,
+    "$OpeningRate": 264.53
+  },
+  {
+    "$MasterId": 3373,
+    "$OpeningRate": 552.54
+  },
+  {
+    "$MasterId": 3188,
+    "$OpeningRate": 1508
+  },
+  {
+    "$MasterId": 5613,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5298,
+    "$OpeningRate": 296.43
+  },
+  {
+    "$MasterId": 3195,
+    "$OpeningRate": 737.58
+  },
+  {
+    "$MasterId": 3153,
+    "$OpeningRate": 262.17
+  },
+  {
+    "$MasterId": 3219,
+    "$OpeningRate": 1564.44
+  },
+  {
+    "$MasterId": 3191,
+    "$OpeningRate": 1564.91
+  },
+  {
+    "$MasterId": 5271,
+    "$OpeningRate": 1495.49
+  },
+  {
+    "$MasterId": 3155,
+    "$OpeningRate": 500.77
+  },
+  {
+    "$MasterId": 3176,
+    "$OpeningRate": 1652.9
+  },
+  {
+    "$MasterId": 5546,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3374,
+    "$OpeningRate": 126.1
+  },
+  {
+    "$MasterId": 3289,
+    "$OpeningRate": 46.07
+  },
+  {
+    "$MasterId": 3402,
+    "$OpeningRate": 54.32
+  },
+  {
+    "$MasterId": 3412,
+    "$OpeningRate": 213.4
+  },
+  {
+    "$MasterId": 5624,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2918,
+    "$OpeningRate": 58.81
+  },
+  {
+    "$MasterId": 3352,
+    "$OpeningRate": 187.19
+  },
+  {
+    "$MasterId": 5258,
+    "$OpeningRate": 722.76
+  },
+  {
+    "$MasterId": 3189,
+    "$OpeningRate": 2034.22
+  },
+  {
+    "$MasterId": 2917,
+    "$OpeningRate": 70.47
+  },
+  {
+    "$MasterId": 3306,
+    "$OpeningRate": 203.7
+  },
+  {
+    "$MasterId": 3310,
+    "$OpeningRate": 242.56
+  },
+  {
+    "$MasterId": 2916,
+    "$OpeningRate": 70.47
+  },
+  {
+    "$MasterId": 5259,
+    "$OpeningRate": 777.86
+  },
+  {
+    "$MasterId": 3190,
+    "$OpeningRate": 2395.42
+  },
+  {
+    "$MasterId": 3425,
+    "$OpeningRate": 921.5
+  },
+  {
+    "$MasterId": 3168,
+    "$OpeningRate": 927.56
+  },
+  {
+    "$MasterId": 5662,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5364,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3054,
+    "$OpeningRate": 86.6
+  },
+  {
+    "$MasterId": 3451,
+    "$OpeningRate": 78.34
+  },
+  {
+    "$MasterId": 3055,
+    "$OpeningRate": 86.67
+  },
+  {
+    "$MasterId": 3466,
+    "$OpeningRate": 77.62
+  },
+  {
+    "$MasterId": 3447,
+    "$OpeningRate": 78.69
+  },
+  {
+    "$MasterId": 3114,
+    "$OpeningRate": 86.58
+  },
+  {
+    "$MasterId": 3448,
+    "$OpeningRate": 78.4
+  },
+  {
+    "$MasterId": 3056,
+    "$OpeningRate": 85.98
+  },
+  {
+    "$MasterId": 3449,
+    "$OpeningRate": 77.56
+  },
+  {
+    "$MasterId": 3057,
+    "$OpeningRate": 86.67
+  },
+  {
+    "$MasterId": 3165,
+    "$OpeningRate": 183.91
+  },
+  {
+    "$MasterId": 3652,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5658,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5465,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3239,
+    "$OpeningRate": 301.86
+  },
+  {
+    "$MasterId": 3070,
+    "$OpeningRate": 306.2
+  },
+  {
+    "$MasterId": 5291,
+    "$OpeningRate": 271.46
+  },
+  {
+    "$MasterId": 3161,
+    "$OpeningRate": 789.87
+  },
+  {
+    "$MasterId": 3058,
+    "$OpeningRate": 306.23
+  },
+  {
+    "$MasterId": 5272,
+    "$OpeningRate": 240.95
+  },
+  {
+    "$MasterId": 3173,
+    "$OpeningRate": 644.86
+  },
+  {
+    "$MasterId": 3220,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3060,
+    "$OpeningRate": 454.79
+  },
+  {
+    "$MasterId": 3746,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3059,
+    "$OpeningRate": 420.5
+  },
+  {
+    "$MasterId": 3174,
+    "$OpeningRate": 867.71
+  },
+  {
+    "$MasterId": 3221,
+    "$OpeningRate": 880.66
+  },
+  {
+    "$MasterId": 3062,
+    "$OpeningRate": 502.47
+  },
+  {
+    "$MasterId": 3162,
+    "$OpeningRate": 991.46
+  },
+  {
+    "$MasterId": 3061,
+    "$OpeningRate": 497.47
+  },
+  {
+    "$MasterId": 3175,
+    "$OpeningRate": 968.92
+  },
+  {
+    "$MasterId": 1304,
+    "$OpeningRate": 6743.67
+  },
+  {
+    "$MasterId": 3128,
+    "$OpeningRate": 1488.27
+  },
+  {
+    "$MasterId": 3369,
+    "$OpeningRate": 111.55
+  },
+  {
+    "$MasterId": 3370,
+    "$OpeningRate": 16.49
+  },
+  {
+    "$MasterId": 3404,
+    "$OpeningRate": 140
+  },
+  {
+    "$MasterId": 3401,
+    "$OpeningRate": 135.8
+  },
+  {
+    "$MasterId": 4837,
+    "$OpeningRate": 2138.53
+  },
+  {
+    "$MasterId": 2760,
+    "$OpeningRate": 8157.88
+  },
+  {
+    "$MasterId": 5317,
+    "$OpeningRate": 18602.9
+  },
+  {
+    "$MasterId": 4055,
+    "$OpeningRate": 2713.77
+  },
+  {
+    "$MasterId": 2758,
+    "$OpeningRate": 947.7
+  },
+  {
+    "$MasterId": 2729,
+    "$OpeningRate": 1015.45
+  },
+  {
+    "$MasterId": 4056,
+    "$OpeningRate": 4025.03
+  },
+  {
+    "$MasterId": 2733,
+    "$OpeningRate": 1499.8
+  },
+  {
+    "$MasterId": 2734,
+    "$OpeningRate": 1454.71
+  },
+  {
+    "$MasterId": 2732,
+    "$OpeningRate": 1489.19
+  },
+  {
+    "$MasterId": 4057,
+    "$OpeningRate": 6647.69
+  },
+  {
+    "$MasterId": 4092,
+    "$OpeningRate": 10333.76
+  },
+  {
+    "$MasterId": 5169,
+    "$OpeningRate": 10617.2
+  },
+  {
+    "$MasterId": 2759,
+    "$OpeningRate": 7980.04
+  },
+  {
+    "$MasterId": 2726,
+    "$OpeningRate": 1037
+  },
+  {
+    "$MasterId": 2725,
+    "$OpeningRate": 1036.18
+  },
+  {
+    "$MasterId": 2727,
+    "$OpeningRate": 1036.79
+  },
+  {
+    "$MasterId": 2728,
+    "$OpeningRate": 1026.9
+  },
+  {
+    "$MasterId": 2730,
+    "$OpeningRate": 1503.53
+  },
+  {
+    "$MasterId": 2731,
+    "$OpeningRate": 1514.95
+  },
+  {
+    "$MasterId": 4774,
+    "$OpeningRate": 1571.4
+  },
+  {
+    "$MasterId": 3021,
+    "$OpeningRate": 13516.02
+  },
+  {
+    "$MasterId": 2737,
+    "$OpeningRate": 2386.94
+  },
+  {
+    "$MasterId": 2747,
+    "$OpeningRate": 2386.19
+  },
+  {
+    "$MasterId": 2736,
+    "$OpeningRate": 2398.61
+  },
+  {
+    "$MasterId": 2738,
+    "$OpeningRate": 2383.07
+  },
+  {
+    "$MasterId": 2741,
+    "$OpeningRate": 3447.48
+  },
+  {
+    "$MasterId": 2743,
+    "$OpeningRate": 3544.54
+  },
+  {
+    "$MasterId": 2742,
+    "$OpeningRate": 3463.87
+  },
+  {
+    "$MasterId": 2744,
+    "$OpeningRate": 3538.06
+  },
+  {
+    "$MasterId": 2745,
+    "$OpeningRate": 5289.31
+  },
+  {
+    "$MasterId": 2746,
+    "$OpeningRate": 5318.17
+  },
+  {
+    "$MasterId": 4058,
+    "$OpeningRate": 6752.83
+  },
+  {
+    "$MasterId": 3148,
+    "$OpeningRate": 895.06
+  },
+  {
+    "$MasterId": 2897,
+    "$OpeningRate": 1100.08
+  },
+  {
+    "$MasterId": 2887,
+    "$OpeningRate": 1589.65
+  },
+  {
+    "$MasterId": 2886,
+    "$OpeningRate": 2496.88
+  },
+  {
+    "$MasterId": 2896,
+    "$OpeningRate": 3629.44
+  },
+  {
+    "$MasterId": 2995,
+    "$OpeningRate": 5423.67
+  },
+  {
+    "$MasterId": 3127,
+    "$OpeningRate": 6328
+  },
+  {
+    "$MasterId": 3420,
+    "$OpeningRate": 124
+  },
+  {
+    "$MasterId": 3349,
+    "$OpeningRate": 59.55
+  },
+  {
+    "$MasterId": 3384,
+    "$OpeningRate": 1182.47
+  },
+  {
+    "$MasterId": 3345,
+    "$OpeningRate": 39.27
+  },
+  {
+    "$MasterId": 3346,
+    "$OpeningRate": 71.38
+  },
+  {
+    "$MasterId": 3347,
+    "$OpeningRate": 159.86
+  },
+  {
+    "$MasterId": 3395,
+    "$OpeningRate": 89.87
+  },
+  {
+    "$MasterId": 3342,
+    "$OpeningRate": 48.72
+  },
+  {
+    "$MasterId": 3348,
+    "$OpeningRate": 55.86
+  },
+  {
+    "$MasterId": 4874,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3350,
+    "$OpeningRate": 86
+  },
+  {
+    "$MasterId": 3396,
+    "$OpeningRate": 101.27
+  },
+  {
+    "$MasterId": 3823,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3540,
+    "$OpeningRate": 60
+  },
+  {
+    "$MasterId": 3539,
+    "$OpeningRate": 177
+  },
+  {
+    "$MasterId": 5466,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3371,
+    "$OpeningRate": 39.77
+  },
+  {
+    "$MasterId": 3273,
+    "$OpeningRate": 237.65
+  },
+  {
+    "$MasterId": 3314,
+    "$OpeningRate": 20.37
+  },
+  {
+    "$MasterId": 2723,
+    "$OpeningRate": 769.3
+  },
+  {
+    "$MasterId": 1188,
+    "$OpeningRate": 1200
+  },
+  {
+    "$MasterId": 5675,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 5643,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3323,
+    "$OpeningRate": 42.84
+  },
+  {
+    "$MasterId": 3247,
+    "$OpeningRate": 286.15
+  },
+  {
+    "$MasterId": 2865,
+    "$OpeningRate": 1410
+  },
+  {
+    "$MasterId": 2866,
+    "$OpeningRate": 250
+  },
+  {
+    "$MasterId": 1032,
+    "$OpeningRate": 840
+  },
+  {
+    "$MasterId": 1235,
+    "$OpeningRate": 285.71
+  },
+  {
+    "$MasterId": 1247,
+    "$OpeningRate": 283.64
+  },
+  {
+    "$MasterId": 3648,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1085,
+    "$OpeningRate": 14.27
+  },
+  {
+    "$MasterId": 2394,
+    "$OpeningRate": 31.31
+  },
+  {
+    "$MasterId": 2788,
+    "$OpeningRate": 9477
+  },
+  {
+    "$MasterId": 2805,
+    "$OpeningRate": 9661
+  },
+  {
+    "$MasterId": 2786,
+    "$OpeningRate": 6950
+  },
+  {
+    "$MasterId": 2784,
+    "$OpeningRate": 7048.45
+  },
+  {
+    "$MasterId": 1327,
+    "$OpeningRate": 2.91
+  },
+  {
+    "$MasterId": 3430,
+    "$OpeningRate": 213.4
+  },
+  {
+    "$MasterId": 1090,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2389,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3068,
+    "$OpeningRate": 249.48
+  },
+  {
+    "$MasterId": 3300,
+    "$OpeningRate": 16.39
+  },
+  {
+    "$MasterId": 3298,
+    "$OpeningRate": 19.49
+  },
+  {
+    "$MasterId": 3299,
+    "$OpeningRate": 18.23
+  },
+  {
+    "$MasterId": 3303,
+    "$OpeningRate": 37.17
+  },
+  {
+    "$MasterId": 3301,
+    "$OpeningRate": 42.12
+  },
+  {
+    "$MasterId": 3302,
+    "$OpeningRate": 41.02
+  },
+  {
+    "$MasterId": 3484,
+    "$OpeningRate": 36.08
+  },
+  {
+    "$MasterId": 3324,
+    "$OpeningRate": 39.25
+  },
+  {
+    "$MasterId": 3386,
+    "$OpeningRate": 42.1
+  },
+  {
+    "$MasterId": 3424,
+    "$OpeningRate": 49.45
+  },
+  {
+    "$MasterId": 3483,
+    "$OpeningRate": 54.13
+  },
+  {
+    "$MasterId": 3428,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3282,
+    "$OpeningRate": 106.61
+  },
+  {
+    "$MasterId": 3281,
+    "$OpeningRate": 126.1
+  },
+  {
+    "$MasterId": 3295,
+    "$OpeningRate": 39.06
+  },
+  {
+    "$MasterId": 3546,
+    "$OpeningRate": 38.85
+  },
+  {
+    "$MasterId": 3418,
+    "$OpeningRate": 41.18
+  },
+  {
+    "$MasterId": 3568,
+    "$OpeningRate": 49.5
+  },
+  {
+    "$MasterId": 3296,
+    "$OpeningRate": 46.17
+  },
+  {
+    "$MasterId": 3297,
+    "$OpeningRate": 52.41
+  },
+  {
+    "$MasterId": 3429,
+    "$OpeningRate": 55.07
+  },
+  {
+    "$MasterId": 3509,
+    "$OpeningRate": 78.2
+  },
+  {
+    "$MasterId": 3294,
+    "$OpeningRate": 38.62
+  },
+  {
+    "$MasterId": 3292,
+    "$OpeningRate": 53.86
+  },
+  {
+    "$MasterId": 3293,
+    "$OpeningRate": 50.99
+  },
+  {
+    "$MasterId": 3291,
+    "$OpeningRate": 69.17
+  },
+  {
+    "$MasterId": 3409,
+    "$OpeningRate": 79.77
+  },
+  {
+    "$MasterId": 3388,
+    "$OpeningRate": 80.79
+  },
+  {
+    "$MasterId": 3253,
+    "$OpeningRate": 115.06
+  },
+  {
+    "$MasterId": 3250,
+    "$OpeningRate": 149.15
+  },
+  {
+    "$MasterId": 3256,
+    "$OpeningRate": 158.23
+  },
+  {
+    "$MasterId": 3254,
+    "$OpeningRate": 173.82
+  },
+  {
+    "$MasterId": 3255,
+    "$OpeningRate": 180.22
+  },
+  {
+    "$MasterId": 3321,
+    "$OpeningRate": 45.32
+  },
+  {
+    "$MasterId": 3322,
+    "$OpeningRate": 50.22
+  },
+  {
+    "$MasterId": 3317,
+    "$OpeningRate": 41.71
+  },
+  {
+    "$MasterId": 3315,
+    "$OpeningRate": 48.44
+  },
+  {
+    "$MasterId": 3316,
+    "$OpeningRate": 67.83
+  },
+  {
+    "$MasterId": 3320,
+    "$OpeningRate": 180.42
+  },
+  {
+    "$MasterId": 3318,
+    "$OpeningRate": 185.3
+  },
+  {
+    "$MasterId": 3319,
+    "$OpeningRate": 185.85
+  },
+  {
+    "$MasterId": 3272,
+    "$OpeningRate": 25.46
+  },
+  {
+    "$MasterId": 3271,
+    "$OpeningRate": 111.55
+  },
+  {
+    "$MasterId": 3351,
+    "$OpeningRate": 292.94
+  },
+  {
+    "$MasterId": 3249,
+    "$OpeningRate": 266.75
+  },
+  {
+    "$MasterId": 3251,
+    "$OpeningRate": 152.77
+  },
+  {
+    "$MasterId": 3277,
+    "$OpeningRate": 217.19
+  },
+  {
+    "$MasterId": 3325,
+    "$OpeningRate": 116.49
+  },
+  {
+    "$MasterId": 3387,
+    "$OpeningRate": 116.55
+  },
+  {
+    "$MasterId": 3375,
+    "$OpeningRate": 122.81
+  },
+  {
+    "$MasterId": 3278,
+    "$OpeningRate": 223.1
+  },
+  {
+    "$MasterId": 3279,
+    "$OpeningRate": 237.65
+  },
+  {
+    "$MasterId": 3313,
+    "$OpeningRate": 8.33
+  },
+  {
+    "$MasterId": 3353,
+    "$OpeningRate": 9.65
+  },
+  {
+    "$MasterId": 3417,
+    "$OpeningRate": 10.14
+  },
+  {
+    "$MasterId": 3355,
+    "$OpeningRate": 35.34
+  },
+  {
+    "$MasterId": 3268,
+    "$OpeningRate": 48.26
+  },
+  {
+    "$MasterId": 3550,
+    "$OpeningRate": 46.18
+  },
+  {
+    "$MasterId": 3269,
+    "$OpeningRate": 48.03
+  },
+  {
+    "$MasterId": 3357,
+    "$OpeningRate": 35.14
+  },
+  {
+    "$MasterId": 3274,
+    "$OpeningRate": 48.05
+  },
+  {
+    "$MasterId": 3527,
+    "$OpeningRate": 46.18
+  },
+  {
+    "$MasterId": 3566,
+    "$OpeningRate": 79.57
+  },
+  {
+    "$MasterId": 3275,
+    "$OpeningRate": 57.63
+  },
+  {
+    "$MasterId": 3358,
+    "$OpeningRate": 38.72
+  },
+  {
+    "$MasterId": 3283,
+    "$OpeningRate": 55.03
+  },
+  {
+    "$MasterId": 3528,
+    "$OpeningRate": 56.12
+  },
+  {
+    "$MasterId": 3472,
+    "$OpeningRate": 112.76
+  },
+  {
+    "$MasterId": 4872,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3285,
+    "$OpeningRate": 54.68
+  },
+  {
+    "$MasterId": 3359,
+    "$OpeningRate": 48.33
+  },
+  {
+    "$MasterId": 3287,
+    "$OpeningRate": 67.75
+  },
+  {
+    "$MasterId": 3529,
+    "$OpeningRate": 64.75
+  },
+  {
+    "$MasterId": 3288,
+    "$OpeningRate": 67.69
+  },
+  {
+    "$MasterId": 3360,
+    "$OpeningRate": 63.96
+  },
+  {
+    "$MasterId": 3304,
+    "$OpeningRate": 94.44
+  },
+  {
+    "$MasterId": 3530,
+    "$OpeningRate": 94.97
+  },
+  {
+    "$MasterId": 3473,
+    "$OpeningRate": 187.19
+  },
+  {
+    "$MasterId": 3305,
+    "$OpeningRate": 92.54
+  },
+  {
+    "$MasterId": 3362,
+    "$OpeningRate": 84.81
+  },
+  {
+    "$MasterId": 3264,
+    "$OpeningRate": 205.52
+  },
+  {
+    "$MasterId": 3307,
+    "$OpeningRate": 112.31
+  },
+  {
+    "$MasterId": 3554,
+    "$OpeningRate": 118.7
+  },
+  {
+    "$MasterId": 3474,
+    "$OpeningRate": 250.34
+  },
+  {
+    "$MasterId": 3308,
+    "$OpeningRate": 111.18
+  },
+  {
+    "$MasterId": 3356,
+    "$OpeningRate": 103.27
+  },
+  {
+    "$MasterId": 3259,
+    "$OpeningRate": 157.14
+  },
+  {
+    "$MasterId": 3446,
+    "$OpeningRate": 151.08
+  },
+  {
+    "$MasterId": 3470,
+    "$OpeningRate": 293.18
+  },
+  {
+    "$MasterId": 3260,
+    "$OpeningRate": 153.29
+  },
+  {
+    "$MasterId": 3363,
+    "$OpeningRate": 148.14
+  },
+  {
+    "$MasterId": 3545,
+    "$OpeningRate": 207.44
+  },
+  {
+    "$MasterId": 3471,
+    "$OpeningRate": 363.1
+  },
+  {
+    "$MasterId": 3265,
+    "$OpeningRate": 206.9
+  },
+  {
+    "$MasterId": 3361,
+    "$OpeningRate": 87.28
+  },
+  {
+    "$MasterId": 3311,
+    "$OpeningRate": 111.09
+  },
+  {
+    "$MasterId": 3531,
+    "$OpeningRate": 118.7
+  },
+  {
+    "$MasterId": 3312,
+    "$OpeningRate": 111.06
+  },
+  {
+    "$MasterId": 3270,
+    "$OpeningRate": 39.33
+  },
+  {
+    "$MasterId": 3578,
+    "$OpeningRate": 51.87
+  },
+  {
+    "$MasterId": 3544,
+    "$OpeningRate": 49.64
+  },
+  {
+    "$MasterId": 3336,
+    "$OpeningRate": 36.41
+  },
+  {
+    "$MasterId": 3579,
+    "$OpeningRate": 51.87
+  },
+  {
+    "$MasterId": 3506,
+    "$OpeningRate": 100.81
+  },
+  {
+    "$MasterId": 3440,
+    "$OpeningRate": 81.19
+  },
+  {
+    "$MasterId": 3337,
+    "$OpeningRate": 50.08
+  },
+  {
+    "$MasterId": 3461,
+    "$OpeningRate": 60.55
+  },
+  {
+    "$MasterId": 3507,
+    "$OpeningRate": 108.31
+  },
+  {
+    "$MasterId": 3442,
+    "$OpeningRate": 112.76
+  },
+  {
+    "$MasterId": 3338,
+    "$OpeningRate": 53.12
+  },
+  {
+    "$MasterId": 3580,
+    "$OpeningRate": 71.83
+  },
+  {
+    "$MasterId": 3508,
+    "$OpeningRate": 107.81
+  },
+  {
+    "$MasterId": 3441,
+    "$OpeningRate": 126.29
+  },
+  {
+    "$MasterId": 3339,
+    "$OpeningRate": 81.45
+  },
+  {
+    "$MasterId": 3462,
+    "$OpeningRate": 108.25
+  },
+  {
+    "$MasterId": 3510,
+    "$OpeningRate": 106.94
+  },
+  {
+    "$MasterId": 3443,
+    "$OpeningRate": 187.19
+  },
+  {
+    "$MasterId": 3309,
+    "$OpeningRate": 111.35
+  },
+  {
+    "$MasterId": 3463,
+    "$OpeningRate": 145.01
+  },
+  {
+    "$MasterId": 3547,
+    "$OpeningRate": 137.45
+  },
+  {
+    "$MasterId": 3340,
+    "$OpeningRate": 143.51
+  },
+  {
+    "$MasterId": 3459,
+    "$OpeningRate": 171.27
+  },
+  {
+    "$MasterId": 3505,
+    "$OpeningRate": 321.91
+  },
+  {
+    "$MasterId": 3439,
+    "$OpeningRate": 293.18
+  },
+  {
+    "$MasterId": 3266,
+    "$OpeningRate": 196.77
+  },
+  {
+    "$MasterId": 3460,
+    "$OpeningRate": 214.24
+  },
+  {
+    "$MasterId": 3543,
+    "$OpeningRate": 205.04
+  },
+  {
+    "$MasterId": 3389,
+    "$OpeningRate": 116.87
+  },
+  {
+    "$MasterId": 3581,
+    "$OpeningRate": 144
+  },
+  {
+    "$MasterId": 3511,
+    "$OpeningRate": 287.45
+  },
+  {
+    "$MasterId": 5144,
+    "$OpeningRate": 12641.29
+  },
+  {
+    "$MasterId": 5143,
+    "$OpeningRate": 30084.76
+  },
+  {
+    "$MasterId": 1038,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3537,
+    "$OpeningRate": 20110.5
+  },
+  {
+    "$MasterId": 1312,
+    "$OpeningRate": 15
+  },
+  {
+    "$MasterId": 3608,
+    "$OpeningRate": 52.92
+  },
+  {
+    "$MasterId": 3609,
+    "$OpeningRate": 53.34
+  },
+  {
+    "$MasterId": 3549,
+    "$OpeningRate": 57.69
+  },
+  {
+    "$MasterId": 3610,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3548,
+    "$OpeningRate": 52.45
+  },
+  {
+    "$MasterId": 3614,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3613,
+    "$OpeningRate": 87.78
+  },
+  {
+    "$MasterId": 3552,
+    "$OpeningRate": 156.38
+  },
+  {
+    "$MasterId": 3611,
+    "$OpeningRate": 162.54
+  },
+  {
+    "$MasterId": 3612,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3553,
+    "$OpeningRate": 191.7
+  },
+  {
+    "$MasterId": 3615,
+    "$OpeningRate": 59.64
+  },
+  {
+    "$MasterId": 3616,
+    "$OpeningRate": 55.44
+  },
+  {
+    "$MasterId": 3569,
+    "$OpeningRate": 117.8
+  },
+  {
+    "$MasterId": 3604,
+    "$OpeningRate": 133.57
+  },
+  {
+    "$MasterId": 3551,
+    "$OpeningRate": 228.96
+  },
+  {
+    "$MasterId": 3625,
+    "$OpeningRate": 8.82
+  },
+  {
+    "$MasterId": 3567,
+    "$OpeningRate": 9.73
+  },
+  {
+    "$MasterId": 3618,
+    "$OpeningRate": 39.55
+  },
+  {
+    "$MasterId": 3619,
+    "$OpeningRate": 40.16
+  },
+  {
+    "$MasterId": 3620,
+    "$OpeningRate": 48.45
+  },
+  {
+    "$MasterId": 3621,
+    "$OpeningRate": 79.01
+  },
+  {
+    "$MasterId": 3622,
+    "$OpeningRate": 101.27
+  },
+  {
+    "$MasterId": 3624,
+    "$OpeningRate": 120.04
+  },
+  {
+    "$MasterId": 3623,
+    "$OpeningRate": 101.27
+  },
+  {
+    "$MasterId": 3602,
+    "$OpeningRate": 659.99
+  },
+  {
+    "$MasterId": 3607,
+    "$OpeningRate": 23.52
+  },
+  {
+    "$MasterId": 4924,
+    "$OpeningRate": 84.75
+  },
+  {
+    "$MasterId": 4877,
+    "$OpeningRate": 847.5
+  },
+  {
+    "$MasterId": 304,
+    "$OpeningRate": 265
+  },
+  {
+    "$MasterId": 421,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 167,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 2688,
+    "$OpeningRate": 1100.88
+  },
+  {
+    "$MasterId": 2693,
+    "$OpeningRate": 1141.72
+  },
+  {
+    "$MasterId": 2687,
+    "$OpeningRate": 916.08
+  },
+  {
+    "$MasterId": 5382,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1036,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1037,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 332,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 1303,
+    "$OpeningRate": 2371.6
+  },
+  {
+    "$MasterId": 3586,
+    "$OpeningRate": 11.44
+  },
+  {
+    "$MasterId": 2831,
+    "$OpeningRate": 34.01
+  },
+  {
+    "$MasterId": 3526,
+    "$OpeningRate": 41
+  },
+  {
+    "$MasterId": 2395,
+    "$OpeningRate": 16.99
+  },
+  {
+    "$MasterId": 2694,
+    "$OpeningRate": 4432.24
+  },
+  {
+    "$MasterId": 2695,
+    "$OpeningRate": 5035.4
+  },
+  {
+    "$MasterId": 1107,
+    "$OpeningRate": null
+  },
+  {
+    "$MasterId": 3584,
+    "$OpeningRate": 42
+  },
+  {
+    "$MasterId": 1035,
+    "$OpeningRate": null
+  }
+]

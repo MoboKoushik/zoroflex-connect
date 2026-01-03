@@ -3,16 +3,39 @@ import { fetchCurrentCompany } from './fetch-to-tally/fetchCurrentCompany';
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { syncCustomers } from '../sync/fetch-to-tally/fetchLedgers';
 import { syncVouchers } from '../sync/fetch-to-tally/fetchVouchers';
-import { fetchAllVouchers } from './dump_data/fetchVoucherData';
+import { fetchAllVouchers, runHistoricalSync } from './dump_data/fetchVoucherData';
+import odbc from 'odbc';
 
 export class SyncService {
   private dbService: DatabaseService;
   private organizationService: OrganizationService;
+  private connectionString = 'DSN=TallyODBC64_9000;UID=;PWD=;';
   private isRunning = false;
 
   constructor(dbService: DatabaseService, organizationService: OrganizationService) {
     this.dbService = dbService;
     this.organizationService = organizationService;
+  }
+
+
+  private async syncOrganization(): Promise<void> {
+    console.log('SYNC ORG START');
+    let conn: odbc.Connection | null = null;
+    try {
+      conn = await odbc.connect(this.connectionString);
+      const result = await conn.query(`
+          SELECT * FROM POStockItem WHERE $MasterId=${1253}
+        `);
+      console.log('SYNC ORG RESULT', JSON.stringify(result));
+      // const res: any = Array.isArray(result) && result.length > 0 ? result[0] : null;
+      // console.log('SYNC ORG RESULT', JSON.stringify(res));
+
+
+    } catch (e: any) {
+      console.error('Organization sync failed', e);
+    } finally {
+      if (conn) await conn.close().catch(() => { });
+    }
   }
 
   private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND'): Promise<void> {
@@ -67,14 +90,14 @@ export class SyncService {
         await this.organizationService.syncOrganization(profile, companyData);
       }
 
-      this.dbService.log('INFO', 'Starting customer sync');
-      await syncCustomers(profile);
+      // this.dbService.log('INFO', 'Starting customer sync');
+      // await syncCustomers(profile);
 
-      this.dbService.log('INFO', 'Starting voucher sync (Invoice, Receipt, Journal)');
-      await syncVouchers(profile);
+      // this.dbService.log('INFO', 'Starting voucher sync (Invoice, Receipt, Journal)');
+      // await syncVouchers(profile);
 
       // this.dbService.log('INFO', 'Starting voucher dump');
-      // await fetchAllVouchers();
+      await this.syncOrganization();
 
 
       await this.dbService.updateLastSuccessfulSync();

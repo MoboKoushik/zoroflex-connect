@@ -1498,27 +1498,50 @@
               </div>
 
               <!-- Charts Section -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 16px;
+                  margin-bottom: 16px;
+                "
+              >
                 <!-- Sync Status Chart -->
-                <div class="history-panel" style="margin-bottom: 0;">
+                <div class="history-panel" style="margin-bottom: 0">
                   <h2 class="panel-title">Sync Status Distribution</h2>
-                  <div style="padding: 20px; height: 300px; display: flex; align-items: center; justify-content: center;">
+                  <div
+                    style="
+                      padding: 20px;
+                      height: 300px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                  >
                     <canvas id="syncStatusChart"></canvas>
                   </div>
                 </div>
                 <!-- Entity Distribution Chart -->
-                <div class="history-panel" style="margin-bottom: 0;">
+                <div class="history-panel" style="margin-bottom: 0">
                   <h2 class="panel-title">Entity Distribution</h2>
-                  <div style="padding: 20px; height: 300px; display: flex; align-items: center; justify-content: center;">
+                  <div
+                    style="
+                      padding: 20px;
+                      height: 300px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                  >
                     <canvas id="entityDistributionChart"></canvas>
                   </div>
                 </div>
               </div>
 
               <!-- Sync Timeline Chart -->
-              <div class="history-panel" style="margin-bottom: 16px;">
+              <div class="history-panel" style="margin-bottom: 16px">
                 <h2 class="panel-title">Sync Timeline (Last 7 Days)</h2>
-                <div style="padding: 20px; height: 300px;">
+                <div style="padding: 20px; height: 300px">
                   <canvas id="syncTimelineChart"></canvas>
                 </div>
               </div>
@@ -1950,15 +1973,20 @@
                       <th>Phone</th>
                       <th>Mobile</th>
                       <th>Company Name</th>
-                      <th style="text-align: right;">Current Balance</th>
+                      <th style="text-align: right">Current Balance</th>
                     </tr>
                   </thead>
                   <tbody id="customersTableBody"></tbody>
                 </table>
               </div>
               <div class="pagination-container">
-                <div class="pagination-info" id="customersPaginationInfo">Showing 0-0 of 0 customers</div>
-                <div class="pagination-controls" id="customersPaginationControls"></div>
+                <div class="pagination-info" id="customersPaginationInfo">
+                  Showing 0-0 of 0 customers
+                </div>
+                <div
+                  class="pagination-controls"
+                  id="customersPaginationControls"
+                ></div>
               </div>
             </div>
           </div>
@@ -1994,7 +2022,7 @@
                       <th>Type</th>
                       <th>Date</th>
                       <th>Party</th>
-                      <th style="text-align: right;">Amount</th>
+                      <th style="text-align: right">Amount</th>
                       <th>API Status</th>
                     </tr>
                   </thead>
@@ -2002,8 +2030,13 @@
                 </table>
               </div>
               <div class="pagination-container">
-                <div class="pagination-info" id="vouchersPaginationInfo">Showing 0-0 of 0 vouchers</div>
-                <div class="pagination-controls" id="vouchersPaginationControls"></div>
+                <div class="pagination-info" id="vouchersPaginationInfo">
+                  Showing 0-0 of 0 vouchers
+                </div>
+                <div
+                  class="pagination-controls"
+                  id="vouchersPaginationControls"
+                ></div>
               </div>
             </div>
           </div>
@@ -2081,6 +2114,23 @@
       })();
 
       // ========================================
+      // Variable Declarations (must be before functions that use them)
+      // ========================================
+      let emailEl, billerIdEl, orgEl, statusEl, lastSyncEl, syncBtn, logoutBtn;
+      let sidebarEmailEl,
+        sidebarOrgEl,
+        statTotalEl,
+        statSuccessfulEl,
+        statFailedEl;
+      let statTodayEl, statCustomersEl, statVouchersEl;
+      let historyData = [];
+
+      // Chart instances
+      let syncStatusChart = null;
+      let entityDistributionChart = null;
+      let syncTimelineChart = null;
+
+      // ========================================
       // Theme Management
       // ========================================
       const THEME_STORAGE_KEY = "zoroflex-theme";
@@ -2126,8 +2176,14 @@
         }
 
         // Update charts when theme changes
-        if (historyData && (syncStatusChart || entityDistributionChart || syncTimelineChart)) {
-          const dashboardStats = { totalCustomers: statCustomersEl?.textContent || 0, totalVouchers: statVouchersEl?.textContent || 0 };
+        if (
+          historyData &&
+          (syncStatusChart || entityDistributionChart || syncTimelineChart)
+        ) {
+          const dashboardStats = {
+            totalCustomers: statCustomersEl?.textContent || 0,
+            totalVouchers: statVouchersEl?.textContent || 0,
+          };
           updateAllCharts(historyData, dashboardStats);
         }
       };
@@ -2321,35 +2377,23 @@
       // ========================================
       // Dashboard Functionality
       // ========================================
-      // These will be set after DOM loads
-      let emailEl, billerIdEl, orgEl, statusEl, lastSyncEl, syncBtn, logoutBtn;
-      let sidebarEmailEl,
-        sidebarOrgEl,
-        statTotalEl,
-        statSuccessfulEl,
-        statFailedEl;
-      let statTodayEl, statCustomersEl, statVouchersEl;
-      let historyData = [];
-      
-      // Chart instances
-      let syncStatusChart = null;
-      let entityDistributionChart = null;
-      let syncTimelineChart = null;
+      // Variables are declared at the top of the script section
 
       // ========================================
       // Chart Utilities
       // ========================================
       const getChartColors = () => {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const isDark =
+          document.documentElement.getAttribute("data-theme") === "dark";
         return {
-          background: isDark ? '#2d2d30' : '#ffffff',
-          text: isDark ? '#cccccc' : '#323130',
-          border: isDark ? '#3e3e42' : '#e1e1e1',
-          primary: '#0078d4',
-          success: '#107c10',
-          danger: '#d13438',
-          warning: '#ffaa44',
-          info: '#0078d4'
+          background: isDark ? "#2d2d30" : "#ffffff",
+          text: isDark ? "#cccccc" : "#323130",
+          border: isDark ? "#3e3e42" : "#e1e1e1",
+          primary: "#0078d4",
+          success: "#107c10",
+          danger: "#d13438",
+          warning: "#ffaa44",
+          info: "#0078d4",
         };
       };
 
@@ -2360,54 +2404,62 @@
       };
 
       const initSyncStatusChart = (history) => {
-        const canvas = document.getElementById('syncStatusChart');
+        const canvas = document.getElementById("syncStatusChart");
         if (!canvas) return;
 
         destroyChart(syncStatusChart);
 
-        const successful = history.filter(h => h.status === 'SUCCESS').length;
-        const failed = history.filter(h => h.status === 'FAILED' || h.status === 'ERROR').length;
-        const partial = history.filter(h => h.status === 'PARTIAL').length;
+        const successful = history.filter((h) => h.status === "SUCCESS").length;
+        const failed = history.filter(
+          (h) => h.status === "FAILED" || h.status === "ERROR"
+        ).length;
+        const partial = history.filter((h) => h.status === "PARTIAL").length;
 
         const colors = getChartColors();
-        
+
         syncStatusChart = new Chart(canvas, {
-          type: 'doughnut',
+          type: "doughnut",
           data: {
-            labels: ['Success', 'Failed', 'Partial'],
-            datasets: [{
-              data: [successful, failed, partial],
-              backgroundColor: [colors.success, colors.danger, colors.warning],
-              borderColor: colors.background,
-              borderWidth: 2
-            }]
+            labels: ["Success", "Failed", "Partial"],
+            datasets: [
+              {
+                data: [successful, failed, partial],
+                backgroundColor: [
+                  colors.success,
+                  colors.danger,
+                  colors.warning,
+                ],
+                borderColor: colors.background,
+                borderWidth: 2,
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'bottom',
+                position: "bottom",
                 labels: {
                   color: colors.text,
                   padding: 15,
-                  font: { size: 12 }
-                }
+                  font: { size: 12 },
+                },
               },
               tooltip: {
                 backgroundColor: colors.background,
                 titleColor: colors.text,
                 bodyColor: colors.text,
                 borderColor: colors.border,
-                borderWidth: 1
-              }
-            }
-          }
+                borderWidth: 1,
+              },
+            },
+          },
         });
       };
 
       const initEntityDistributionChart = (dashboardStats) => {
-        const canvas = document.getElementById('entityDistributionChart');
+        const canvas = document.getElementById("entityDistributionChart");
         if (!canvas) return;
 
         destroyChart(entityDistributionChart);
@@ -2416,29 +2468,31 @@
         const vouchers = dashboardStats?.totalVouchers || 0;
 
         const colors = getChartColors();
-        
+
         entityDistributionChart = new Chart(canvas, {
-          type: 'pie',
+          type: "pie",
           data: {
-            labels: ['Customers', 'Vouchers'],
-            datasets: [{
-              data: [customers, vouchers],
-              backgroundColor: [colors.primary, colors.info],
-              borderColor: colors.background,
-              borderWidth: 2
-            }]
+            labels: ["Customers", "Vouchers"],
+            datasets: [
+              {
+                data: [customers, vouchers],
+                backgroundColor: [colors.primary, colors.info],
+                borderColor: colors.background,
+                borderWidth: 2,
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'bottom',
+                position: "bottom",
                 labels: {
                   color: colors.text,
                   padding: 15,
-                  font: { size: 12 }
-                }
+                  font: { size: 12 },
+                },
               },
               tooltip: {
                 backgroundColor: colors.background,
@@ -2447,22 +2501,26 @@
                 borderColor: colors.border,
                 borderWidth: 1,
                 callbacks: {
-                  label: function(context) {
-                    const label = context.label || '';
+                  label: function (context) {
+                    const label = context.label || "";
                     const value = context.parsed || 0;
-                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const percentage =
+                      total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                     return `${label}: ${value.toLocaleString()} (${percentage}%)`;
-                  }
-                }
-              }
-            }
-          }
+                  },
+                },
+              },
+            },
+          },
         });
       };
 
       const initSyncTimelineChart = (history) => {
-        const canvas = document.getElementById('syncTimelineChart');
+        const canvas = document.getElementById("syncTimelineChart");
         if (!canvas) return;
 
         destroyChart(syncTimelineChart);
@@ -2472,75 +2530,87 @@
         const labels = [];
         const successData = [];
         const failedData = [];
-        
+
         for (let i = days - 1; i >= 0; i--) {
           const date = new Date();
           date.setDate(date.getDate() - i);
-          const dateStr = date.toISOString().split('T')[0];
-          const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const dateStr = date.toISOString().split("T")[0];
+          const dayLabel = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
           labels.push(dayLabel);
-          
-          const dayHistory = history.filter(h => {
-            const syncDate = new Date(h.started_at).toISOString().split('T')[0];
+
+          const dayHistory = history.filter((h) => {
+            const syncDate = new Date(h.started_at).toISOString().split("T")[0];
             return syncDate === dateStr;
           });
-          
-          successData.push(dayHistory.filter(h => h.status === 'SUCCESS').length);
-          failedData.push(dayHistory.filter(h => h.status === 'FAILED' || h.status === 'ERROR').length);
+
+          successData.push(
+            dayHistory.filter((h) => h.status === "SUCCESS").length
+          );
+          failedData.push(
+            dayHistory.filter(
+              (h) => h.status === "FAILED" || h.status === "ERROR"
+            ).length
+          );
         }
 
         const colors = getChartColors();
-        
+
         syncTimelineChart = new Chart(canvas, {
-          type: 'line',
+          type: "line",
           data: {
             labels: labels,
-            datasets: [{
-              label: 'Successful',
-              data: successData,
-              borderColor: colors.success,
-              backgroundColor: colors.success + '20',
-              tension: 0.4,
-              fill: true
-            }, {
-              label: 'Failed',
-              data: failedData,
-              borderColor: colors.danger,
-              backgroundColor: colors.danger + '20',
-              tension: 0.4,
-              fill: true
-            }]
+            datasets: [
+              {
+                label: "Successful",
+                data: successData,
+                borderColor: colors.success,
+                backgroundColor: colors.success + "20",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Failed",
+                data: failedData,
+                borderColor: colors.danger,
+                backgroundColor: colors.danger + "20",
+                tension: 0.4,
+                fill: true,
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'top',
+                position: "top",
                 labels: {
                   color: colors.text,
-                  font: { size: 12 }
-                }
+                  font: { size: 12 },
+                },
               },
               tooltip: {
                 backgroundColor: colors.background,
                 titleColor: colors.text,
                 bodyColor: colors.text,
                 borderColor: colors.border,
-                borderWidth: 1
-              }
+                borderWidth: 1,
+              },
             },
             scales: {
               x: {
                 ticks: { color: colors.text },
-                grid: { color: colors.border }
+                grid: { color: colors.border },
               },
               y: {
                 ticks: { color: colors.text, beginAtZero: true },
-                grid: { color: colors.border }
-              }
-            }
-          }
+                grid: { color: colors.border },
+              },
+            },
+          },
         });
       };
 
@@ -3002,21 +3072,27 @@
       let customersData = [];
       let customersCurrentPage = 1;
       let customersPageSize = 50;
-      let customersSortColumn = 'name';
-      let customersSortDirection = 'asc';
+      let customersSortColumn = "name";
+      let customersSortDirection = "asc";
       let customersTotal = 0;
 
       const formatCurrency = (value) => {
         const num = parseFloat(value) || 0;
-        return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return (
+          "₹" +
+          num.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
       };
 
       const sortCustomers = (data, column, direction) => {
         return [...data].sort((a, b) => {
-          let aVal = a[column] || '';
-          let bVal = b[column] || '';
-          
-          if (column === 'current_balance') {
+          let aVal = a[column] || "";
+          let bVal = b[column] || "";
+
+          if (column === "current_balance") {
             aVal = parseFloat(aVal) || 0;
             bVal = parseFloat(bVal) || 0;
           } else {
@@ -3024,7 +3100,7 @@
             bVal = String(bVal).toLowerCase();
           }
 
-          if (direction === 'asc') {
+          if (direction === "asc") {
             return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
           } else {
             return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
@@ -3045,7 +3121,11 @@
         }
 
         // Sort data
-        const sortedData = sortCustomers(customers, customersSortColumn, customersSortDirection);
+        const sortedData = sortCustomers(
+          customers,
+          customersSortColumn,
+          customersSortDirection
+        );
 
         // Apply pagination
         const start = (customersCurrentPage - 1) * customersPageSize;
@@ -3060,7 +3140,9 @@
             <td>${escapeHtml(customer.phone || "")}</td>
             <td>${escapeHtml(customer.mobile || "")}</td>
             <td>${escapeHtml(customer.company_name || "")}</td>
-            <td style="text-align: right;">${formatCurrency(customer.current_balance || 0)}</td>
+            <td style="text-align: right;">${formatCurrency(
+              customer.current_balance || 0
+            )}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -3070,21 +3152,38 @@
       };
 
       const updateCustomersPagination = () => {
-        const paginationInfo = document.getElementById("customersPaginationInfo");
-        const paginationControls = document.getElementById("customersPaginationControls");
-        
+        const paginationInfo = document.getElementById(
+          "customersPaginationInfo"
+        );
+        const paginationControls = document.getElementById(
+          "customersPaginationControls"
+        );
+
         if (paginationInfo) {
           const start = (customersCurrentPage - 1) * customersPageSize + 1;
-          const end = Math.min(customersCurrentPage * customersPageSize, customersTotal || customersData.length);
-          paginationInfo.textContent = `Showing ${start}-${end} of ${customersTotal || customersData.length} customers`;
+          const end = Math.min(
+            customersCurrentPage * customersPageSize,
+            customersTotal || customersData.length
+          );
+          paginationInfo.textContent = `Showing ${start}-${end} of ${
+            customersTotal || customersData.length
+          } customers`;
         }
 
         if (paginationControls) {
-          const totalPages = Math.ceil((customersTotal || customersData.length) / customersPageSize);
+          const totalPages = Math.ceil(
+            (customersTotal || customersData.length) / customersPageSize
+          );
           paginationControls.innerHTML = `
-            <button class="btn" ${customersCurrentPage === 1 ? 'disabled' : ''} onclick="customersPreviousPage()">Previous</button>
-            <span style="padding: 0 12px;">Page ${customersCurrentPage} of ${totalPages || 1}</span>
-            <button class="btn" ${customersCurrentPage >= totalPages ? 'disabled' : ''} onclick="customersNextPage()">Next</button>
+            <button class="btn" ${
+              customersCurrentPage === 1 ? "disabled" : ""
+            } onclick="customersPreviousPage()">Previous</button>
+            <span style="padding: 0 12px;">Page ${customersCurrentPage} of ${
+            totalPages || 1
+          }</span>
+            <button class="btn" ${
+              customersCurrentPage >= totalPages ? "disabled" : ""
+            } onclick="customersNextPage()">Next</button>
           `;
         }
       };
@@ -3097,7 +3196,9 @@
       };
 
       window.customersNextPage = () => {
-        const totalPages = Math.ceil((customersTotal || customersData.length) / customersPageSize);
+        const totalPages = Math.ceil(
+          (customersTotal || customersData.length) / customersPageSize
+        );
         if (customersCurrentPage < totalPages) {
           customersCurrentPage++;
           renderCustomersTable(customersData);
@@ -3105,31 +3206,41 @@
       };
 
       const setupCustomersTableSorting = () => {
-        const headers = document.querySelectorAll('#customersView .data-table th');
+        const headers = document.querySelectorAll(
+          "#customersView .data-table th"
+        );
         headers.forEach((header, index) => {
-          const columns = ['name', 'email', 'phone', 'mobile', 'company_name', 'current_balance'];
+          const columns = [
+            "name",
+            "email",
+            "phone",
+            "mobile",
+            "company_name",
+            "current_balance",
+          ];
           if (columns[index]) {
-            header.style.cursor = 'pointer';
-            header.addEventListener('click', () => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
               if (customersSortColumn === columns[index]) {
-                customersSortDirection = customersSortDirection === 'asc' ? 'desc' : 'asc';
+                customersSortDirection =
+                  customersSortDirection === "asc" ? "desc" : "asc";
               } else {
                 customersSortColumn = columns[index];
-                customersSortDirection = 'asc';
+                customersSortDirection = "asc";
               }
-              
+
               // Update sort indicators
-              headers.forEach(h => {
-                h.classList.remove('sorted');
-                const icon = h.querySelector('.sort-icon');
+              headers.forEach((h) => {
+                h.classList.remove("sorted");
+                const icon = h.querySelector(".sort-icon");
                 if (icon) icon.remove();
               });
-              header.classList.add('sorted');
-              const icon = document.createElement('span');
-              icon.className = 'sort-icon';
-              icon.textContent = customersSortDirection === 'asc' ? '▲' : '▼';
+              header.classList.add("sorted");
+              const icon = document.createElement("span");
+              icon.className = "sort-icon";
+              icon.textContent = customersSortDirection === "asc" ? "▲" : "▼";
               header.appendChild(icon);
-              
+
               renderCustomersTable(customersData);
             });
           }
@@ -3145,7 +3256,7 @@
             0,
             search
           );
-          
+
           console.log("Customers API result:", result);
           customersData = result.customers || [];
           customersTotal = result.total || 0;
@@ -3162,7 +3273,9 @@
           const tbody = document.getElementById("customersTableBody");
           if (tbody) {
             tbody.innerHTML =
-              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load customers: ' + escapeHtml(err.message || String(err)) + '</div></td></tr>';
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load customers: ' +
+              escapeHtml(err.message || String(err)) +
+              "</div></td></tr>";
           }
         }
       }
@@ -3187,36 +3300,35 @@
       let vouchersData = [];
       let vouchersCurrentPage = 1;
       let vouchersPageSize = 50;
-      let vouchersSortColumn = 'date';
-      let vouchersSortDirection = 'desc';
+      let vouchersSortColumn = "date";
+      let vouchersSortDirection = "desc";
       let vouchersTotal = 0;
 
       const sortVouchers = (data, column, direction) => {
         return [...data].sort((a, b) => {
-          let aVal = a[column] || '';
-          let bVal = b[column] || '';
-          
+          let aVal = a[column] || "";
+          let bVal = b[column] || "";
+
           // Handle date field
-          if (column === 'date') {
+          if (column === "date") {
             aVal = new Date(aVal).getTime() || 0;
             bVal = new Date(bVal).getTime() || 0;
-          } 
+          }
           // Handle total field
-          else if (column === 'total') {
+          else if (column === "total") {
             aVal = parseFloat(aVal) || 0;
             bVal = parseFloat(bVal) || 0;
           }
           // Handle Customer name (nested)
-          else if (column === 'customer_name') {
-            aVal = String(a.Customer?.name || '').toLowerCase();
-            bVal = String(b.Customer?.name || '').toLowerCase();
-          }
-          else {
+          else if (column === "customer_name") {
+            aVal = String(a.Customer?.name || "").toLowerCase();
+            bVal = String(b.Customer?.name || "").toLowerCase();
+          } else {
             aVal = String(aVal).toLowerCase();
             bVal = String(bVal).toLowerCase();
           }
 
-          if (direction === 'asc') {
+          if (direction === "asc") {
             return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
           } else {
             return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
@@ -3237,7 +3349,11 @@
         }
 
         // Sort data
-        const sortedData = sortVouchers(vouchers, vouchersSortColumn, vouchersSortDirection);
+        const sortedData = sortVouchers(
+          vouchers,
+          vouchersSortColumn,
+          vouchersSortDirection
+        );
 
         // Apply pagination
         const start = (vouchersCurrentPage - 1) * vouchersPageSize;
@@ -3249,14 +3365,20 @@
           // TallyInvoice doesn't have synced_to_api field - all are synced
           const apiStatus = '<span class="success">Synced</span>';
           // Handle date - could be DateTime object or ISO string
-          const voucherDate = voucher.date ? (typeof voucher.date === 'string' ? voucher.date : voucher.date.toISOString()) : '';
-          
+          const voucherDate = voucher.date
+            ? typeof voucher.date === "string"
+              ? voucher.date
+              : voucher.date.toISOString()
+            : "";
+
           tr.innerHTML = `
             <td>${escapeHtml(voucher.invoice_number || "")}</td>
             <td>${escapeHtml(voucher.type || "invoice")}</td>
             <td>${formatDate(voucherDate)}</td>
             <td>${escapeHtml(voucher.Customer?.name || "")}</td>
-            <td style="text-align: right;">${formatCurrency(voucher.total || 0)}</td>
+            <td style="text-align: right;">${formatCurrency(
+              voucher.total || 0
+            )}</td>
             <td>${apiStatus}</td>
           `;
           tbody.appendChild(tr);
@@ -3267,21 +3389,38 @@
       };
 
       const updateVouchersPagination = () => {
-        const paginationInfo = document.getElementById("vouchersPaginationInfo");
-        const paginationControls = document.getElementById("vouchersPaginationControls");
-        
+        const paginationInfo = document.getElementById(
+          "vouchersPaginationInfo"
+        );
+        const paginationControls = document.getElementById(
+          "vouchersPaginationControls"
+        );
+
         if (paginationInfo) {
           const start = (vouchersCurrentPage - 1) * vouchersPageSize + 1;
-          const end = Math.min(vouchersCurrentPage * vouchersPageSize, vouchersTotal || vouchersData.length);
-          paginationInfo.textContent = `Showing ${start}-${end} of ${vouchersTotal || vouchersData.length} vouchers`;
+          const end = Math.min(
+            vouchersCurrentPage * vouchersPageSize,
+            vouchersTotal || vouchersData.length
+          );
+          paginationInfo.textContent = `Showing ${start}-${end} of ${
+            vouchersTotal || vouchersData.length
+          } vouchers`;
         }
 
         if (paginationControls) {
-          const totalPages = Math.ceil((vouchersTotal || vouchersData.length) / vouchersPageSize);
+          const totalPages = Math.ceil(
+            (vouchersTotal || vouchersData.length) / vouchersPageSize
+          );
           paginationControls.innerHTML = `
-            <button class="btn" ${vouchersCurrentPage === 1 ? 'disabled' : ''} onclick="vouchersPreviousPage()">Previous</button>
-            <span style="padding: 0 12px;">Page ${vouchersCurrentPage} of ${totalPages || 1}</span>
-            <button class="btn" ${vouchersCurrentPage >= totalPages ? 'disabled' : ''} onclick="vouchersNextPage()">Next</button>
+            <button class="btn" ${
+              vouchersCurrentPage === 1 ? "disabled" : ""
+            } onclick="vouchersPreviousPage()">Previous</button>
+            <span style="padding: 0 12px;">Page ${vouchersCurrentPage} of ${
+            totalPages || 1
+          }</span>
+            <button class="btn" ${
+              vouchersCurrentPage >= totalPages ? "disabled" : ""
+            } onclick="vouchersNextPage()">Next</button>
           `;
         }
       };
@@ -3294,7 +3433,9 @@
       };
 
       window.vouchersNextPage = () => {
-        const totalPages = Math.ceil((vouchersTotal || vouchersData.length) / vouchersPageSize);
+        const totalPages = Math.ceil(
+          (vouchersTotal || vouchersData.length) / vouchersPageSize
+        );
         if (vouchersCurrentPage < totalPages) {
           vouchersCurrentPage++;
           renderVouchersTable(vouchersData);
@@ -3302,31 +3443,41 @@
       };
 
       const setupVouchersTableSorting = () => {
-        const headers = document.querySelectorAll('#vouchersView .data-table th');
+        const headers = document.querySelectorAll(
+          "#vouchersView .data-table th"
+        );
         headers.forEach((header, index) => {
-          const columns = ['invoice_number', 'type', 'date', 'customer_name', 'total', ''];
+          const columns = [
+            "invoice_number",
+            "type",
+            "date",
+            "customer_name",
+            "total",
+            "",
+          ];
           if (columns[index]) {
-            header.style.cursor = 'pointer';
-            header.addEventListener('click', () => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
               if (vouchersSortColumn === columns[index]) {
-                vouchersSortDirection = vouchersSortDirection === 'asc' ? 'desc' : 'asc';
+                vouchersSortDirection =
+                  vouchersSortDirection === "asc" ? "desc" : "asc";
               } else {
                 vouchersSortColumn = columns[index];
-                vouchersSortDirection = 'asc';
+                vouchersSortDirection = "asc";
               }
-              
+
               // Update sort indicators
-              headers.forEach(h => {
-                h.classList.remove('sorted');
-                const icon = h.querySelector('.sort-icon');
+              headers.forEach((h) => {
+                h.classList.remove("sorted");
+                const icon = h.querySelector(".sort-icon");
                 if (icon) icon.remove();
               });
-              header.classList.add('sorted');
-              const icon = document.createElement('span');
-              icon.className = 'sort-icon';
-              icon.textContent = vouchersSortDirection === 'asc' ? '▲' : '▼';
+              header.classList.add("sorted");
+              const icon = document.createElement("span");
+              icon.className = "sort-icon";
+              icon.textContent = vouchersSortDirection === "asc" ? "▲" : "▼";
               header.appendChild(icon);
-              
+
               renderVouchersTable(vouchersData);
             });
           }
@@ -3345,7 +3496,7 @@
             search,
             voucherType
           );
-          
+
           console.log("Vouchers API result:", result);
           vouchersData = result.vouchers || [];
           vouchersTotal = result.total || 0;
@@ -3362,7 +3513,9 @@
           const tbody = document.getElementById("vouchersTableBody");
           if (tbody) {
             tbody.innerHTML =
-              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load vouchers: ' + escapeHtml(err.message || String(err)) + '</div></td></tr>';
+              '<tr><td colspan="6" class="empty-state"><div class="empty-state-text" style="color: var(--danger);">Failed to load vouchers: ' +
+              escapeHtml(err.message || String(err)) +
+              "</div></td></tr>";
           }
         }
       }

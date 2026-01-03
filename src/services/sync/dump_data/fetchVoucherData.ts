@@ -54,6 +54,288 @@ function parseXmlToJson(xmlNode: any): any {
     return obj;
 }
 
+
+// sync/dateUtils.js
+export function getMonthRanges(startYear: any, endYear: number) {
+    const ranges = [];
+
+    for (let year = startYear; year <= endYear; year++) {
+        for (let month = 0; month < 12; month++) {
+            const from = new Date(year, month, 1);
+            const to = new Date(year, month + 1, 0);
+
+            ranges.push({
+                year,
+                month: month + 1,
+                fromDate: formatDate(from),
+                toDate: formatDate(to),
+            });
+        }
+    }
+    return ranges;
+}
+
+function formatDate(d: Date) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}${mm}${dd}`;
+}
+
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+export async function fetchFromTally_1(xml: any) {
+    try {
+        const res = await axios.post(
+            "http://127.0.0.1:9000",
+            xml,
+            { headers: { "Content-Type": "text/xml" }, timeout: 120000 }
+        );
+        return res.data;
+    } catch (error) {
+        console.error('Error fetching from Tally:', (error as Error).message || error);
+        throw error;
+    }
+}
+
+
+export async function runHistoricalSync() {
+    //   const state = loadState();
+    const xml = buildARXML_1({
+        masterId: '12652'
+    });
+    const xmlResp_1 = await fetchFromTally_1(xml);
+    const line_item = await parseStringPromise(xmlResp_1);
+    const rawFile = `./dump/voucher/all_voucher_items_raw_all.json`;
+    fs.writeFileSync(rawFile, JSON.stringify(line_item, null, 2), 'utf8');
+    // const months = getMonthRanges(2023, 2025);
+
+    // for (const m of months) {
+    //     let alterId = 0;
+    //     let Vouchers: any = [];
+    //     const xml = buildARXML({
+    //         fromDate: m.fromDate,
+    //         toDate: m.toDate,
+    //         fromAlterId: alterId,
+    //         sizeMax: 20,
+    //     });
+    //     console.log(`Fetching vouchers for ${m.year}-${m.month} from AlterID: ${alterId}, Batch Size: 20`);
+
+    //     const xmlResp = await fetchFromTally_1(xml);
+    //     Vouchers = await parseStringPromise(xmlResp);
+    //     const collection = Vouchers.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0];
+    //     if (!collection) {
+    //         return [];
+    //     }
+
+    //     const vouchersXml = Array.isArray(collection.VOUCHER) ? collection.VOUCHER : collection.VOUCHER ? [collection.VOUCHER] : [];
+    //     const vouchersJson: Record<string, any>[] = vouchersXml
+    //         .map((voucher: any) => parseXmlToJson(voucher))
+    //         .filter((voucher: Record<string, any>) => voucher && voucher.ALTERID); // Filter valid vouchers with AlterID
+
+    //     for (const v of vouchersJson) {
+    //         const masterId = getText(v, 'MASTERID');
+    //         const xml = buildARXML_1({
+    //             masterId
+    //         });
+    //         const xmlResp_1 = await fetchFromTally_1(xml);
+    //         const line_item = await parseStringPromise(xmlResp_1);
+    //         const rawFile = `./dump/voucher/all_voucher_items_raw_${masterId}.json`;
+    //         fs.writeFileSync(rawFile, JSON.stringify(line_item, null, 2), 'utf8');
+    //     }
+    //     const rawFile = `./dump/voucher/all_vouchers_raw.json`;
+    //     fs.writeFileSync(rawFile, JSON.stringify(Vouchers, null, 2), 'utf8');
+    //     await sleep(1500);
+    //     break
+    //     // console.log(`Fetched vouchers for ${m.year}-${m.month}`, JSON.stringify(Vouchers, null, 2));
+    // }
+}
+function getText(obj: any, key: string): string {
+    const value = obj?.[key]?.[0];
+    if (!value) return '';
+    return typeof value === 'string' ? value.trim() : value._?.trim() || '';
+}
+
+export function buildARXML({ fromDate, toDate, fromAlterId, sizeMax }: { fromDate: string; toDate: string; fromAlterId: number; sizeMax: number }) {
+    return `
+    <ENVELOPE>
+     <HEADER>
+      <VERSION>1</VERSION>
+      <TALLYREQUEST>Export</TALLYREQUEST>
+      <TYPE>Collection</TYPE>
+      <ID>AR_HEADER_SAFE</ID>
+     </HEADER>
+
+     <BODY>
+      <DESC>
+       <STATICVARIABLES>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+        <SVFROMDATE>${fromDate}</SVFROMDATE>
+        <SVTODATE>${toDate}</SVTODATE>
+        <SVFROMALTERID>${fromAlterId}</SVFROMALTERID>
+       </STATICVARIABLES>
+
+       <TDL>
+        <TDLMESSAGE>
+
+         <COLLECTION NAME="AR_HEADER_SAFE"
+                     ISINITIALIZE="Yes"
+                     SIZEMAX="20">
+
+          <TYPE>Voucher</TYPE>
+
+          <FILTERS>
+           AR_Incremental,
+           AR_Types,
+           AR_Debtors
+          </FILTERS>
+
+          <NATIVEMETHOD>MasterID</NATIVEMETHOD>
+          <NATIVEMETHOD>AlterID</NATIVEMETHOD>
+          <NATIVEMETHOD>Date</NATIVEMETHOD>
+          <NATIVEMETHOD>VoucherNumber</NATIVEMETHOD>
+          <NATIVEMETHOD>VoucherTypeName</NATIVEMETHOD>
+          <NATIVEMETHOD>PartyLedgerName</NATIVEMETHOD>
+          <NATIVEMETHOD>Narration</NATIVEMETHOD>
+         </COLLECTION>
+
+         <SYSTEM TYPE="Formulae" NAME="AR_Incremental">
+          $$Number:$AlterID &gt; $$Number:##SVFROMALTERID
+         </SYSTEM>
+
+         <SYSTEM TYPE="Formulae" NAME="AR_Types">
+          $$IsSales:$VoucherTypeName
+          OR $$IsReceipt:$VoucherTypeName
+          OR $$IsCreditNote:$VoucherTypeName
+         </SYSTEM>
+
+         <SYSTEM TYPE="Formulae" NAME="AR_Debtors">
+          $$IsLedOfGrp:$PartyLedgerName:$$GroupSundryDebtors
+         </SYSTEM>
+
+        </TDLMESSAGE>
+       </TDL>
+      </DESC>
+     </BODY>
+    </ENVELOPE>`;
+
+}
+
+export function buildARXML_1({ masterId }: { masterId: string }) {
+    //     return `
+    // <ENVELOPE>
+    //  <HEADER>
+    //   <VERSION>1</VERSION>
+    //   <TALLYREQUEST>Export</TALLYREQUEST>
+    //   <TYPE>Collection</TYPE>
+    //   <ID>AR_HEADER_SAFE</ID>
+    //  </HEADER>
+
+    //  <BODY>
+    //   <DESC>
+    //    <STATICVARIABLES>
+    //     <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+    //     <SVFROMDATE>${fromDate}</SVFROMDATE>
+    //     <SVTODATE>${toDate}</SVTODATE>
+    //     <SVFROMALTERID>${fromAlterId}</SVFROMALTERID>
+    //    </STATICVARIABLES>
+
+    //    <TDL>
+    //     <TDLMESSAGE>
+
+    //      <COLLECTION NAME="AR_HEADER_SAFE"
+    //                  ISINITIALIZE="Yes"
+    //                  SIZEMAX="20">
+
+    //       <TYPE>Voucher</TYPE>
+
+    //       <FILTERS>
+    //        AR_Incremental,
+    //        AR_Types,
+    //        AR_Debtors
+    //       </FILTERS>
+
+    //       <NATIVEMETHOD>MasterID</NATIVEMETHOD>
+    //       <NATIVEMETHOD>AlterID</NATIVEMETHOD>
+    //       <NATIVEMETHOD>Date</NATIVEMETHOD>
+    //       <NATIVEMETHOD>VoucherNumber</NATIVEMETHOD>
+    //       <NATIVEMETHOD>VoucherTypeName</NATIVEMETHOD>
+    //       <NATIVEMETHOD>PartyLedgerName</NATIVEMETHOD>
+    //       <NATIVEMETHOD>Narration</NATIVEMETHOD>
+    //      </COLLECTION>
+
+    //      <SYSTEM TYPE="Formulae" NAME="AR_Incremental">
+    //       $$Number:$AlterID &gt; $$Number:##SVFROMALTERID
+    //      </SYSTEM>
+
+    //      <SYSTEM TYPE="Formulae" NAME="AR_Types">
+    //       $$IsSales:$VoucherTypeName
+    //       OR $$IsReceipt:$VoucherTypeName
+    //       OR $$IsCreditNote:$VoucherTypeName
+    //      </SYSTEM>
+
+    //      <SYSTEM TYPE="Formulae" NAME="AR_Debtors">
+    //       $$IsLedOfGrp:$PartyLedgerName:$$GroupSundryDebtors
+    //      </SYSTEM>
+
+    //     </TDLMESSAGE>
+    //    </TDL>
+    //   </DESC>
+    //  </BODY>
+    // </ENVELOPE>`;
+
+
+
+    return `
+<ENVELOPE>
+ <HEADER>
+  <VERSION>1</VERSION>
+  <TALLYREQUEST>Export</TALLYREQUEST>
+  <TYPE>Collection</TYPE>
+  <ID>SALES_ITEMS_SAFE</ID>
+ </HEADER>
+
+ <BODY>
+  <DESC>
+   <TDL>
+    <TDLMESSAGE>
+
+     <COLLECTION NAME="SALES_ITEMS_SAFE" ISINITIALIZE="Yes">
+      <TYPE>Voucher</TYPE>
+
+      <FILTERS>
+       ByMasterID,
+       SalesOnly
+      </FILTERS>
+
+      <NATIVEMETHOD>MasterID</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.List</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.StockItemName</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.BilledQty</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.Rate</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.Amount</NATIVEMETHOD>
+      <NATIVEMETHOD>InventoryEntries.BasicUnit</NATIVEMETHOD>
+
+     </COLLECTION>
+    <SYSTEM TYPE="Formulae" NAME="ByMasterIDList">
+        $$String:$MasterID IN $$String:VoucherIDList = "${["12652", "12653", "12654", "12659", "12661"]}"
+    </SYSTEM>
+     <SYSTEM TYPE="Formulae" NAME="SalesOnly">
+      $$IsSales:$VoucherTypeName
+     </SYSTEM>
+
+    </TDLMESSAGE>
+   </TDL>
+  </DESC>
+ </BODY>
+</ENVELOPE>`
+
+}
+
+
 /**
  * Fetches vouchers from Tally using the provided XML request.
  * Parses the response into structured JSON.
@@ -230,3 +512,4 @@ export async function fetchAllVouchers(): Promise<Record<string, any>[]> {
 
     return allVouchers;
 }
+

@@ -1,0 +1,3956 @@
+{
+  "ENVELOPE": {
+    "HEADER": [
+      {
+        "VERSION": [
+          "1"
+        ],
+        "STATUS": [
+          "1"
+        ]
+      }
+    ],
+    "BODY": [
+      {
+        "DESC": [
+          {
+            "CMPINFO": [
+              {
+                "COMPANY": [
+                  "0"
+                ],
+                "GROUP": [
+                  "0"
+                ],
+                "LEDGER": [
+                  "0"
+                ],
+                "COSTCATEGORY": [
+                  "0"
+                ],
+                "COSTCENTRE": [
+                  "0"
+                ],
+                "GODOWN": [
+                  "0"
+                ],
+                "STOCKGROUP": [
+                  "0"
+                ],
+                "STOCKCATEGORY": [
+                  "0"
+                ],
+                "STOCKITEM": [
+                  "0"
+                ],
+                "VOUCHERTYPE": [
+                  "0"
+                ],
+                "CURRENCY": [
+                  "0"
+                ],
+                "UNIT": [
+                  "0"
+                ],
+                "BUDGET": [
+                  "0"
+                ],
+                "CLIENTRULE": [
+                  "0"
+                ],
+                "SERVERRULE": [
+                  "0"
+                ],
+                "STATE": [
+                  "0"
+                ],
+                "TDSRATE": [
+                  "0"
+                ],
+                "TAXCLASSIFICATION": [
+                  "0"
+                ],
+                "STCATEGORY": [
+                  "0"
+                ],
+                "DEDUCTEETYPE": [
+                  "0"
+                ],
+                "ATTENDANCETYPE": [
+                  "0"
+                ],
+                "FBTCATEGORY": [
+                  "0"
+                ],
+                "FBTASSESSEETYPE": [
+                  "0"
+                ],
+                "TARIFFCLASSIFICATION": [
+                  "0"
+                ],
+                "EXCISEDUTYCLASSIFICATION": [
+                  "0"
+                ],
+                "SERIALNUMBER": [
+                  "0"
+                ],
+                "ADJUSTMENTCLASSIFICATION": [
+                  "0"
+                ],
+                "INCOMETAXSLAB": [
+                  "0"
+                ],
+                "INCOMETAXCLASSIFICATION": [
+                  "0"
+                ],
+                "LBTCLASSIFICATION": [
+                  "0"
+                ],
+                "TAXUNIT": [
+                  "0"
+                ],
+                "RETURNMASTER": [
+                  "0"
+                ],
+                "GSTCLASSIFICATION": [
+                  "0"
+                ],
+                "VOUCHERNUMBERSERIES": [
+                  "0"
+                ],
+                "VOUCHER": [
+                  "0"
+                ]
+              }
+            ]
+          }
+        ],
+        "DATA": [
+          {
+            "COLLECTION": [
+              {
+                "$": {
+                  "ISCMPDEPTYPE": "Yes",
+                  "CMPLOCUS": "4",
+                  "CMPDEPTYPE": "64"
+                },
+                "VOUCHER": [
+                  {
+                    "$": {
+                      "REMOTEID": "d0385099-d29a-4ed6-994c-37212cdd2412-0000316c",
+                      "VCHKEY": "d0385099-d29a-4ed6-994c-37212cdd2412-0000afd8:00000008",
+                      "VCHTYPE": "Sales",
+                      "OBJVIEW": "Invoice Voucher View"
+                    },
+                    "DATE": [
+                      {
+                        "_": "20230401",
+                        "$": {
+                          "TYPE": "Date"
+                        }
+                      }
+                    ],
+                    "GUID": [
+                      "d0385099-d29a-4ed6-994c-37212cdd2412-0000316c"
+                    ],
+                    "REQUESTORRULE": [
+                      ""
+                    ],
+                    "VOUCHERTYPENAME": [
+                      "Sales"
+                    ],
+                    "VOUCHERNUMBER": [
+                      "ET/1/2023-24"
+                    ],
+                    "REFERENCE": [
+                      {
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "SERIALMASTER": [
+                      {
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "ARESERIALMASTER": [
+                      {
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "NUMBERINGSTYLE": [
+                      "Auto Retain"
+                    ],
+                    "PERSISTEDVIEW": [
+                      "Invoice Voucher View"
+                    ],
+                    "ISDELETED": [
+                      "No"
+                    ],
+                    "ASORIGINAL": [
+                      "No"
+                    ],
+                    "ISDEEMEDPOSITIVE": [
+                      {
+                        "_": "Yes",
+                        "$": {
+                          "TYPE": "Logical"
+                        }
+                      }
+                    ],
+                    "ISINVOICE": [
+                      "Yes"
+                    ],
+                    "ASPAYSLIP": [
+                      "No"
+                    ],
+                    "ISDELETEDVCHRETAINED": [
+                      "No"
+                    ],
+                    "ISNEGISPOSSET": [
+                      {
+                        "_": "Yes",
+                        "$": {
+                          "TYPE": "Logical"
+                        }
+                      }
+                    ],
+                    "MASTERID": [
+                      {
+                        "_": " 12652",
+                        "$": {
+                          "TYPE": "Number"
+                        }
+                      }
+                    ],
+                    "VOUCHERKEY": [
+                      {
+                        "_": "193342247796744",
+                        "$": {
+                          "TYPE": "Number"
+                        }
+                      }
+                    ],
+                    "VOUCHERRETAINKEY": [
+                      {
+                        "_": "14197",
+                        "$": {
+                          "TYPE": "Number"
+                        }
+                      }
+                    ],
+                    "REUSEHOLEID": [
+                      {
+                        "_": "0",
+                        "$": {
+                          "TYPE": "Number"
+                        }
+                      }
+                    ],
+                    "VOUCHERNUMBERSERIES": [
+                      {
+                        "_": "Default",
+                        "$": {
+                          "TYPE": "String"
+                        }
+                      }
+                    ],
+                    "ALLINVENTORYENTRIES.LIST": [
+                      {
+                        "STOCKITEMNAME": [
+                          {
+                            "_": "PC Etira FR 0.75Sq.mm (90mtr)",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATNATURENAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISZRBASICSERVICE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNISREVCHARGEAPPL": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTAXABILITY": [
+                          {
+                            "_": "Taxable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTSOURCETYPE": [
+                          {
+                            "_": "Stock Group",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTSTOCKGROUPSOURCE": [
+                          {
+                            "_": "Etira",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "HSNSOURCETYPE": [
+                          {
+                            "_": "Stock Group",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "HSNSTOCKGROUPSOURCE": [
+                          {
+                            "_": "Etira",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNSTOREDNATURE": [
+                          {
+                            "_": "\u0004 System Inferred",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTYPEOFSUPPLY": [
+                          {
+                            "_": "Goods",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTRATEINFERAPPLICABILITY": [
+                          {
+                            "_": "As per Masters/Company",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNNAME": [
+                          {
+                            "_": "85446090",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNINFERAPPLICABILITY": [
+                          {
+                            "_": "As per Masters/Company",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ADDLAMOUNT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ISDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISLASTDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISAUTONEGATE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISSCRAP": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "RATE": [
+                          {
+                            "_": "1208.00/BDL",
+                            "$": {
+                              "TYPE": "Rate"
+                            }
+                          }
+                        ],
+                        "DISCOUNT": [
+                          {
+                            "_": " 43.50",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "AMOUNT": [
+                          {
+                            "_": "6825.20",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CESSASSVALONCLASS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "WCTOTALDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATINPUTTAXCREDIT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATELIGIBLECREDIT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ACTUALQTY": [
+                          {
+                            "_": " 10 BDL",
+                            "$": {
+                              "TYPE": "Quantity"
+                            }
+                          }
+                        ],
+                        "BILLEDQTY": [
+                          {
+                            "_": " 10 BDL",
+                            "$": {
+                              "TYPE": "Quantity"
+                            }
+                          }
+                        ],
+                        "BATCHALLOCATIONS.LIST": [
+                          {
+                            "GODOWNNAME": [
+                              {
+                                "_": "Main Location",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "BATCHNAME": [
+                              {
+                                "_": "Primary Batch",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "INDENTNO": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ORDERNO": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "TRACKINGNUMBER": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ADDLAMOUNT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "BATCHID": [
+                              {
+                                "_": " 8353",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "BATCHDISCOUNT": [
+                              {
+                                "_": " 43.50",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "AMOUNT": [
+                              {
+                                "_": "6825.20",
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ACTUALQTY": [
+                              {
+                                "_": " 10 BDL",
+                                "$": {
+                                  "TYPE": "Quantity"
+                                }
+                              }
+                            ],
+                            "BILLEDQTY": [
+                              {
+                                "_": " 10 BDL",
+                                "$": {
+                                  "TYPE": "Quantity"
+                                }
+                              }
+                            ],
+                            "BATCHRATE": [
+                              {
+                                "_": "1208.00/BDL",
+                                "$": {
+                                  "TYPE": "Rate"
+                                }
+                              }
+                            ],
+                            "VOUCHERCOMPONENTLIST.LIST": [
+                              "       "
+                            ]
+                          }
+                        ],
+                        "ACCOUNTINGALLOCATIONS.LIST": [
+                          {
+                            "OLDAUDITENTRYIDS.LIST": [
+                              {
+                                "$": {
+                                  "TYPE": "Number"
+                                },
+                                "OLDAUDITENTRYIDS": [
+                                  "-1"
+                                ]
+                              }
+                            ],
+                            "TAXCLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "LEDGERNAME": [
+                              {
+                                "_": "SALES A/C",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "STATNATURENAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "CLASSRATE": [
+                              {
+                                "_": "100.00000",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "STATCLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "EXCISECLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ISZRBASICSERVICE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCOMMODITYNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "SCHEDULE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "SCHEDULESERIALNUMBER": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCOMMODITYCODE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "TDSPARTYNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATPARTYORGNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCALCULATIONTYPE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATWORKSCONTRACTTYPE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATWCDESCRIPTION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTCLASS": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNCLASSIFICATION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNNATURE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNINELIGIBLEITC": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNISREVCHARGEAPPL": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNTAXABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNSACCODE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNSTOREDNATURE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNDESCRIPTION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ISDEEMEDPOSITIVE": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "LEDGERFROMITEM": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISPARTYLEDGER": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISLASTDEEMEDPOSITIVE": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISCAPVATNOTCLAIMED": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "RATEOFADDLVAT": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "RATEOFCESSONVAT": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATTAXRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATITEMQTY": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTIONRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "GSTTAXRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "AMOUNT": [
+                              {
+                                "_": "6825.20",
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CESSASSVALONCLASS": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ADDNLVATCLASSAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCCOSTOFLAND": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDLABOURCHARGES": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCOTHERDEDUCTIONAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCVALUEOFTAXFREEGOODS": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCOTHERCHARGES": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCSUBCONTRACTORAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "WCTOTALDEDUCTIONAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTIONAMOUNT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ORIGINVGOODSVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CENVATCAPTINPUTAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "IGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "SGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTCESSLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTASSBLVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "SERVICETAXDETAILS.LIST": [
+                              "       "
+                            ],
+                            "BANKALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "BILLALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "INTERESTCOLLECTION.LIST": [
+                              "       "
+                            ],
+                            "OLDAUDITENTRIES.LIST": [
+                              "       "
+                            ],
+                            "ACCOUNTAUDITENTRIES.LIST": [
+                              "       "
+                            ],
+                            "INPUTCRALLOCS.LIST": [
+                              "       "
+                            ],
+                            "DUTYHEADDETAILS.LIST": [
+                              "       "
+                            ],
+                            "EXCISEDUTYHEADDETAILS.LIST": [
+                              "       "
+                            ],
+                            "RATEDETAILS.LIST": [
+                              "       "
+                            ],
+                            "SUMMARYALLOCS.LIST": [
+                              "       "
+                            ],
+                            "CENVATDUTYALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "STPYMTDETAILS.LIST": [
+                              "       "
+                            ],
+                            "EXCISEPAYMENTALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "TAXBILLALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "TDSEXPENSEALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "VATSTATUTORYDETAILS.LIST": [
+                              "       "
+                            ],
+                            "COSTTRACKALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "REFVOUCHERDETAILS.LIST": [
+                              "       "
+                            ],
+                            "INVOICEWISEDETAILS.LIST": [
+                              "       "
+                            ],
+                            "VATITCDETAILS.LIST": [
+                              "       "
+                            ],
+                            "ADVANCETAXDETAILS.LIST": [
+                              "       "
+                            ],
+                            "TAXTYPEALLOCATIONS.LIST": [
+                              "       "
+                            ]
+                          }
+                        ],
+                        "DUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "RATEDETAILS.LIST": [
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "CGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 9",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "SGST/UTGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 9",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "IGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 18",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "Cess",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "State Cess",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "SUPPLEMENTARYDUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "TAXOBJECTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "REFVOUCHERDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "EXPENSEALLOCATIONS.LIST": [
+                          "      "
+                        ]
+                      },
+                      {
+                        "STOCKITEMNAME": [
+                          {
+                            "_": "PC Etira FR 1.0Sq.mm (90mtr)",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATNATURENAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISZRBASICSERVICE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNISREVCHARGEAPPL": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTAXABILITY": [
+                          {
+                            "_": "Taxable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTSOURCETYPE": [
+                          {
+                            "_": "Stock Group",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTSTOCKGROUPSOURCE": [
+                          {
+                            "_": "Etira",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "HSNSOURCETYPE": [
+                          {
+                            "_": "Stock Group",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "HSNSTOCKGROUPSOURCE": [
+                          {
+                            "_": "Etira",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNSTOREDNATURE": [
+                          {
+                            "_": "\u0004 System Inferred",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTYPEOFSUPPLY": [
+                          {
+                            "_": "Goods",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTRATEINFERAPPLICABILITY": [
+                          {
+                            "_": "As per Masters/Company",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNNAME": [
+                          {
+                            "_": "85446090",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNINFERAPPLICABILITY": [
+                          {
+                            "_": "As per Masters/Company",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ADDLAMOUNT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ISDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISLASTDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISAUTONEGATE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISSCRAP": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "RATE": [
+                          {
+                            "_": "1576.00/BDL",
+                            "$": {
+                              "TYPE": "Rate"
+                            }
+                          }
+                        ],
+                        "DISCOUNT": [
+                          {
+                            "_": " 43.50",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "AMOUNT": [
+                          {
+                            "_": "21370.56",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CESSASSVALONCLASS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "WCTOTALDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATINPUTTAXCREDIT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATELIGIBLECREDIT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ACTUALQTY": [
+                          {
+                            "_": " 24 BDL",
+                            "$": {
+                              "TYPE": "Quantity"
+                            }
+                          }
+                        ],
+                        "BILLEDQTY": [
+                          {
+                            "_": " 24 BDL",
+                            "$": {
+                              "TYPE": "Quantity"
+                            }
+                          }
+                        ],
+                        "BATCHALLOCATIONS.LIST": [
+                          {
+                            "GODOWNNAME": [
+                              {
+                                "_": "Main Location",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "BATCHNAME": [
+                              {
+                                "_": "Primary Batch",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "INDENTNO": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ORDERNO": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "TRACKINGNUMBER": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ADDLAMOUNT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "BATCHID": [
+                              {
+                                "_": " 8354",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "BATCHDISCOUNT": [
+                              {
+                                "_": " 43.50",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "AMOUNT": [
+                              {
+                                "_": "21370.56",
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ACTUALQTY": [
+                              {
+                                "_": " 24 BDL",
+                                "$": {
+                                  "TYPE": "Quantity"
+                                }
+                              }
+                            ],
+                            "BILLEDQTY": [
+                              {
+                                "_": " 24 BDL",
+                                "$": {
+                                  "TYPE": "Quantity"
+                                }
+                              }
+                            ],
+                            "BATCHRATE": [
+                              {
+                                "_": "1576.00/BDL",
+                                "$": {
+                                  "TYPE": "Rate"
+                                }
+                              }
+                            ],
+                            "VOUCHERCOMPONENTLIST.LIST": [
+                              "       "
+                            ]
+                          }
+                        ],
+                        "ACCOUNTINGALLOCATIONS.LIST": [
+                          {
+                            "OLDAUDITENTRYIDS.LIST": [
+                              {
+                                "$": {
+                                  "TYPE": "Number"
+                                },
+                                "OLDAUDITENTRYIDS": [
+                                  "-1"
+                                ]
+                              }
+                            ],
+                            "TAXCLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "LEDGERNAME": [
+                              {
+                                "_": "SALES A/C",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "STATNATURENAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "STATCLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "EXCISECLASSIFICATIONNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ISZRBASICSERVICE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCOMMODITYNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "SCHEDULE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "SCHEDULESERIALNUMBER": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCOMMODITYCODE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "TDSPARTYNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATPARTYORGNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATCALCULATIONTYPE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATWORKSCONTRACTTYPE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "VATWCDESCRIPTION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTCLASS": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNCLASSIFICATION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNNATURE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNINELIGIBLEITC": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNISREVCHARGEAPPL": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNTAXABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNSACCODE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNSTOREDNATURE": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNNAME": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTHSNDESCRIPTION": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "ISDEEMEDPOSITIVE": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "LEDGERFROMITEM": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISPARTYLEDGER": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISLASTDEEMEDPOSITIVE": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "ISCAPVATNOTCLAIMED": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "RATEOFADDLVAT": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "RATEOFCESSONVAT": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATTAXRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATITEMQTY": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTIONRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "GSTTAXRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "AMOUNT": [
+                              {
+                                "_": "21370.56",
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CESSASSVALONCLASS": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ADDNLVATCLASSAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCCOSTOFLAND": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDLABOURCHARGES": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCOTHERDEDUCTIONAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCVALUEOFTAXFREEGOODS": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCOTHERCHARGES": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCSUBCONTRACTORAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "WCTOTALDEDUCTIONAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "VATWCDEDUCTIONAMOUNT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "ORIGINVGOODSVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CENVATCAPTINPUTAMT": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "IGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "CGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "SGSTLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTCESSLIABILITY": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTOVRDNASSESSABLEVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "GSTASSBLVALUE": [
+                              {
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "SERVICETAXDETAILS.LIST": [
+                              "       "
+                            ],
+                            "BANKALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "BILLALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "INTERESTCOLLECTION.LIST": [
+                              "       "
+                            ],
+                            "OLDAUDITENTRIES.LIST": [
+                              "       "
+                            ],
+                            "ACCOUNTAUDITENTRIES.LIST": [
+                              "       "
+                            ],
+                            "INPUTCRALLOCS.LIST": [
+                              "       "
+                            ],
+                            "DUTYHEADDETAILS.LIST": [
+                              "       "
+                            ],
+                            "EXCISEDUTYHEADDETAILS.LIST": [
+                              "       "
+                            ],
+                            "RATEDETAILS.LIST": [
+                              "       "
+                            ],
+                            "SUMMARYALLOCS.LIST": [
+                              "       "
+                            ],
+                            "CENVATDUTYALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "STPYMTDETAILS.LIST": [
+                              "       "
+                            ],
+                            "EXCISEPAYMENTALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "TAXBILLALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "TDSEXPENSEALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "VATSTATUTORYDETAILS.LIST": [
+                              "       "
+                            ],
+                            "COSTTRACKALLOCATIONS.LIST": [
+                              "       "
+                            ],
+                            "REFVOUCHERDETAILS.LIST": [
+                              "       "
+                            ],
+                            "INVOICEWISEDETAILS.LIST": [
+                              "       "
+                            ],
+                            "VATITCDETAILS.LIST": [
+                              "       "
+                            ],
+                            "ADVANCETAXDETAILS.LIST": [
+                              "       "
+                            ],
+                            "TAXTYPEALLOCATIONS.LIST": [
+                              "       "
+                            ]
+                          }
+                        ],
+                        "DUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "RATEDETAILS.LIST": [
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "CGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 9",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "SGST/UTGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 9",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "IGST",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATE": [
+                              {
+                                "_": " 18",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "Cess",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "\u0004 Not Applicable",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "GSTRATEDUTYHEAD": [
+                              {
+                                "_": "State Cess",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "GSTRATEVALUATIONTYPE": [
+                              {
+                                "_": "Based on Value",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "SUPPLEMENTARYDUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "TAXOBJECTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "REFVOUCHERDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "EXPENSEALLOCATIONS.LIST": [
+                          "      "
+                        ]
+                      }
+                    ],
+                    "LEDGERENTRIES.LIST": [
+                      {
+                        "OLDAUDITENTRYIDS.LIST": [
+                          {
+                            "$": {
+                              "TYPE": "Number"
+                            },
+                            "OLDAUDITENTRYIDS": [
+                              "-1"
+                            ]
+                          }
+                        ],
+                        "TAXCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "APPROPRIATEFOR": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "LEDGERNAME": [
+                          {
+                            "_": "U Square Electrical and Hardware, Shanti",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATNATURENAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "EXCISECLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISZRBASICSERVICE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULESERIALNUMBER": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "TDSPARTYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATPARTYORGNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCALCULATIONTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWORKSCONTRACTTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWCDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTCLASS": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNCLASSIFICATION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNINELIGIBLEITC": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNISREVCHARGEAPPL": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTAXABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNSACCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNSTOREDNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISDEEMEDPOSITIVE": [
+                          {
+                            "_": "Yes",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "LEDGERFROMITEM": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISPARTYLEDGER": [
+                          {
+                            "_": "Yes",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISLASTDEEMEDPOSITIVE": [
+                          {
+                            "_": "Yes",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISCAPVATNOTCLAIMED": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "RATEOFADDLVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "RATEOFCESSONVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATITEMQTY": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "GSTTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "AMOUNT": [
+                          {
+                            "_": "-33271.00",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CESSASSVALONCLASS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ADDNLVATCLASSAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCCOSTOFLAND": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDLABOURCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCVALUEOFTAXFREEGOODS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCSUBCONTRACTORAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "WCTOTALDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONAMOUNT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ORIGINVGOODSVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CENVATCAPTINPUTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "IGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTCESSLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSBLVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SERVICETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "BANKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "BILLALLOCATIONS.LIST": [
+                          {
+                            "BILLDATE": [
+                              {
+                                "_": "20230401",
+                                "$": {
+                                  "TYPE": "Date"
+                                }
+                              }
+                            ],
+                            "BILLCREATIONDATE": [
+                              {
+                                "_": "20230401",
+                                "$": {
+                                  "TYPE": "Date"
+                                }
+                              }
+                            ],
+                            "NAME": [
+                              {
+                                "_": "ET/1/2023-24",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "BILLCREDITPERIOD": [
+                              {
+                                "_": "30 Days",
+                                "$": {
+                                  "TYPE": "Due Date",
+                                  "JD": "45016",
+                                  "P": "30 Days"
+                                }
+                              }
+                            ],
+                            "TDSDEDUCTEESECTIONNUMBER": [
+                              {
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "BILLTYPE": [
+                              {
+                                "_": "New Ref",
+                                "$": {
+                                  "TYPE": "String"
+                                }
+                              }
+                            ],
+                            "TDSDEDUCTEEISSPECIALRATE": [
+                              {
+                                "_": "No",
+                                "$": {
+                                  "TYPE": "Logical"
+                                }
+                              }
+                            ],
+                            "TDSDEDUCTEESPECIALRATE": [
+                              {
+                                "_": "0",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "BILLID": [
+                              {
+                                "_": " 11587",
+                                "$": {
+                                  "TYPE": "Number"
+                                }
+                              }
+                            ],
+                            "AMOUNT": [
+                              {
+                                "_": "-33271.00",
+                                "$": {
+                                  "TYPE": "Amount"
+                                }
+                              }
+                            ],
+                            "INTERESTCOLLECTION.LIST": [
+                              "       "
+                            ],
+                            "STBILLCATEGORIES.LIST": [
+                              "       "
+                            ]
+                          }
+                        ],
+                        "INTERESTCOLLECTION.LIST": [
+                          "      "
+                        ],
+                        "OLDAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "ACCOUNTAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "INPUTCRALLOCS.LIST": [
+                          "      "
+                        ],
+                        "DUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEDUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "RATEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "SUMMARYALLOCS.LIST": [
+                          "      "
+                        ],
+                        "CENVATDUTYALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "STPYMTDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEPAYMENTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXBILLALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXOBJECTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TDSEXPENSEALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "VATSTATUTORYDETAILS.LIST": [
+                          "      "
+                        ],
+                        "COSTTRACKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "REFVOUCHERDETAILS.LIST": [
+                          "      "
+                        ],
+                        "INVOICEWISEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "VATITCDETAILS.LIST": [
+                          "      "
+                        ],
+                        "ADVANCETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "TAXTYPEALLOCATIONS.LIST": [
+                          "      "
+                        ]
+                      },
+                      {
+                        "OLDAUDITENTRYIDS.LIST": [
+                          {
+                            "$": {
+                              "TYPE": "Number"
+                            },
+                            "OLDAUDITENTRYIDS": [
+                              "-1"
+                            ]
+                          }
+                        ],
+                        "TAXCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "APPROPRIATEFOR": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "LEDGERNAME": [
+                          {
+                            "_": "CGST",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATNATURENAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "METHODTYPE": [
+                          {
+                            "_": "GST",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "EXCISECLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISZRBASICSERVICE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULESERIALNUMBER": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "TDSPARTYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATPARTYORGNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCALCULATIONTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWORKSCONTRACTTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWCDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTCLASS": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNCLASSIFICATION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNINELIGIBLEITC": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNISREVCHARGEAPPL": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTAXABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNSACCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNSTOREDNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "LEDGERFROMITEM": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "REMOVEZEROENTRIES": [
+                          {
+                            "_": "Yes",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISPARTYLEDGER": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISLASTDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISCAPVATNOTCLAIMED": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "RATEOFADDLVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "RATEOFCESSONVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATITEMQTY": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "GSTTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "AMOUNT": [
+                          {
+                            "_": "2537.62",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CESSASSVALONCLASS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ADDNLVATCLASSAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCCOSTOFLAND": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDLABOURCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCVALUEOFTAXFREEGOODS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCSUBCONTRACTORAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "WCTOTALDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONAMOUNT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ORIGINVGOODSVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CENVATCAPTINPUTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "IGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTCESSLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSBLVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATEXPAMOUNT": [
+                          {
+                            "_": "2537.62",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SERVICETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "BANKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "BILLALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "INTERESTCOLLECTION.LIST": [
+                          "      "
+                        ],
+                        "OLDAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "ACCOUNTAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "INPUTCRALLOCS.LIST": [
+                          "      "
+                        ],
+                        "DUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEDUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "RATEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "SUMMARYALLOCS.LIST": [
+                          "      "
+                        ],
+                        "CENVATDUTYALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "STPYMTDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEPAYMENTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXBILLALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXOBJECTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TDSEXPENSEALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "VATSTATUTORYDETAILS.LIST": [
+                          "      "
+                        ],
+                        "COSTTRACKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "REFVOUCHERDETAILS.LIST": [
+                          "      "
+                        ],
+                        "INVOICEWISEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "VATITCDETAILS.LIST": [
+                          "      "
+                        ],
+                        "ADVANCETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "TAXTYPEALLOCATIONS.LIST": [
+                          "      "
+                        ]
+                      },
+                      {
+                        "OLDAUDITENTRYIDS.LIST": [
+                          {
+                            "$": {
+                              "TYPE": "Number"
+                            },
+                            "OLDAUDITENTRYIDS": [
+                              "-1"
+                            ]
+                          }
+                        ],
+                        "TAXCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "APPROPRIATEFOR": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "LEDGERNAME": [
+                          {
+                            "_": "SGST",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATNATURENAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "METHODTYPE": [
+                          {
+                            "_": "GST",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "STATCLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "EXCISECLASSIFICATIONNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISZRBASICSERVICE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "SCHEDULESERIALNUMBER": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCOMMODITYCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "TDSPARTYNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATPARTYORGNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATCALCULATIONTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWORKSCONTRACTTYPE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "VATWCDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTCLASS": [
+                          {
+                            "_": "\u0004 Not Applicable",
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNCLASSIFICATION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNINELIGIBLEITC": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNISREVCHARGEAPPL": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNTAXABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNSACCODE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNSTOREDNATURE": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNNAME": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "GSTHSNDESCRIPTION": [
+                          {
+                            "$": {
+                              "TYPE": "String"
+                            }
+                          }
+                        ],
+                        "ISDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "LEDGERFROMITEM": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "REMOVEZEROENTRIES": [
+                          {
+                            "_": "Yes",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISPARTYLEDGER": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISLASTDEEMEDPOSITIVE": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "ISCAPVATNOTCLAIMED": [
+                          {
+                            "_": "No",
+                            "$": {
+                              "TYPE": "Logical"
+                            }
+                          }
+                        ],
+                        "RATEOFADDLVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "RATEOFCESSONVAT": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATITEMQTY": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "GSTTAXRATE": [
+                          {
+                            "_": "0",
+                            "$": {
+                              "TYPE": "Number"
+                            }
+                          }
+                        ],
+                        "AMOUNT": [
+                          {
+                            "_": "2537.62",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CESSASSVALONCLASS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ADDNLVATCLASSAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCCOSTOFLAND": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDLABOURCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCVALUEOFTAXFREEGOODS": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCOTHERCHARGES": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCSUBCONTRACTORAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "WCTOTALDEDUCTIONAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATWCDEDUCTIONAMOUNT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "ORIGINVGOODSVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CENVATCAPTINPUTAMT": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "IGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "CGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SGSTLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTCESSLIABILITY": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTOVRDNASSESSABLEVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "GSTASSBLVALUE": [
+                          {
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "VATEXPAMOUNT": [
+                          {
+                            "_": "2537.62",
+                            "$": {
+                              "TYPE": "Amount"
+                            }
+                          }
+                        ],
+                        "SERVICETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "BANKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "BILLALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "INTERESTCOLLECTION.LIST": [
+                          "      "
+                        ],
+                        "OLDAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "ACCOUNTAUDITENTRIES.LIST": [
+                          "      "
+                        ],
+                        "INPUTCRALLOCS.LIST": [
+                          "      "
+                        ],
+                        "DUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEDUTYHEADDETAILS.LIST": [
+                          "      "
+                        ],
+                        "RATEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "SUMMARYALLOCS.LIST": [
+                          "      "
+                        ],
+                        "CENVATDUTYALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "STPYMTDETAILS.LIST": [
+                          "      "
+                        ],
+                        "EXCISEPAYMENTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXBILLALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TAXOBJECTALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "TDSEXPENSEALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "VATSTATUTORYDETAILS.LIST": [
+                          "      "
+                        ],
+                        "COSTTRACKALLOCATIONS.LIST": [
+                          "      "
+                        ],
+                        "REFVOUCHERDETAILS.LIST": [
+                          "      "
+                        ],
+                        "INVOICEWISEDETAILS.LIST": [
+                          "      "
+                        ],
+                        "VATITCDETAILS.LIST": [
+                          "      "
+                        ],
+                        "ADVANCETAXDETAILS.LIST": [
+                          "      "
+                        ],
+                        "TAXTYPEALLOCATIONS.LIST": [
+                          "      "
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -334,8 +334,8 @@ ipcMain.handle('get-sync-history', async () => {
   return await dbService.getSyncHistory();
 });
 
-ipcMain.handle('get-logs', async () => {
-  return await dbService.getLogs();
+ipcMain.handle('get-logs', async (event, limit?: number) => {
+  return await dbService.getLogs(limit || 500);
 });
 
 ipcMain.handle('get-last-sync', async () => {
