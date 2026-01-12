@@ -196,7 +196,7 @@ export class DatabaseService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v413.db');
+    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v403.db');
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.init();
@@ -223,8 +223,28 @@ export class DatabaseService {
 
       CREATE TABLE IF NOT EXISTS entity_sync_status (
         entity TEXT PRIMARY KEY,
+
+        -- Incremental sync tracking (existing)
         last_max_alter_id TEXT DEFAULT '0',
-        last_sync_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        last_sync_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        -- Fresh sync tracking
+        is_first_sync_completed INTEGER DEFAULT 0,
+        first_sync_started_at DATETIME,
+        first_sync_completed_at DATETIME,
+
+        -- Fresh sync progress tracking (for resume capability)
+        last_completed_batch_month TEXT,
+        current_batch_alter_id TEXT DEFAULT '0',
+
+        -- Metadata counters (for Invoice/Payment/Journal - no local storage)
+        total_batches INTEGER DEFAULT 0,
+        completed_batches INTEGER DEFAULT 0,
+        total_records_sent INTEGER DEFAULT 0,
+        total_records_success INTEGER DEFAULT 0,
+        total_records_failed INTEGER DEFAULT 0,
+
+        sync_mode TEXT DEFAULT 'incremental'
       );
 
       CREATE TABLE IF NOT EXISTS global_sync_status (
@@ -417,6 +437,42 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_sync_batches_status ON sync_batches(status);
       CREATE INDEX IF NOT EXISTS idx_sync_batches_month ON sync_batches(month_identifier);
 
+      CREATE TABLE IF NOT EXISTS entity_batch_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entity TEXT NOT NULL,
+        batch_month TEXT NOT NULL,
+        batch_number INTEGER NOT NULL,
+
+        -- Tally fetch tracking
+        tally_fetch_started_at DATETIME,
+        tally_fetch_completed_at DATETIME,
+        tally_fetch_status TEXT DEFAULT 'PENDING',
+        tally_records_fetched INTEGER DEFAULT 0,
+        tally_error_message TEXT,
+
+        -- API push tracking
+        api_push_started_at DATETIME,
+        api_push_completed_at DATETIME,
+        api_push_status TEXT DEFAULT 'PENDING',
+        api_records_sent INTEGER DEFAULT 0,
+        api_records_success INTEGER DEFAULT 0,
+        api_records_failed INTEGER DEFAULT 0,
+        api_error_message TEXT,
+
+        -- Resume tracking
+        is_completed INTEGER DEFAULT 0,
+        retry_count INTEGER DEFAULT 0,
+        last_alter_id TEXT,
+
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        UNIQUE(entity, batch_month, batch_number)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_entity_batch_log_entity ON entity_batch_log(entity);
+      CREATE INDEX IF NOT EXISTS idx_entity_batch_log_status ON entity_batch_log(entity, is_completed);
+
       INSERT OR IGNORE INTO global_sync_status (id) VALUES (1);
       INSERT OR IGNORE INTO sync_settings (id, from_date, to_date) VALUES (1, '', '');
 
@@ -489,9 +545,357 @@ export class DatabaseService {
     stmt.run(entity.toUpperCase(), alterId);
   }
 
+  /**
+   * Reset entity ALTER_ID to 0 (used when forcing a fresh sync)
+   */
+  async resetEntityAlterId(entity: string): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status
+      SET last_max_alter_id = '0',
+          last_sync_at = datetime('now')
+      WHERE entity = ?
+    `);
+    stmt.run(entity.toUpperCase());
+  }
+
   async getAllEntitySyncStatus(): Promise<EntitySyncStatus[]> {
     const stmt = this.db!.prepare(`SELECT entity, last_max_alter_id, last_sync_at FROM entity_sync_status ORDER BY last_sync_at DESC`);
     return stmt.all() as EntitySyncStatus[];
+  }
+
+  // === Batch-Level Logging Methods ===
+
+  /**
+   * Start a new batch log entry
+   */
+  async startBatchLog(entity: string, batchMonth: string, batchNumber: number): Promise<number> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO entity_batch_log (
+        entity, batch_month, batch_number,
+        tally_fetch_started_at,
+        tally_fetch_status,
+        api_push_status,
+        is_completed
+      ) VALUES (?, ?, ?, datetime('now'), 'PENDING', 'PENDING', 0)
+      ON CONFLICT(entity, batch_month, batch_number) DO UPDATE SET
+        tally_fetch_started_at = datetime('now'),
+        retry_count = retry_count + 1,
+        updated_at = datetime('now')
+    `);
+    const result = stmt.run(entity.toUpperCase(), batchMonth, batchNumber);
+    return result.lastInsertRowid as number;
+  }
+
+  /**
+   * Update Tally fetch status for a batch
+   */
+  async updateBatchTallyFetchStatus(
+    entity: string,
+    batchMonth: string,
+    batchNumber: number,
+    status: {
+      status: 'SUCCESS' | 'FAILED' | 'PARTIAL';
+      recordsFetched: number;
+      errorMessage?: string;
+      lastAlterId?: string;
+    }
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_batch_log
+      SET tally_fetch_completed_at = datetime('now'),
+          tally_fetch_status = ?,
+          tally_records_fetched = ?,
+          tally_error_message = ?,
+          last_alter_id = ?,
+          updated_at = datetime('now')
+      WHERE entity = ? AND batch_month = ? AND batch_number = ?
+    `);
+    stmt.run(
+      status.status,
+      status.recordsFetched,
+      status.errorMessage || null,
+      status.lastAlterId || null,
+      entity.toUpperCase(),
+      batchMonth,
+      batchNumber
+    );
+  }
+
+  /**
+   * Update API push status for a batch
+   */
+  async updateBatchApiPushStatus(
+    entity: string,
+    batchMonth: string,
+    batchNumber: number,
+    status: {
+      status: 'SUCCESS' | 'FAILED' | 'PARTIAL';
+      recordsSent: number;
+      recordsSuccess: number;
+      recordsFailed: number;
+      errorMessage?: string;
+    }
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_batch_log
+      SET api_push_started_at = COALESCE(api_push_started_at, datetime('now')),
+          api_push_completed_at = datetime('now'),
+          api_push_status = ?,
+          api_records_sent = ?,
+          api_records_success = ?,
+          api_records_failed = ?,
+          api_error_message = ?,
+          updated_at = datetime('now')
+      WHERE entity = ? AND batch_month = ? AND batch_number = ?
+    `);
+    stmt.run(
+      status.status,
+      status.recordsSent,
+      status.recordsSuccess,
+      status.recordsFailed,
+      status.errorMessage || null,
+      entity.toUpperCase(),
+      batchMonth,
+      batchNumber
+    );
+  }
+
+  /**
+   * Mark a batch as completed (both Tally fetch and API push succeeded)
+   */
+  async markBatchCompleted(
+    entity: string,
+    batchMonth: string,
+    batchNumber: number
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_batch_log
+      SET is_completed = 1,
+          updated_at = datetime('now')
+      WHERE entity = ? AND batch_month = ? AND batch_number = ?
+    `);
+    stmt.run(entity.toUpperCase(), batchMonth, batchNumber);
+  }
+
+  /**
+   * Get all failed/incomplete batches for an entity (for retry logic)
+   */
+  async getIncompleteBatches(entity: string): Promise<Array<{
+    batch_month: string;
+    batch_number: number;
+    tally_fetch_status: string;
+    api_push_status: string;
+    retry_count: number;
+    tally_error_message: string | null;
+    api_error_message: string | null;
+  }>> {
+    const stmt = this.db!.prepare(`
+      SELECT batch_month, batch_number, tally_fetch_status, api_push_status,
+             retry_count, tally_error_message, api_error_message
+      FROM entity_batch_log
+      WHERE entity = ? AND is_completed = 0
+      ORDER BY batch_month, batch_number
+    `);
+    return stmt.all(entity.toUpperCase()) as any[];
+  }
+
+  /**
+   * Get batch log details for UI display
+   */
+  async getBatchLogDetails(entity: string, batchMonth: string): Promise<Array<{
+    batch_number: number;
+    tally_records_fetched: number;
+    api_records_sent: number;
+    api_records_success: number;
+    api_records_failed: number;
+    is_completed: number;
+    tally_error_message: string | null;
+    api_error_message: string | null;
+  }>> {
+    const stmt = this.db!.prepare(`
+      SELECT batch_number, tally_records_fetched, api_records_sent,
+             api_records_success, api_records_failed, is_completed,
+             tally_error_message, api_error_message
+      FROM entity_batch_log
+      WHERE entity = ? AND batch_month = ?
+      ORDER BY batch_number
+    `);
+    return stmt.all(entity.toUpperCase(), batchMonth) as any[];
+  }
+
+  // === Fresh Sync State Management ===
+
+  /**
+   * Check if entity has completed its first sync
+   */
+  async isEntityFirstSyncCompleted(entity: string): Promise<boolean> {
+    const stmt = this.db!.prepare(`
+      SELECT is_first_sync_completed
+      FROM entity_sync_status
+      WHERE entity = ?
+    `);
+    const row = stmt.get(entity.toUpperCase()) as { is_first_sync_completed: number } | undefined;
+    return row?.is_first_sync_completed === 1;
+  }
+
+  /**
+   * Start first sync for entity - initialize batch tracking
+   */
+  async startEntityFirstSync(entity: string, totalBatches: number): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status
+      SET sync_mode = 'first_sync',
+          is_first_sync_completed = 0,
+          first_sync_started_at = datetime('now'),
+          total_batches = ?,
+          completed_batches = 0,
+          last_completed_batch_month = NULL,
+          current_batch_alter_id = '0'
+      WHERE entity = ?
+    `);
+    stmt.run(totalBatches, entity.toUpperCase());
+  }
+
+  /**
+   * Mark entity first sync as completed
+   */
+  async completeEntityFirstSync(entity: string): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status
+      SET is_first_sync_completed = 1,
+          first_sync_completed_at = datetime('now'),
+          sync_mode = 'incremental'
+      WHERE entity = ?
+    `);
+    stmt.run(entity.toUpperCase());
+  }
+
+  /**
+   * Get batch progress for entity (used to resume interrupted sync)
+   */
+  async getEntityBatchProgress(entity: string): Promise<{
+    lastCompletedMonth: string | null;
+    currentAlterId: string;
+    completedBatches: number;
+    totalBatches: number;
+    syncMode: 'first_sync' | 'incremental';
+  }> {
+    const stmt = this.db!.prepare(`
+      SELECT last_completed_batch_month, current_batch_alter_id,
+             completed_batches, total_batches, sync_mode
+      FROM entity_sync_status
+      WHERE entity = ?
+    `);
+    const row = stmt.get(entity.toUpperCase()) as any;
+    return {
+      lastCompletedMonth: row?.last_completed_batch_month || null,
+      currentAlterId: row?.current_batch_alter_id || '0',
+      completedBatches: row?.completed_batches || 0,
+      totalBatches: row?.total_batches || 0,
+      syncMode: row?.sync_mode || 'incremental'
+    };
+  }
+
+  /**
+   * Update batch progress after completing a monthly batch
+   * NOTE: We reset current_batch_alter_id to '0' when moving to next month
+   */
+  async updateEntityBatchProgress(entity: string, progress: {
+    lastCompletedMonth: string;
+    completedBatches: number;
+  }): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status
+      SET last_completed_batch_month = ?,
+          completed_batches = ?,
+          current_batch_alter_id = '0',
+          last_sync_at = datetime('now')
+      WHERE entity = ?
+    `);
+    stmt.run(
+      progress.lastCompletedMonth,
+      progress.completedBatches,
+      entity.toUpperCase()
+    );
+  }
+
+  /**
+   * Get sync mode for entity
+   */
+  async getEntitySyncMode(entity: string): Promise<'first_sync' | 'incremental'> {
+    console.log('entity===>', entity)
+    const stmt = this.db!.prepare(`
+      SELECT sync_mode FROM entity_sync_status WHERE entity = ?
+    `);
+    const row = stmt.get(entity.toUpperCase()) as { sync_mode: string } | undefined;
+    console.log('row==>', row)
+    return  'first_sync';
+  }
+
+  /**
+   * Set sync mode for entity
+   */
+  async setEntitySyncMode(entity: string, mode: 'first_sync' | 'incremental'): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status SET sync_mode = ? WHERE entity = ?
+    `);
+    stmt.run(mode, entity.toUpperCase());
+  }
+
+  /**
+   * Get complete sync status for entity (for UI display)
+   */
+  async getEntitySyncStatus(entity: string): Promise<{
+    entity: string;
+    sync_mode: 'first_sync' | 'incremental';
+    is_first_sync_completed: number;
+    last_sync_at: string | null;
+    last_max_alter_id: string;
+    completed_batches: number;
+    total_batches: number;
+    last_completed_batch_month: string | null;
+    total_records_sent: number;
+    total_records_success: number;
+    total_records_failed: number;
+  }> {
+    const stmt = this.db!.prepare(`
+      SELECT * FROM entity_sync_status WHERE entity = ?
+    `);
+    return stmt.get(entity.toUpperCase()) as any;
+  }
+
+  /**
+   * Update record counts after API push (for Invoice/Payment/Journal)
+   * Called after each API batch is processed
+   */
+  async updateEntityRecordCounts(entity: string, counts: {
+    sent: number;
+    success: number;
+    failed: number;
+  }): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE entity_sync_status
+      SET total_records_sent = total_records_sent + ?,
+          total_records_success = total_records_success + ?,
+          total_records_failed = total_records_failed + ?,
+          last_sync_at = datetime('now')
+      WHERE entity = ?
+    `);
+    stmt.run(counts.sent, counts.success, counts.failed, entity.toUpperCase());
+  }
+
+  /**
+   * Get sync settings (global date range)
+   */
+  async getSyncSettingsGlobalDates(): Promise<{
+    global_from_date: string;
+    global_to_date: string;
+  }> {
+    const settings = await this.getSyncSettings();
+    return {
+      global_from_date: settings?.from_date || '2023-04-01',
+      global_to_date: settings?.to_date || '2026-03-31'
+    };
   }
 
   // === Global Sync Timestamp ===

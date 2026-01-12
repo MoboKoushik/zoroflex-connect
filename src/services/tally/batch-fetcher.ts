@@ -17,87 +17,87 @@ const MAX_RETRY_DELAY_MS = 10000; // 10 seconds
  * Checks if an error is retryable (transient connection error)
  */
 function isRetryableError(error: any): boolean {
-    if (!error) return false;
+  if (!error) return false;
 
-    // Check error code from various locations
-    const errorCode = error.code || error.cause?.code || error.errno;
-    const errorMessage = error.message || error.cause?.message || '';
+  // Check error code from various locations
+  const errorCode = error.code || error.cause?.code || error.errno;
+  const errorMessage = error.message || error.cause?.message || '';
 
-    const retryableCodes = [
-        'ECONNRESET',
-        'ETIMEDOUT',
-        'ECONNREFUSED',
-        'ENOTFOUND',
-        'EAI_AGAIN',
-        'EPIPE',
-        'ESOCKETTIMEDOUT',
-        'ECONNABORTED'
-    ];
+  const retryableCodes = [
+    'ECONNRESET',
+    'ETIMEDOUT',
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'EAI_AGAIN',
+    'EPIPE',
+    'ESOCKETTIMEDOUT',
+    'ECONNABORTED'
+  ];
 
-    // Check if it's a retryable error code
-    if (errorCode && retryableCodes.includes(String(errorCode))) {
-        return true;
-    }
+  // Check if it's a retryable error code
+  if (errorCode && retryableCodes.includes(String(errorCode))) {
+    return true;
+  }
 
-    // Check error message for retryable patterns
-    const retryablePatterns = [
-        'ECONNRESET',
-        'timeout',
-        'network',
-        'connection reset',
-        'socket hang up',
-        'ECONNREFUSED'
-    ];
+  // Check error message for retryable patterns
+  const retryablePatterns = [
+    'ECONNRESET',
+    'timeout',
+    'network',
+    'connection reset',
+    'socket hang up',
+    'ECONNREFUSED'
+  ];
 
-    return retryablePatterns.some(pattern =>
-        errorMessage.toLowerCase().includes(pattern.toLowerCase())
-    );
+  return retryablePatterns.some(pattern =>
+    errorMessage.toLowerCase().includes(pattern.toLowerCase())
+  );
 }
 
 /**
  * Sleep utility for retry delays
  */
 function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
  * Retry wrapper with exponential backoff
  */
 async function withRetry<T>(
-    fn: () => Promise<T>,
-    operationName: string,
-    maxRetries: number = MAX_RETRIES
+  fn: () => Promise<T>,
+  operationName: string,
+  maxRetries: number = MAX_RETRIES
 ): Promise<T> {
-    let lastError: any;
+  let lastError: any;
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            return await fn();
-        } catch (error: any) {
-            lastError = error;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
 
-            // Don't retry on last attempt or if error is not retryable
-            if (attempt === maxRetries || !isRetryableError(error)) {
-                throw error;
-            }
+      // Don't retry on last attempt or if error is not retryable
+      if (attempt === maxRetries || !isRetryableError(error)) {
+        throw error;
+      }
 
-            // Calculate delay with exponential backoff
-            const delay = Math.min(
-                INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt),
-                MAX_RETRY_DELAY_MS
-            );
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt),
+        MAX_RETRY_DELAY_MS
+      );
 
-            const errorInfo = error.code || error.cause?.code || error.message || 'Unknown error';
-            console.log(
-                `${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}): ${errorInfo}. Retrying in ${delay}ms...`
-            );
+      const errorInfo = error.code || error.cause?.code || error.message || 'Unknown error';
+      console.log(
+        `${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}): ${errorInfo}. Retrying in ${delay}ms...`
+      );
 
-            await sleep(delay);
-        }
+      await sleep(delay);
     }
+  }
 
-    throw lastError;
+  throw lastError;
 }
 
 /**
@@ -107,7 +107,7 @@ async function withRetry<T>(
  * @returns Parsed XML response with LEDGER array
  */
 export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number = 100): Promise<any> {
-    const xmlRequest = `
+  const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <VERSION>1</VERSION>
@@ -153,34 +153,34 @@ export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number =
   </BODY>
 </ENVELOPE>
 `.trim();
-    return withRetry(async () => {
-        const response = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' },
-            timeout: 30000,
-            httpAgent: new http.Agent({ keepAlive: true }),
-            validateStatus: () => true // Don't throw on HTTP errors, we'll check response
-        });
-
-        const parsed = await parseStringPromise(response.data);
-
-        // Check for Tally error response
-        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-                throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-            }
-        }
-
-        // No upper bound filtering - fetch all records with AlterID > fromAlterId
-        // The sizeMax parameter limits the number of records returned
-
-        return parsed;
-    }, `fetchCustomersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
-        if (error.message && error.message.includes('Tally error')) {
-            throw error;
-        }
-        throw new Error(`Batch fetch customers failed: ${error.message}`);
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/xml' },
+      timeout: 30000,
+      httpAgent: new http.Agent({ keepAlive: true }),
+      validateStatus: () => true // Don't throw on HTTP errors, we'll check response
     });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
+      }
+    }
+
+    // No upper bound filtering - fetch all records with AlterID > fromAlterId
+    // The sizeMax parameter limits the number of records returned
+
+    return parsed;
+  }, `fetchCustomersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Batch fetch customers failed: ${error.message}`);
+  });
 }
 
 /**
@@ -191,7 +191,7 @@ export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number =
  * @returns Parsed XML response with VOUCHER array
  */
 export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 10): Promise<any> {
-    const xmlRequest = `
+  const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <VERSION>1</VERSION>
@@ -228,53 +228,53 @@ export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 
 </ENVELOPE>
 `.trim();
 
-    return withRetry(async () => {
-        const response = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' },
-            timeout: 120000, // 120 seconds (2 minutes)
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-            httpAgent: new http.Agent({
-                keepAlive: true,
-                keepAliveMsecs: 1000,
-                maxSockets: 1,
-                maxFreeSockets: 1
-            }),
-            validateStatus: () => true // Don't throw on HTTP errors, we'll check response
-        });
-
-        const parsed = await parseStringPromise(response.data);
-
-        // Check for Tally error response
-        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-                throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-            }
-        }
-
-        return parsed;
-    }, `fetchVouchersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
-        console.log('Error in fetchVouchersBatch after retries:', error);
-        if (error.message && error.message.includes('Tally error')) {
-            throw error;
-        }
-        throw new Error(`Batch fetch vouchers failed: ${error.message}`);
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/xml' },
+      timeout: 120000, // 120 seconds (2 minutes)
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true // Don't throw on HTTP errors, we'll check response
     });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchVouchersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
+    console.log('Error in fetchVouchersBatch after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Batch fetch vouchers failed: ${error.message}`);
+  });
 }
 
 /**
  * Extracts LEDGER array from parsed customers batch response
  */
 export function extractLedgersFromBatch(parsed: any): any[] {
-    return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
+  return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
 }
 
 /**
  * Extracts VOUCHER array from parsed vouchers batch response
  */
 export function extractVouchersFromBatch(parsed: any): any[] {
-    return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
+  return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
 }
 
 /**
@@ -286,12 +286,12 @@ export function extractVouchersFromBatch(parsed: any): any[] {
  * @returns Parsed XML response with LEDGER array
  */
 export async function fetchCustomersBatchByDateRange(
-    fromDate: string,
-    toDate: string,
-    fromAlterId: string,
-    sizeMax: number = 100
+  fromDate: string,
+  toDate: string,
+  fromAlterId: string,
+  sizeMax: number = 100
 ): Promise<any> {
-    const xmlRequest = `
+  const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <VERSION>1</VERSION>
@@ -342,31 +342,31 @@ export async function fetchCustomersBatchByDateRange(
 </ENVELOPE>
 `.trim();
 
-    return withRetry(async () => {
-        const response = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' },
-            timeout: 30000,
-            httpAgent: new http.Agent({ keepAlive: true }),
-            validateStatus: () => true
-        });
-
-        const parsed = await parseStringPromise(response.data);
-
-        // Check for Tally error response
-        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-                throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-            }
-        }
-
-        return parsed;
-    }, `fetchCustomersBatchByDateRange(${fromDate} to ${toDate}, AlterID > ${fromAlterId})`).catch((error: any) => {
-        if (error.message && error.message.includes('Tally error')) {
-            throw error;
-        }
-        throw new Error(`Batch fetch customers by date range failed: ${error.message}`);
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/xml' },
+      timeout: 30000,
+      httpAgent: new http.Agent({ keepAlive: true }),
+      validateStatus: () => true
     });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchCustomersBatchByDateRange(${fromDate} to ${toDate}, AlterID > ${fromAlterId})`).catch((error: any) => {
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Batch fetch customers by date range failed: ${error.message}`);
+  });
 }
 
 /**
@@ -376,11 +376,11 @@ export async function fetchCustomersBatchByDateRange(
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
  */
 export async function fetchVouchersFromReportByDateRange(
-    fromDate: string,
-    toDate: string,
-    cullection: string
+  fromDate: string,
+  toDate: string,
+  cullection: string
 ): Promise<any> {
-    const xmlRequest = `
+  const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <TALLYREQUEST>Export Data</TALLYREQUEST>
@@ -399,39 +399,39 @@ export async function fetchVouchersFromReportByDateRange(
   </BODY>
 </ENVELOPE>`.trim();
 
-    return withRetry(async () => {
-        const response = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/plain' },
-            timeout: 120000,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-            httpAgent: new http.Agent({
-                keepAlive: true,
-                keepAliveMsecs: 1000,
-                maxSockets: 1,
-                maxFreeSockets: 1
-            }),
-            validateStatus: () => true
-        });
-
-        const parsed = await parseStringPromise(response.data);
-
-        // Check for Tally error response
-        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-                throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
-            }
-        }
-
-        return parsed;
-    }, `fetchVouchersFromReportByDateRange(${fromDate} to ${toDate})`).catch((error: any) => {
-        console.log('Error in fetchVouchersFromReportByDateRange after retries:', error);
-        if (error.message && error.message.includes('Tally error')) {
-            throw error;
-        }
-        throw new Error(`Fetch vouchers from ZeroFinnReceipt report (date range) failed: ${error.message}`);
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/plain' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
     });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchVouchersFromReportByDateRange(${fromDate} to ${toDate})`).catch((error: any) => {
+    console.log('Error in fetchVouchersFromReportByDateRange after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch vouchers from ZeroFinnReceipt report (date range) failed: ${error.message}`);
+  });
 }
 
 /**
@@ -440,8 +440,8 @@ export async function fetchVouchersFromReportByDateRange(
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
  */
 export async function fetchVouchersFromReportByAlterId(
-fromAlterId: string,): Promise<any> {
-    const xmlRequest = `
+  fromAlterId: string,): Promise<any> {
+  const xmlRequest = `
 <ENVELOPE>
   <HEADER>
     <TALLYREQUEST>Export Data</TALLYREQUEST>
@@ -459,53 +459,270 @@ fromAlterId: string,): Promise<any> {
   </BODY>
 </ENVELOPE>`.trim();
 
-    return withRetry(async () => {
-        const response = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/plain' },
-            timeout: 120000,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-            httpAgent: new http.Agent({
-                keepAlive: true,
-                keepAliveMsecs: 1000,
-                maxSockets: 1,
-                maxFreeSockets: 1
-            }),
-            validateStatus: () => true
-        });
-
-        const parsed = await parseStringPromise(response.data);
-
-        // Check for Tally error response
-        if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-            const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-            if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-                throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
-            }
-        }
-
-        return parsed;
-    }, `fetchVouchersFromReportByAlterId(AlterID > ${fromAlterId})`).catch((error: any) => {
-        console.log('Error in fetchVouchersFromReportByAlterId after retries:', error);
-        if (error.message && error.message.includes('Tally error')) {
-            throw error;
-        }
-        throw new Error(`Fetch vouchers from ZeroFinnReceipt report (ALTER_ID) failed: ${error.message}`);
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/plain' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
     });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchVouchersFromReportByAlterId(AlterID > ${fromAlterId})`).catch((error: any) => {
+    console.log('Error in fetchVouchersFromReportByAlterId after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch vouchers from ZeroFinnReceipt report (ALTER_ID) failed: ${error.message}`);
+  });
 }
 
 /**
  * Extracts INVOICE array from ZeroFinnReceipt report response
  */
 export function extractInvoicesFromReport(parsed: any): any[] {
-    return parsed.VOUCHERS?.INVOICE || [];
+  return parsed.VOUCHERS?.INVOICE || [];
 }
 
 /**
  * Extracts RECEIPT array from ZeroFinnReceipt report response
  */
 export function extractReceiptsFromReport(parsed: any): any[] {
-    return parsed.VOUCHERS?.RECEIPT || [];
+  return parsed.VOUCHERS?.RECEIPT || [];
+}
+
+/**
+ * Fetches customers using ZeroFinnCust report with date range (for first sync only)
+ * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
+ * @param toDate Date range end (YYYYMMDD format, e.g., "20260330")
+ * @returns Parsed XML response with CUSTOMER array
+ */
+export async function fetchCustomersFromReportByDateRange(
+  fromDate: string,
+  toDate: string
+): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZeroFinnCust</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVFROMDATE>${fromDate}</SVFROMDATE>
+                    <SVTODATE>${toDate}</SVTODATE>
+                    <SVZEROFINNALTERID>0</SVZEROFINNALTERID>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
+    });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCust report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchCustomersFromReportByDateRange(${fromDate} to ${toDate})`).catch((error: any) => {
+    console.log('Error in fetchCustomersFromReportByDateRange after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch customers from ZeroFinnCust report (date range) failed: ${error.message}`);
+  });
+}
+
+/**
+ * Fetches customers using ZeroFinnCust report with ALTER_ID only (for incremental sync)
+ * @param fromAlterId Starting ALTER_ID (exclusive)
+ * @returns Parsed XML response with CUSTOMER array
+ */
+export async function fetchCustomersFromReportByAlterId(
+  fromAlterId: string
+): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZeroFinnCust</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
+    });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCust report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchCustomersFromReportByAlterId(AlterID > ${fromAlterId})`).catch((error: any) => {
+    console.log('Error in fetchCustomersFromReportByAlterId after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch customers from ZeroFinnCust report (ALTER_ID) failed: ${error.message}`);
+  });
+}
+
+/**
+ * Extracts CUSTOMER array from ZeroFinnCust report response
+ */
+export function extractCustomersFromReport(parsed: any): any[] {
+  // Response structure: ENVELOPE.CUSTOMER (array) or ENVELOPE.BODY[0].CUSTOMER
+  if (parsed.ENVELOPE?.CUSTOMER) {
+    return Array.isArray(parsed.ENVELOPE.CUSTOMER) ? parsed.ENVELOPE.CUSTOMER : [parsed.ENVELOPE.CUSTOMER];
+  }
+  if (parsed.ENVELOPE?.BODY?.[0]?.CUSTOMER) {
+    const customers = parsed.ENVELOPE.BODY[0].CUSTOMER;
+    return Array.isArray(customers) ? customers : [customers];
+  }
+  if (parsed.CUSTOMER) {
+    return Array.isArray(parsed.CUSTOMER) ? parsed.CUSTOMER : [parsed.CUSTOMER];
+  }
+  return [];
+}
+
+/**
+ * Fetches organization using ZeroFinnCmp report
+ * @returns Parsed XML response with BILLER array
+ */
+export async function fetchOrganizationFromReport(): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZeroFinnCmp</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVZEROFINNALTERID>0</SVZEROFINNALTERID>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
+    });
+
+    const parsed = await parseStringPromise(response.data);
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCmp report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchOrganizationFromReport()`).catch((error: any) => {
+    console.log('Error in fetchOrganizationFromReport after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch organization from ZeroFinnCmp report failed: ${error.message}`);
+  });
+}
+
+/**
+ * Extracts BILLER array from ZeroFinnCmp report response
+ */
+export function extractBillersFromReport(parsed: any): any[] {
+  // Response structure: ENVELOPE.BILLER (array) or ENVELOPE.BODY[0].BILLER
+  if (parsed.ENVELOPE?.BILLER) {
+    return Array.isArray(parsed.ENVELOPE.BILLER) ? parsed.ENVELOPE.BILLER : [parsed.ENVELOPE.BILLER];
+  }
+  if (parsed.ENVELOPE?.BODY?.[0]?.BILLER) {
+    const billers = parsed.ENVELOPE.BODY[0].BILLER;
+    return Array.isArray(billers) ? billers : [billers];
+  }
+  if (parsed.BILLER) {
+    return Array.isArray(parsed.BILLER) ? parsed.BILLER : [parsed.BILLER];
+  }
+  return [];
 }
 
 /**
@@ -513,10 +730,10 @@ export function extractReceiptsFromReport(parsed: any): any[] {
  * Report format uses simple text nodes, not the complex TDL format
  */
 export function getReportText(obj: any, key: string): string {
-    if (!obj || !obj[key]) return '';
-    const value = obj[key];
-    if (Array.isArray(value) && value.length > 0) {
-        return String(value[0] || '').trim();
-    }
-    return String(value || '').trim();
+  if (!obj || !obj[key]) return '';
+  const value = obj[key];
+  if (Array.isArray(value) && value.length > 0) {
+    return String(value[0] || '').trim();
+  }
+  return String(value || '').trim();
 }
