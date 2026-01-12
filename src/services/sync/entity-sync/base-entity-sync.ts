@@ -33,9 +33,9 @@ export abstract class BaseEntitySync {
   protected entityType: string;
   protected db: DatabaseService;
 
-  constructor(entityType: string) {
+  constructor(entityType: string, dbService?: DatabaseService) {
     this.entityType = entityType;
-    this.db = new DatabaseService();
+    this.db = dbService || new DatabaseService();
   }
 
   /**

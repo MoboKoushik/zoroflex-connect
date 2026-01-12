@@ -49,19 +49,26 @@ export class ApiLoggerService {
 
     const endpoint = this.getEndpoint(config);
     const method = config.method?.toUpperCase() || 'GET';
+    const requestHeaders = this.sanitizePayload(config.headers);
     const requestPayload = this.sanitizePayload(config.data);
+    const responseHeaders = this.sanitizePayload(response.headers);
     const responsePayload = this.sanitizePayload(response.data);
     const statusCode = response.status;
 
     this.dbService.logApiRequest(
       endpoint,
       method,
+      requestHeaders,
       requestPayload,
+      responseHeaders,
       responsePayload,
       statusCode,
       'SUCCESS',
       null,
-      duration
+      null,
+      duration,
+      null,
+      0
     ).catch(err => {
       console.error('Failed to log API request:', err);
     });
@@ -77,20 +84,28 @@ export class ApiLoggerService {
 
     const endpoint = this.getEndpoint(config || {});
     const method = config?.method?.toUpperCase() || 'GET';
+    const requestHeaders = this.sanitizePayload(config?.headers);
     const requestPayload = this.sanitizePayload(config?.data);
+    const responseHeaders = this.sanitizePayload(error.response?.headers);
     const responsePayload = this.sanitizePayload(error.response?.data);
     const statusCode = error.response?.status || null;
     const errorMessage = error.message || 'Unknown error';
+    const errorStack = error.stack || null;
 
     this.dbService.logApiRequest(
       endpoint,
       method,
+      requestHeaders,
       requestPayload,
+      responseHeaders,
       responsePayload,
       statusCode,
       'ERROR',
       errorMessage,
-      duration
+      errorStack,
+      duration,
+      null,
+      0
     ).catch(err => {
       console.error('Failed to log API error:', err);
     });
@@ -160,22 +175,32 @@ export class ApiLoggerService {
   async logManualApiCall(
     endpoint: string,
     method: string,
+    requestHeaders: any,
     requestPayload: any,
+    responseHeaders: any,
     responsePayload: any,
     statusCode: number | null,
     status: 'SUCCESS' | 'ERROR',
     errorMessage: string | null,
-    durationMs: number
+    errorStack: string | null,
+    durationMs: number,
+    companyId?: number | null,
+    retryCount: number = 0
   ): Promise<void> {
     await this.dbService.logApiRequest(
       endpoint,
       method,
+      requestHeaders,
       requestPayload,
+      responseHeaders,
       responsePayload,
       statusCode,
       status,
       errorMessage,
-      durationMs
+      errorStack,
+      durationMs,
+      companyId,
+      retryCount
     );
   }
 }

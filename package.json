@@ -6,12 +6,16 @@
   "scripts": {
     "clean": "rimraf dist release",
     "copy": "xcopy src\\renderer dist\\renderer /E /I /Y /Q",
-    "build": "npm run clean && tsc && npm run copy",
+    "build:main": "tsc",
+    "build:renderer": "vite build",
+    "build": "npm run clean && npm run build:main && npm run build:renderer",
     "dev": "npm run build && electron .",
+    "dev:watch": "concurrently \"vite build --watch\" \"tsc --watch\" \"wait-on dist/main/main.js && electron .\"",
     "start": "npm run build && electron .",
     "package": "npm run build && electron-builder",
     "package-win": "npm run build && electron-builder --win",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps || exit 0",
+    "rebuild": "electron-rebuild -f -w better-sqlite3 odbc"
   },
   "keywords": [
     "electron",
@@ -21,17 +25,28 @@
   "author": "MoboKoushik",
   "license": "ISC",
   "devDependencies": {
+    "@types/axios": "^0.14.4",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/electron": "^1.6.10",
+    "@types/moment": "^2.13.0",
     "@types/node": "^20.10.0",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^19.2.7",
+    "@types/react-dom": "^18.2.0",
     "@types/uuid": "^10.0.0",
     "@types/xml2js": "^0.4.14",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
     "copyfiles": "^2.4.1",
-    "electron": "^28.0.0",
+    "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
+    "electron-rebuild": "^3.2.9",
+    "postcss": "^8.4.32",
+    "prebuild-install": "^7.1.1",
     "rimraf": "^5.0.0",
-    "typescript": "^5.3.3"
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
   },
   "dependencies": {
     "axios": "^1.6.2",
@@ -41,6 +56,8 @@
     "moment": "^2.30.1",
     "node-cron": "^3.0.3",
     "odbc": "^2.4.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "uuid": "^9.0.1",
     "xml2js": "^0.6.2"
   },
@@ -88,7 +105,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": false,
+      "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",

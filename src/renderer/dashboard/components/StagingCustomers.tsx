@@ -1,0 +1,235 @@
+// src/renderer/dashboard/components/StagingCustomers.tsx
+import React, { useEffect, useState } from 'react';
+
+interface StagingCustomer {
+  id: string;
+  customer_id: string | null;
+  name: string | null;
+  company_name: string | null;
+  email: string | null;
+  phone: string | null;
+  mobile: string | null;
+  address: string | null;
+  gstin: string | null;
+  opening_balance: number;
+  current_balance: number;
+  is_processed: boolean;
+  comment: string | null;
+  retry_count: number;
+  status: 'Processed' | 'Unprocessed' | 'Error';
+  created_at: string;
+  updated_at: string;
+}
+
+interface PaginationData {
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalResults: number;
+}
+
+export const StagingCustomers: React.FC = () => {
+  const [customers, setCustomers] = useState<StagingCustomer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationData>({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalResults: 0
+  });
+
+  const fetchCustomers = async () => {
+    setLoading(true);
+    try {
+      const result = await window.electronAPI?.getStagingCustomers?.(page, 10, search);
+      
+      if (result?.success) {
+        setCustomers(result.details || []);
+        setPagination(result.paginate_data || pagination);
+      } else {
+        const errorMsg = result?.error || 'Unknown error';
+        console.error('Error fetching staging customers:', errorMsg);
+        // Show user-friendly error message
+        setCustomers([]);
+        // You could add a toast/notification here if needed
+      }
+    } catch (error: any) {
+      const errorMsg = error?.message || String(error) || 'Unknown error';
+      console.error('Error fetching staging customers:', errorMsg);
+      setCustomers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [page, search]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Processed':
+        return '#28a745';
+      case 'Error':
+        return '#dc3545';
+      case 'Unprocessed':
+        return '#ffc107';
+      default:
+        return 'var(--text-secondary)';
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '28px', color: 'var(--text-primary)' }}>Staging Customers</h1>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="Search customers..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              width: '250px'
+            }}
+          />
+          <button
+            onClick={fetchCustomers}
+            style={{
+              padding: '8px 16px',
+              background: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+          Loading...
+        </div>
+      ) : customers.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+          No staging customers found
+        </div>
+      ) : (
+        <>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '1px solid var(--border-color)'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-color)' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Customer ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Company</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Email</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Phone</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Balance</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600' }}>Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customers.map((customer) => (
+                  <tr key={customer.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {customer.customer_id || '-'}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {customer.name || '-'}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {customer.company_name || '-'}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {customer.email || '-'}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      {customer.mobile || customer.phone || '-'}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-primary)', fontSize: '13px' }}>
+                      ₹{customer.current_balance?.toFixed(2) || '0.00'}
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        background: getStatusColor(customer.status) + '20',
+                        color: getStatusColor(customer.status)
+                      }}>
+                        {customer.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: '12px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {customer.comment || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+              Showing {((page - 1) * pagination.limit) + 1} to {Math.min(page * pagination.limit, pagination.totalResults)} of {pagination.totalResults} customers
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                style={{
+                  padding: '6px 12px',
+                  background: page === 1 ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '4px',
+                  color: page === 1 ? 'var(--text-secondary)' : 'var(--text-primary)',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Previous
+              </button>
+              <span style={{ padding: '6px 12px', color: 'var(--text-primary)' }}>
+                Page {page} of {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                disabled={page >= pagination.totalPages}
+                style={{
+                  padding: '6px 12px',
+                  background: page >= pagination.totalPages ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '4px',
+                  color: page >= pagination.totalPages ? 'var(--text-secondary)' : 'var(--text-primary)',
+                  cursor: page >= pagination.totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};

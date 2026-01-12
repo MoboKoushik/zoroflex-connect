@@ -1,8 +1,15 @@
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  manualSync: () => ipcRenderer.invoke('manual-sync'),
+  // Sync methods
+  manualSync: (syncType?: 'full' | 'fresh') => ipcRenderer.invoke('manual-sync', syncType),
+  forceFullSync: () => ipcRenderer.invoke('force-full-sync'),
+  forceFreshSync: () => ipcRenderer.invoke('force-fresh-sync'),
   logout: () => ipcRenderer.invoke('logout'),
+  
+  // Company methods
+  getActiveCompany: () => ipcRenderer.invoke('get-active-company'),
+  getAllCompanies: () => ipcRenderer.invoke('get-all-companies'),
   onProfileData: (callback: any) => {
     // Remove any existing listeners for this channel to prevent duplicates
     ipcRenderer.removeAllListeners('profile-data');
@@ -46,21 +53,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCustomers: (limit?: number, offset?: number, search?: string) => ipcRenderer.invoke('get-customers', limit, offset, search),
   getVouchers: (limit?: number, offset?: number, search?: string, voucherType?: string) => ipcRenderer.invoke('get-vouchers', limit, offset, search, voucherType),
   getSyncHistoryWithBatches: (limit?: number) => ipcRenderer.invoke('get-sync-history-with-batches', limit),
+  getRecentSyncLogs: () => ipcRenderer.invoke('get-recent-sync-logs'),
   // Window controls
-  minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
-  maximizeWindow: () => ipcRenderer.invoke('window-maximize'),
-  closeWindow: () => ipcRenderer.invoke('window-close'),
-  isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  windowMinimize: () => ipcRenderer.invoke('window-minimize'),
+  windowMaximize: () => ipcRenderer.invoke('window-maximize'),
+  windowClose: () => ipcRenderer.invoke('window-close'),
+  windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
   onWindowMaximize: (callback: any) => {
     // Remove any existing listeners for this channel to prevent duplicates
     ipcRenderer.removeAllListeners('window-maximized');
     ipcRenderer.on('window-maximized', callback);
     return () => ipcRenderer.removeListener('window-maximized', callback);
   },
-  onWindowUnmaximize: (callback: any) => {
+  onWindowUnmaximized: (callback: any) => {
     // Remove any existing listeners for this channel to prevent duplicates
     ipcRenderer.removeAllListeners('window-unmaximized');
     ipcRenderer.on('window-unmaximized', callback);
     return () => ipcRenderer.removeListener('window-unmaximized', callback);
+  },
+  
+  // Remove listeners
+  removeAllListeners: (channel: string) => {
+    ipcRenderer.removeAllListeners(channel);
   },
 });

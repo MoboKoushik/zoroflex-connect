@@ -9,10 +9,9 @@ import {
   getReportText
 } from '../../tally/batch-fetcher';
 
-const db = new DatabaseService();
 const ENTITY_TYPE = 'PAYMENT';
 const API_KEY = '7061797A6F72726F74616C6C79';
-const API_BATCH_SIZE = 20;
+const API_BATCH_SIZE = 100; // Max 100 records per API call
 const BATCH_DELAY_MS = 1000;
 
 function generateMonthlyBatches(fromDate: string, toDate: string): Array<{
@@ -88,8 +87,11 @@ export async function syncPayments(
   profile: UserProfile,
   syncMode: 'first' | 'incremental' = 'incremental',
   dateRangeFrom?: string,
-  dateRangeTo?: string
+  dateRangeTo?: string,
+  dbService?: DatabaseService
 ): Promise<void> {
+  // Use provided dbService or create default (for backward compatibility)
+  const db = dbService || new DatabaseService();
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
   let successCount = 0;
   let failedCount = 0;

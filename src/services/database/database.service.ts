@@ -4,6 +4,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import Database from 'better-sqlite3';
 import { app } from 'electron';
+import axios from 'axios';
+import FormData from 'form-data';
+import { getApiUrl } from '../config/api-url-helper';
 
 export interface UserProfile {
   id?: number;
@@ -50,14 +53,46 @@ export interface LastSyncResult {
 
 export interface ApiLogRow {
   id: number;
+  company_id: number | null;
   endpoint: string;
   method: string;
+  request_headers: string | null;
   request_payload: string | null;
+  response_headers: string | null;
   response_payload: string | null;
   status_code: number | null;
   status: 'SUCCESS' | 'ERROR';
   error_message: string | null;
+  error_stack: string | null;
   duration_ms: number;
+  retry_count: number;
+  created_at: string;
+}
+
+export interface TallySyncLogRow {
+  id: number;
+  company_id: number | null;
+  sync_type: string;
+  entity_type: string;
+  sync_mode: string;
+  batch_id: number | null;
+  batch_month: string | null;
+  batch_number: number | null;
+  alter_id: string | null;
+  from_alter_id: string | null;
+  to_alter_id: string | null;
+  request_payload: string | null;
+  response_payload: string | null;
+  records_fetched: number;
+  records_stored: number;
+  records_sent: number;
+  records_success: number;
+  records_failed: number;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'IN_PROGRESS';
+  error_message: string | null;
+  duration_ms: number;
+  started_at: string;
+  completed_at: string | null;
   created_at: string;
 }
 
@@ -193,13 +228,84 @@ export interface SyncBatchRow {
 
 export class DatabaseService {
   private db: Database.Database | null = null;
-  private dbPath: string;
+  private dbPath: string = '';
+  private currentOrganizationUuid: string | null = null;
 
-  constructor() {
-    this.dbPath = path.join(app.getPath('userData'), 'tally-sync_v403.db');
+  constructor(organizationUuid?: string | null) {
+    if (organizationUuid) {
+      this.initializeDatabase(organizationUuid);
+    } else {
+      // Default database for initial setup (before login)
+      this.dbPath = path.join(app.getPath('userData'), 'tally-sync_default.db');
+      const dir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      this.init();
+    }
+  }
+
+  /**
+   * Initialize database with organization UUID
+   */
+  initializeDatabase(organizationUuid: string): void {
+    if (this.currentOrganizationUuid === organizationUuid && this.db) {
+      // Already using this database
+      return;
+    }
+
+    // Close existing database if any
+    this.closeDatabase();
+
+    // Set new database path
+    this.currentOrganizationUuid = organizationUuid;
+    this.dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
     const dir = path.dirname(this.dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
     this.init();
+  }
+
+  /**
+   * Switch to a different organization database
+   */
+  switchDatabase(organizationUuid: string): void {
+    this.initializeDatabase(organizationUuid);
+  }
+
+  /**
+   * Close current database connection
+   */
+  closeDatabase(): void {
+    if (this.db) {
+      try {
+        this.db.close();
+        console.log('Database connection closed:', this.dbPath);
+      } catch (error) {
+        console.error('Error closing database:', error);
+      }
+      this.db = null;
+    }
+  }
+
+  /**
+   * Get current database path
+   */
+  getDatabasePath(): string {
+    return this.dbPath;
+  }
+
+  /**
+   * Get current organization UUID
+   */
+  getCurrentOrganizationUuid(): string | null {
+    return this.currentOrganizationUuid;
+  }
+
+  /**
+   * Check if database file exists
+   */
+  databaseExists(organizationUuid: string): boolean {
+    const dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
+    return fs.existsSync(dbPath);
   }
 
   private init(): void {
@@ -277,15 +383,21 @@ export class DatabaseService {
 
       CREATE TABLE IF NOT EXISTS api_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER,
         endpoint TEXT NOT NULL,
         method TEXT NOT NULL,
+        request_headers TEXT,
         request_payload TEXT,
+        response_headers TEXT,
         response_payload TEXT,
         status_code INTEGER,
         status TEXT NOT NULL,
         error_message TEXT,
+        error_stack TEXT,
         duration_ms INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        retry_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id)
       );
 
       CREATE TABLE IF NOT EXISTS tally_voucher_logs (
@@ -299,6 +411,34 @@ export class DatabaseService {
         error_message TEXT,
         sync_history_id INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS tally_sync_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER,
+        sync_type TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        sync_mode TEXT NOT NULL,
+        batch_id INTEGER,
+        batch_month TEXT,
+        batch_number INTEGER,
+        alter_id TEXT,
+        from_alter_id TEXT,
+        to_alter_id TEXT,
+        request_payload TEXT,
+        response_payload TEXT,
+        records_fetched INTEGER DEFAULT 0,
+        records_stored INTEGER DEFAULT 0,
+        records_sent INTEGER DEFAULT 0,
+        records_success INTEGER DEFAULT 0,
+        records_failed INTEGER DEFAULT 0,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        duration_ms INTEGER DEFAULT 0,
+        started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id)
       );
 
       CREATE TABLE IF NOT EXISTS app_settings (
@@ -335,6 +475,11 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_type ON tally_voucher_logs(voucher_type);
       CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_status ON tally_voucher_logs(status);
       CREATE INDEX IF NOT EXISTS idx_tally_voucher_logs_sync_history ON tally_voucher_logs(sync_history_id);
+      CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_company_id ON tally_sync_logs(company_id);
+      CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_entity_type ON tally_sync_logs(entity_type);
+      CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_status ON tally_sync_logs(status);
+      CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_created_at ON tally_sync_logs(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_batch ON tally_sync_logs(batch_id, batch_month, batch_number);
       CREATE INDEX IF NOT EXISTS idx_sync_record_details_sync_history ON sync_record_details(sync_history_id);
       CREATE INDEX IF NOT EXISTS idx_sync_record_details_record_type ON sync_record_details(record_type);
       CREATE INDEX IF NOT EXISTS idx_sync_record_details_status ON sync_record_details(status);
@@ -483,6 +628,62 @@ export class DatabaseService {
         ('STOCKITEM', '0'),
         ('JOURNAL', '0'),
         ('ORGANIZATION', '0');
+
+      -- New tables for company management and enhanced sync logging
+      CREATE TABLE IF NOT EXISTS companies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        biller_id TEXT NOT NULL,
+        organization_id TEXT NOT NULL,
+        tally_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        gstin TEXT,
+        address TEXT,
+        state TEXT,
+        country TEXT DEFAULT 'India',
+        pin TEXT,
+        trn TEXT,
+        book_start_from TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(biller_id, organization_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        sync_type TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        message TEXT,
+        records_count INTEGER DEFAULT 0,
+        duration_ms INTEGER,
+        error_stack TEXT,
+        start_date TEXT,
+        end_date TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS last_sync_dates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        entity_type TEXT NOT NULL,
+        last_sync_date TEXT NOT NULL,
+        last_sync_timestamp DATETIME,
+        records_synced INTEGER DEFAULT 0,
+        FOREIGN KEY (company_id) REFERENCES companies(id),
+        UNIQUE(company_id, entity_type)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_companies_biller_id ON companies(biller_id);
+      CREATE INDEX IF NOT EXISTS idx_companies_organization_id ON companies(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_companies_is_active ON companies(is_active);
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_company_id ON sync_logs(company_id);
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_timestamp ON sync_logs(timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_status ON sync_logs(status);
+      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
+      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
     `;
 
     this.db?.exec(sql);
@@ -497,6 +698,15 @@ export class DatabaseService {
        VALUES (?, ?, ?, ?, ?, datetime('now'))`
     );
     stmt.run(email.toLowerCase(), token, billerId || null, apikey || null, orgJson);
+
+    // Extract and store organization UUID if available
+    if (org) {
+      const profile: UserProfile = { email, token, biller_id: billerId, apikey, organization: org };
+      const orgUuid = this.extractOrganizationUuid(profile);
+      if (orgUuid) {
+        await this.setOrganizationUuid(orgUuid);
+      }
+    }
   }
 
   async getProfile(): Promise<UserProfile | null> {
@@ -515,16 +725,15 @@ export class DatabaseService {
   }
 
   async logoutAndClearProfile(): Promise<void> {
-    this.db!.exec(`
-      BEGIN TRANSACTION;
-      DELETE FROM profiles;
-      DELETE FROM sync_history;
-      DELETE FROM logs;
-      UPDATE global_sync_status SET last_successful_sync = '1970-01-01' WHERE id = 1;
-      UPDATE entity_sync_status SET last_max_alter_id = '0', last_sync_at = datetime('now');
-      COMMIT;
-    `);
-    this.log('INFO', 'Logged out & all data cleared');
+    // Only clear profile (session data), keep all sync data intact
+    this.db!.exec(`DELETE FROM profiles`);
+    // Clear organization UUID from settings
+    const stmt = this.db!.prepare(`DELETE FROM app_settings WHERE key = ?`);
+    stmt.run('organizationUuid');
+    this.log('INFO', 'Logged out - profile cleared, data preserved');
+    // Close database connection
+    this.closeDatabase();
+    this.currentOrganizationUuid = null;
   }
 
   // === Entity-Specific AlterID Tracking ===
@@ -771,6 +980,47 @@ export class DatabaseService {
   }
 
   /**
+   * Check if entity first sync is complete (alias for consistency)
+   */
+  async isEntityFirstSyncComplete(entityType: string): Promise<boolean> {
+    return this.isEntityFirstSyncCompleted(entityType);
+  }
+
+  /**
+   * Mark entity first sync as complete (alias for consistency)
+   */
+  async markEntityFirstSyncComplete(entityType: string): Promise<void> {
+    return this.completeEntityFirstSync(entityType);
+  }
+
+  /**
+   * Get all entities that need first sync
+   */
+  async getEntitiesNeedingFirstSync(): Promise<string[]> {
+    const stmt = this.db!.prepare(`
+      SELECT entity
+      FROM entity_sync_status
+      WHERE is_first_sync_completed = 0
+      ORDER BY entity
+    `);
+    const rows = stmt.all() as { entity: string }[];
+    return rows.map(row => row.entity);
+  }
+
+  /**
+   * Check if all entities have completed first sync
+   */
+  async areAllEntitiesFirstSyncComplete(): Promise<boolean> {
+    const stmt = this.db!.prepare(`
+      SELECT COUNT(*) as incomplete_count
+      FROM entity_sync_status
+      WHERE is_first_sync_completed = 0
+    `);
+    const row = stmt.get() as { incomplete_count: number } | undefined;
+    return (row?.incomplete_count || 0) === 0;
+  }
+
+  /**
    * Get batch progress for entity (used to resume interrupted sync)
    */
   async getEntityBatchProgress(entity: string): Promise<{
@@ -829,7 +1079,7 @@ export class DatabaseService {
     `);
     const row = stmt.get(entity.toUpperCase()) as { sync_mode: string } | undefined;
     console.log('row==>', row)
-    return  'first_sync';
+    return 'first_sync';
   }
 
   /**
@@ -972,20 +1222,42 @@ export class DatabaseService {
   async logApiRequest(
     endpoint: string,
     method: string,
+    requestHeaders: any,
     requestPayload: any,
+    responseHeaders: any,
     responsePayload: any,
     statusCode: number | null,
     status: 'SUCCESS' | 'ERROR',
     errorMessage: string | null,
-    durationMs: number
-  ): Promise<void> {
+    errorStack: string | null,
+    durationMs: number,
+    companyId?: number | null,
+    retryCount: number = 0
+  ): Promise<number> {
+    const requestHeadersJson = requestHeaders ? JSON.stringify(requestHeaders) : null;
     const requestJson = requestPayload ? JSON.stringify(requestPayload) : null;
+    const responseHeadersJson = responseHeaders ? JSON.stringify(responseHeaders) : null;
     const responseJson = responsePayload ? JSON.stringify(responsePayload) : null;
     const stmt = this.db!.prepare(`
-      INSERT INTO api_logs (endpoint, method, request_payload, response_payload, status_code, status, error_message, duration_ms)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO api_logs (company_id, endpoint, method, request_headers, request_payload, response_headers, response_payload, status_code, status, error_message, error_stack, duration_ms, retry_count)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    stmt.run(endpoint, method.toUpperCase(), requestJson, responseJson, statusCode, status, errorMessage, durationMs);
+    const info = stmt.run(
+      companyId || null,
+      endpoint,
+      method.toUpperCase(),
+      requestHeadersJson,
+      requestJson,
+      responseHeadersJson,
+      responseJson,
+      statusCode,
+      status,
+      errorMessage,
+      errorStack,
+      durationMs,
+      retryCount
+    );
+    return Number(info.lastInsertRowid);
   }
 
   async getApiLogs(filters?: {
@@ -1021,11 +1293,17 @@ export class DatabaseService {
     const stmt = this.db!.prepare(query);
     const rows = stmt.all(...params) as ApiLogRow[];
     rows.forEach(row => {
+      if (row.request_headers) {
+        try { row.request_headers = JSON.parse(row.request_headers as any); } catch { }
+      }
       if (row.request_payload) {
-        try { row.request_payload = JSON.parse(row.request_payload); } catch { }
+        try { row.request_payload = JSON.parse(row.request_payload as any); } catch { }
+      }
+      if (row.response_headers) {
+        try { row.response_headers = JSON.parse(row.response_headers as any); } catch { }
       }
       if (row.response_payload) {
-        try { row.response_payload = JSON.parse(row.response_payload); } catch { }
+        try { row.response_payload = JSON.parse(row.response_payload as any); } catch { }
       }
     });
     return rows;
@@ -1121,6 +1399,51 @@ export class DatabaseService {
     stmt.run(key, value);
   }
 
+  /**
+   * Store organization UUID in app settings
+   */
+  async setOrganizationUuid(uuid: string): Promise<void> {
+    await this.setSetting('organizationUuid', uuid);
+    this.currentOrganizationUuid = uuid;
+  }
+
+  /**
+   * Get stored organization UUID from app settings
+   */
+  async getOrganizationUuid(): Promise<string | null> {
+    return await this.getSetting('organizationUuid');
+  }
+
+  /**
+   * Extract organization UUID from profile
+   */
+  extractOrganizationUuid(profile: UserProfile | null): string | null {
+    if (!profile) return null;
+
+    // Try profile.organization.response.organization_id first
+    if (profile?.organization?.response?.organization_id) {
+      return String(profile.organization.response.organization_id).trim();
+    }
+
+    // Try profile.organization.organization_data
+    if (profile?.organization?.organization_data) {
+      let orgData = profile.organization.organization_data;
+      if (typeof orgData === 'string') {
+        try {
+          orgData = JSON.parse(orgData);
+        } catch (e) {
+          console.warn('Failed to parse organization_data as JSON:', e);
+          return null;
+        }
+      }
+      if (orgData?.organization_id) {
+        return String(orgData.organization_id).trim();
+      }
+    }
+
+    return null;
+  }
+
   async getAllSettings(): Promise<Record<string, string>> {
     const stmt = this.db!.prepare(`SELECT key, value FROM app_settings`);
     const rows = stmt.all() as { key: string; value: string }[];
@@ -1190,12 +1513,156 @@ export class DatabaseService {
     return row?.month_identifier || null;
   }
 
+  // === Tally Sync Logs ===
+  async logTallySyncStart(
+    companyId: number | null,
+    syncType: string,
+    entityType: string,
+    syncMode: 'batch' | 'alter_id' | 'incremental',
+    batchId?: number | null,
+    batchMonth?: string | null,
+    batchNumber?: number | null,
+    alterId?: string | null,
+    fromAlterId?: string | null,
+    toAlterId?: string | null
+  ): Promise<number> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO tally_sync_logs (
+        company_id, sync_type, entity_type, sync_mode, batch_id, batch_month, batch_number,
+        alter_id, from_alter_id, to_alter_id, status, started_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'IN_PROGRESS', datetime('now'))
+    `);
+    const info = stmt.run(
+      companyId,
+      syncType,
+      entityType,
+      syncMode,
+      batchId || null,
+      batchMonth || null,
+      batchNumber || null,
+      alterId || null,
+      fromAlterId || null,
+      toAlterId || null
+    );
+    return Number(info.lastInsertRowid);
+  }
+
+  async logTallySyncRequest(
+    logId: number,
+    requestPayload: any
+  ): Promise<void> {
+    const requestJson = requestPayload ? JSON.stringify(requestPayload) : null;
+    const stmt = this.db!.prepare(`
+      UPDATE tally_sync_logs
+      SET request_payload = ?
+      WHERE id = ?
+    `);
+    stmt.run(requestJson, logId);
+  }
+
+  async logTallySyncResponse(
+    logId: number,
+    responsePayload: any,
+    recordsFetched: number = 0,
+    recordsStored: number = 0
+  ): Promise<void> {
+    const responseJson = responsePayload ? JSON.stringify(responsePayload) : null;
+    const stmt = this.db!.prepare(`
+      UPDATE tally_sync_logs
+      SET response_payload = ?, records_fetched = ?, records_stored = ?
+      WHERE id = ?
+    `);
+    stmt.run(responseJson, recordsFetched, recordsStored, logId);
+  }
+
+  async logTallySyncComplete(
+    logId: number,
+    status: 'SUCCESS' | 'FAILED',
+    recordsSent: number = 0,
+    recordsSuccess: number = 0,
+    recordsFailed: number = 0,
+    errorMessage: string | null = null,
+    durationMs: number = 0
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE tally_sync_logs
+      SET status = ?, records_sent = ?, records_success = ?, records_failed = ?,
+          error_message = ?, duration_ms = ?, completed_at = datetime('now')
+      WHERE id = ?
+    `);
+    stmt.run(status, recordsSent, recordsSuccess, recordsFailed, errorMessage, durationMs, logId);
+  }
+
+  async getTallySyncLogs(filters?: {
+    companyId?: number;
+    entityType?: string;
+    status?: 'SUCCESS' | 'FAILED' | 'PENDING' | 'IN_PROGRESS';
+    syncMode?: string;
+    fromDate?: string;
+    toDate?: string;
+    limit?: number;
+  }): Promise<TallySyncLogRow[]> {
+    let query = `SELECT * FROM tally_sync_logs WHERE 1=1`;
+    const params: any[] = [];
+
+    if (filters?.companyId) {
+      query += ` AND company_id = ?`;
+      params.push(filters.companyId);
+    }
+    if (filters?.entityType) {
+      query += ` AND entity_type = ?`;
+      params.push(filters.entityType);
+    }
+    if (filters?.status) {
+      query += ` AND status = ?`;
+      params.push(filters.status);
+    }
+    if (filters?.syncMode) {
+      query += ` AND sync_mode = ?`;
+      params.push(filters.syncMode);
+    }
+    if (filters?.fromDate) {
+      query += ` AND created_at >= ?`;
+      params.push(filters.fromDate);
+    }
+    if (filters?.toDate) {
+      query += ` AND created_at <= ?`;
+      params.push(filters.toDate);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+    if (filters?.limit) {
+      query += ` LIMIT ?`;
+      params.push(filters.limit);
+    } else {
+      query += ` LIMIT 100`;
+    }
+
+    const stmt = this.db!.prepare(query);
+    const rows = stmt.all(...params) as TallySyncLogRow[];
+
+    // Parse JSON fields
+    rows.forEach(row => {
+      if (row.request_payload) {
+        try { row.request_payload = JSON.parse(row.request_payload as any); } catch { }
+      }
+      if (row.response_payload) {
+        try { row.response_payload = JSON.parse(row.response_payload as any); } catch { }
+      }
+    });
+
+    return rows;
+  }
+
   // === Log Management ===
-  async clearLogs(logType: 'system' | 'api' | 'voucher'): Promise<void> {
+  async clearLogs(logType: 'system' | 'api' | 'tally_sync' | 'voucher'): Promise<void> {
     if (logType === 'system') {
       this.db!.exec('DELETE FROM logs');
     } else if (logType === 'api') {
       this.db!.exec('DELETE FROM api_logs');
+    } else if (logType === 'tally_sync') {
+      this.db!.exec('DELETE FROM tally_sync_logs');
     } else if (logType === 'voucher') {
       this.db!.exec('DELETE FROM tally_voucher_logs');
     }
@@ -1823,6 +2290,309 @@ export class DatabaseService {
     }
 
     return rows;
+  }
+
+  // === Sync Logs Methods ===
+
+  /**
+   * Create a sync log entry
+   */
+  async createSyncLog(
+    companyId: number,
+    syncType: string,
+    entityType: string,
+    status: string,
+    message?: string,
+    recordsCount: number = 0,
+    durationMs?: number,
+    errorStack?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<number> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO sync_logs (
+        company_id, sync_type, entity_type, status, message,
+        records_count, duration_ms, error_stack, start_date, end_date, timestamp
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+
+    const result = stmt.run(
+      companyId,
+      syncType,
+      entityType,
+      status,
+      message || null,
+      recordsCount,
+      durationMs || null,
+      errorStack || null,
+      startDate || null,
+      endDate || null
+    );
+
+    return result.lastInsertRowid as number;
+  }
+
+  /**
+   * Get sync logs for a company
+   */
+  async getSyncLogs(
+    companyId: number,
+    limit: number = 50,
+    entityType?: string,
+    status?: string
+  ): Promise<any[]> {
+    let query = `
+      SELECT * FROM sync_logs 
+      WHERE company_id = ?
+    `;
+    const params: any[] = [companyId];
+
+    if (entityType) {
+      query += ` AND entity_type = ?`;
+      params.push(entityType);
+    }
+
+    if (status) {
+      query += ` AND status = ?`;
+      params.push(status);
+    }
+
+    query += ` ORDER BY timestamp DESC LIMIT ?`;
+    params.push(limit);
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as any[];
+  }
+
+  /**
+   * Get recent sync logs (last N entries)
+   */
+  async getRecentSyncLogs(limit: number = 20): Promise<any[]> {
+    const stmt = this.db!.prepare(`
+      SELECT sl.*, c.name as company_name
+      FROM sync_logs sl
+      LEFT JOIN companies c ON sl.company_id = c.id
+      ORDER BY sl.timestamp DESC
+      LIMIT ?
+    `);
+    return stmt.all(limit) as any[];
+  }
+
+  /**
+   * Update last sync date for a company and entity
+   */
+  async updateLastSyncDate(
+    companyId: number,
+    entityType: string,
+    syncDate: string,
+    recordsSynced: number = 0
+  ): Promise<void> {
+    const stmt = this.db!.prepare(`
+      INSERT OR REPLACE INTO last_sync_dates 
+      (company_id, entity_type, last_sync_date, last_sync_timestamp, records_synced)
+      VALUES (?, ?, ?, datetime('now'), ?)
+    `);
+    stmt.run(companyId, entityType, syncDate, recordsSynced);
+  }
+
+  /**
+   * Get last sync date for a company and entity
+   */
+  async getLastSyncDate(companyId: number, entityType: string): Promise<string | null> {
+    const stmt = this.db!.prepare(`
+      SELECT last_sync_date FROM last_sync_dates 
+      WHERE company_id = ? AND entity_type = ?
+    `);
+    const row = stmt.get(companyId, entityType) as any;
+    return row?.last_sync_date || null;
+  }
+
+  /**
+   * Get all last sync dates for a company
+   */
+  async getAllLastSyncDates(companyId: number): Promise<any[]> {
+    const stmt = this.db!.prepare(`
+      SELECT * FROM last_sync_dates 
+      WHERE company_id = ?
+      ORDER BY entity_type
+    `);
+    return stmt.all(companyId) as any[];
+  }
+
+  // === Database Dump and Restore ===
+
+  /**
+   * Dump current database to backend
+   */
+  async dumpDatabaseToBackend(billerId: string, organizationUuid: string): Promise<boolean> {
+    try {
+      if (!this.db || !fs.existsSync(this.dbPath)) {
+        this.log('ERROR', 'Database file does not exist for dump', { dbPath: this.dbPath });
+        return false;
+      }
+
+      // Close database connection before copying
+      this.closeDatabase();
+
+      // Read database file
+      const dbBuffer = fs.readFileSync(this.dbPath);
+
+      // Upload to backend
+      const apiUrl = await getApiUrl(this);
+      const profile = await this.getProfile();
+      const apiKey = profile?.apikey || '7061797A6F72726F74616C6C79';
+
+      const formData = new FormData();
+      formData.append('file', dbBuffer, {
+        filename: `tally-sync_${organizationUuid}.db`,
+        contentType: 'application/x-sqlite3'
+      });
+
+      const response = await axios.post(
+        `${apiUrl}/billers/tally/upload-database`,
+        formData,
+        {
+          headers: {
+            'API-KEY': apiKey,
+            'Content-Type': 'multipart/form-data',
+            'X-Biller-Id': billerId,
+            'X-Organization-Uuid': organizationUuid
+          },
+          timeout: 60000 // 60 seconds for large files
+        }
+      );
+
+      // Reopen database connection
+      this.init();
+
+      if (response.data?.success) {
+        this.log('INFO', 'Database dumped to backend successfully', {
+          billerId,
+          organizationUuid,
+          size: dbBuffer.length
+        });
+        return true;
+      }
+
+      return false;
+    } catch (error: any) {
+      // Reopen database connection even on error
+      if (!this.db) {
+        this.init();
+      }
+      this.log('ERROR', 'Failed to dump database to backend', {
+        error: error.message,
+        billerId,
+        organizationUuid
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Restore database from backend
+   */
+  async restoreDatabaseFromBackend(billerId: string, organizationUuid: string): Promise<boolean> {
+    try {
+      const apiUrl = await getApiUrl(this);
+      const profile = await this.getProfile();
+      const apiKey = profile?.apikey || '7061797A6F72726F74616C6C79';
+
+      // Download database from backend
+      const response = await axios.get(
+        `${apiUrl}/billers/tally/download-database`,
+        {
+          params: {
+            biller_id: billerId,
+            organization_uuid: organizationUuid
+          },
+          headers: {
+            'API-KEY': apiKey
+          },
+          responseType: 'arraybuffer',
+          timeout: 60000
+        }
+      );
+
+      if (response.status === 200 && response.data) {
+        // Close current database
+        this.closeDatabase();
+
+        // Write downloaded database to file
+        const dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
+        const dir = path.dirname(dbPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+
+        fs.writeFileSync(dbPath, Buffer.from(response.data));
+
+        // Initialize with the restored database
+        this.initializeDatabase(organizationUuid);
+
+        this.log('INFO', 'Database restored from backend successfully', {
+          billerId,
+          organizationUuid,
+          size: response.data.byteLength
+        });
+        return true;
+      }
+
+      return false;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        // Database doesn't exist in backend - this is OK for first-time sync
+        this.log('INFO', 'Database not found in backend (first sync)', {
+          billerId,
+          organizationUuid
+        });
+        return false;
+      }
+
+      this.log('ERROR', 'Failed to restore database from backend', {
+        error: error.message,
+        billerId,
+        organizationUuid
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Check if database exists in backend
+   */
+  async databaseExistsInBackend(billerId: string, organizationUuid: string): Promise<boolean> {
+    try {
+      const apiUrl = await getApiUrl(this);
+      const profile = await this.getProfile();
+      const apiKey = profile?.apikey || '7061797A6F72726F74616C6C79';
+
+      const response = await axios.head(
+        `${apiUrl}/billers/tally/download-database`,
+        {
+          params: {
+            biller_id: billerId,
+            organization_uuid: organizationUuid
+          },
+          headers: {
+            'API-KEY': apiKey
+          },
+          timeout: 10000
+        }
+      );
+
+      return response.status === 200;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return false;
+      }
+      this.log('ERROR', 'Error checking database existence in backend', {
+        error: error.message,
+        billerId,
+        organizationUuid
+      });
+      return false;
+    }
   }
 
   close(): void {

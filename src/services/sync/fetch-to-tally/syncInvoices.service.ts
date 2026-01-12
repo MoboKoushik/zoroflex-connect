@@ -9,10 +9,9 @@ import {
   getReportText
 } from '../../tally/batch-fetcher';
 
-const db = new DatabaseService();
 const ENTITY_TYPE = 'INVOICE';
 const API_KEY = '7061797A6F72726F74616C6C79';
-const API_BATCH_SIZE = 20;
+const API_BATCH_SIZE = 100; // Max 100 records per API call
 const BATCH_DELAY_MS = 1000; // 1 second delay between API batches
 
 /**
@@ -94,8 +93,11 @@ export async function syncInvoices(
   profile: UserProfile,
   syncMode: 'first' | 'incremental' = 'incremental',
   dateRangeFrom?: string,
-  dateRangeTo?: string
+  dateRangeTo?: string,
+  dbService?: DatabaseService
 ): Promise<void> {
+  // Use provided dbService or create default (for backward compatibility)
+  const db = dbService || new DatabaseService();
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
   let successCount = 0;
   let failedCount = 0;

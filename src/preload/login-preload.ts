@@ -1,4 +1,4 @@
-// src/renderer/login/preload.ts
+// src/preload/login-preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {

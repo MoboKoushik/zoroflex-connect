@@ -5,11 +5,10 @@ import {
     getReportText
 } from '../../tally/batch-fetcher';
 
-const db = new DatabaseService();
-
 const ENTITY_TYPE = 'ORGANIZATION';
 
-export async function fetchCurrentCompany(): Promise<Record<string, any> | null> {
+export async function fetchCurrentCompany(dbService?: DatabaseService): Promise<Record<string, any> | null> {
+    const db = dbService || new DatabaseService();
     const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
 
     try {
