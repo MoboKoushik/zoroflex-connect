@@ -37,7 +37,6 @@ export const StatusBar: React.FC = () => {
   }, []);
 
   const loadStatus = async () => {
-
     try {
       if (!window.electronAPI) {
         console.error("StatusBar: electronAPI is not available!");
@@ -107,7 +106,16 @@ export const StatusBar: React.FC = () => {
       if (diffSecs < 60) return `${diffSecs}s ago`;
       if (diffMins < 60) return `${diffMins}m ago`;
       if (diffHours < 24) return `${diffHours}h ago`;
-      return date.toLocaleDateString();
+      // For older dates, show in Indian timezone
+      return date.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
     } catch {
       return "Invalid";
     }

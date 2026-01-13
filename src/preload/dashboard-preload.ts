@@ -56,6 +56,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVouchers: (limit?: number, offset?: number, search?: string, voucherType?: string) => ipcRenderer.invoke('get-vouchers', limit, offset, search, voucherType),
   getSyncHistoryWithBatches: (limit?: number) => ipcRenderer.invoke('get-sync-history-with-batches', limit),
   getRecentSyncLogs: () => ipcRenderer.invoke('get-recent-sync-logs'),
+  // Entity sync info
+  getEntitySyncInfo: () => ipcRenderer.invoke('get-entity-sync-info'),
+  getActiveSyncProcesses: () => ipcRenderer.invoke('get-active-sync-processes'),
   // Window controls
   windowMinimize: () => ipcRenderer.invoke('window-minimize'),
   windowMaximize: () => ipcRenderer.invoke('window-maximize'),

@@ -1105,6 +1105,26 @@ ipcMain.handle('get-sync-history-with-batches', async (event, limit?: number) =>
   return await dbService.getSyncHistoryWithBatches(limit);
 });
 
+// Get entity sync information (last 2 syncs for each entity)
+ipcMain.handle('get-entity-sync-info', async () => {
+  try {
+    return await dbService.getEntitySyncInfo();
+  } catch (error: any) {
+    console.error('Error getting entity sync info:', error);
+    return null;
+  }
+});
+
+// Get active sync processes
+ipcMain.handle('get-active-sync-processes', async () => {
+  try {
+    return await dbService.getActiveSyncProcesses();
+  } catch (error: any) {
+    console.error('Error getting active sync processes:', error);
+    return [];
+  }
+});
+
 // Window control handlers
 ipcMain.handle('window-minimize', () => {
   try {

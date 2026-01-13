@@ -18,6 +18,19 @@ export interface ElectronAPI {
   getActiveCompany?: () => Promise<any>;
   getDashboardStats?: () => Promise<any>;
   getRecentSyncLogs?: () => Promise<any[]>;
+  getEntitySyncInfo?: () => Promise<any>;
+  getActiveSyncProcesses?: () => Promise<Array<{
+    id: number;
+    entity_type: string;
+    sync_type: string;
+    status: string;
+    started_at: string;
+    current_step?: string;
+    progress?: {
+      current: number;
+      total: number;
+    };
+  }>>;
   getAnalytics?: () => Promise<any>;
   getLogs?: () => Promise<any[]>;
   getApiLogs?: (filters?: any) => Promise<any[]>;
@@ -26,6 +39,9 @@ export interface ElectronAPI {
   onSyncCompleted?: (callback: (data: any) => void) => void;
   forceFullSync?: () => Promise<{ success: boolean; error?: string }>;
   forceFreshSync?: () => Promise<{ success: boolean; error?: string }>;
+  forceFullFreshSync?: () => Promise<{ success: boolean; error?: string }>;
+  manualSync?: () => Promise<{ success: boolean; error?: string }>;
+  restartBackgroundSync?: () => Promise<{ success: boolean; error?: string }>;
   
   // Window controls (dashboard)
   windowMinimize?: () => Promise<any>;

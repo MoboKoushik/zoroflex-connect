@@ -2400,16 +2400,36 @@ export class DatabaseService {
 
   /**
    * Get recent sync logs (last N entries)
+   * Returns data from sync_history table formatted for RecentLogs component
    */
   async getRecentSyncLogs(limit: number = 20): Promise<any[]> {
     const stmt = this.db!.prepare(`
-      SELECT sl.*, c.name as company_name
-      FROM sync_logs sl
-      LEFT JOIN companies c ON sl.company_id = c.id
-      ORDER BY sl.timestamp DESC
+      SELECT 
+        id,
+        sync_type,
+        entity_type,
+        status,
+        message,
+        entity_count as records_count,
+        started_at as timestamp,
+        completed_at
+      FROM sync_history
+      WHERE status IN ('SUCCESS', 'FAILED', 'PARTIAL', 'STARTED')
+      ORDER BY started_at DESC
       LIMIT ?
     `);
-    return stmt.all(limit) as any[];
+    const rows = stmt.all(limit) as any[];
+    
+    // Format the data for the component
+    return rows.map(row => ({
+      id: row.id,
+      sync_type: row.sync_type,
+      entity_type: row.entity_type,
+      status: row.status,
+      message: row.message || (row.completed_at ? 'Completed' : 'In Progress'),
+      records_count: row.records_count || 0,
+      timestamp: row.completed_at || row.timestamp // Use completed_at if available, otherwise started_at
+    }));
   }
 
   /**
@@ -2627,6 +2647,172 @@ export class DatabaseService {
       });
       return false;
     }
+  }
+
+  /**
+   * Get active sync processes
+   */
+  async getActiveSyncProcesses(): Promise<Array<{
+    id: number;
+    entity_type: string;
+    sync_type: string;
+    status: string;
+    started_at: string;
+    current_step?: string;
+    progress?: {
+      current: number;
+      total: number;
+    };
+  }>> {
+    try {
+      // Only get sync_history records that are truly in progress
+      // Exclude records that have completed_at set (they're done)
+      const stmt = this.db!.prepare(`
+        SELECT sh.*, 
+               (SELECT COUNT(*) FROM sync_batches WHERE sync_run_id = sh.id AND status IN ('COMPLETED', 'API_SUCCESS')) as completed_batches,
+               (SELECT COUNT(*) FROM sync_batches WHERE sync_run_id = sh.id) as total_batches
+        FROM sync_history sh
+        WHERE sh.status IN ('STARTED', 'IN_PROGRESS')
+          AND sh.completed_at IS NULL
+        ORDER BY sh.started_at DESC
+      `);
+      const active = stmt.all() as any[];
+      
+      // Format the results
+      return active.map((sync: any) => ({
+        id: sync.id,
+        entity_type: sync.entity_type,
+        sync_type: sync.sync_type,
+        status: sync.status,
+        started_at: sync.started_at,
+        current_step: sync.message || 'Processing...',
+        progress: sync.total_batches > 0 ? {
+          current: sync.completed_batches || 0,
+          total: sync.total_batches || 0
+        } : undefined
+      }));
+    } catch (error: any) {
+      this.log('ERROR', 'Error getting active sync processes', { error: error.message });
+      return [];
+    }
+  }
+
+  /**
+   * Get entity sync information (last 2 syncs for each entity + total counts)
+   */
+  async getEntitySyncInfo(): Promise<{
+    ledger: {
+      lastSyncTime: string | null;
+      lastSyncCount: number;
+      previousSyncTime: string | null;
+      previousSyncCount: number;
+      totalCount: number;
+    };
+    invoice: {
+      lastSyncTime: string | null;
+      lastSyncCount: number;
+      previousSyncTime: string | null;
+      previousSyncCount: number;
+      totalCount: number;
+    };
+    payment: {
+      lastSyncTime: string | null;
+      lastSyncCount: number;
+      previousSyncTime: string | null;
+      previousSyncCount: number;
+      totalCount: number;
+    };
+  }> {
+    // Get last 2 successful syncs for each entity - include PARTIAL status
+    const ledgerStmt = this.db!.prepare(`
+      SELECT completed_at, entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'CUSTOMER' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+        AND entity_count > 0
+      ORDER BY completed_at DESC 
+      LIMIT 2
+    `);
+    const ledgerSyncs = ledgerStmt.all() as Array<{ completed_at: string; entity_count: number }>;
+
+    // Get total count of all synced customers
+    const ledgerTotalStmt = this.db!.prepare(`
+      SELECT COALESCE(SUM(entity_count), 0) as total
+      FROM sync_history 
+      WHERE entity_type = 'CUSTOMER' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND entity_count > 0
+    `);
+    const ledgerTotal = (ledgerTotalStmt.get() as { total: number })?.total || 0;
+
+    const invoiceStmt = this.db!.prepare(`
+      SELECT completed_at, entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'INVOICE' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+        AND entity_count > 0
+      ORDER BY completed_at DESC 
+      LIMIT 2
+    `);
+    const invoiceSyncs = invoiceStmt.all() as Array<{ completed_at: string; entity_count: number }>;
+
+    // Get total count of all synced invoices
+    const invoiceTotalStmt = this.db!.prepare(`
+      SELECT COALESCE(SUM(entity_count), 0) as total
+      FROM sync_history 
+      WHERE entity_type = 'INVOICE' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND entity_count > 0
+    `);
+    const invoiceTotal = (invoiceTotalStmt.get() as { total: number })?.total || 0;
+
+    const paymentStmt = this.db!.prepare(`
+      SELECT completed_at, entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'PAYMENT' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+        AND entity_count > 0
+      ORDER BY completed_at DESC 
+      LIMIT 2
+    `);
+    const paymentSyncs = paymentStmt.all() as Array<{ completed_at: string; entity_count: number }>;
+
+    // Get total count of all synced payments
+    const paymentTotalStmt = this.db!.prepare(`
+      SELECT COALESCE(SUM(entity_count), 0) as total
+      FROM sync_history 
+      WHERE entity_type = 'PAYMENT' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND entity_count > 0
+    `);
+    const paymentTotal = (paymentTotalStmt.get() as { total: number })?.total || 0;
+
+    return {
+      ledger: {
+        lastSyncTime: ledgerSyncs[0]?.completed_at || null,
+        lastSyncCount: ledgerSyncs[0]?.entity_count || 0,
+        previousSyncTime: ledgerSyncs[1]?.completed_at || null,
+        previousSyncCount: ledgerSyncs[1]?.entity_count || 0,
+        totalCount: ledgerTotal,
+      },
+      invoice: {
+        lastSyncTime: invoiceSyncs[0]?.completed_at || null,
+        lastSyncCount: invoiceSyncs[0]?.entity_count || 0,
+        previousSyncTime: invoiceSyncs[1]?.completed_at || null,
+        previousSyncCount: invoiceSyncs[1]?.entity_count || 0,
+        totalCount: invoiceTotal,
+      },
+      payment: {
+        lastSyncTime: paymentSyncs[0]?.completed_at || null,
+        lastSyncCount: paymentSyncs[0]?.entity_count || 0,
+        previousSyncTime: paymentSyncs[1]?.completed_at || null,
+        previousSyncCount: paymentSyncs[1]?.entity_count || 0,
+        totalCount: paymentTotal,
+      },
+    };
   }
 
   close(): void {

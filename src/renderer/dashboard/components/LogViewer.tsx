@@ -30,8 +30,11 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logType }) => {
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 5000); // Auto-refresh every 5 seconds
-    return () => clearInterval(interval);
+    // Auto-refresh removed - logs will only refresh when:
+    // 1. Component mounts
+    // 2. logType changes
+    // 3. levelFilter changes
+    // 4. User clicks Refresh button
   }, [logType, levelFilter]);
 
   const fetchLogs = async () => {
@@ -191,14 +194,15 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logType }) => {
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      hour12: false
+      hour12: true
     });
   };
 
