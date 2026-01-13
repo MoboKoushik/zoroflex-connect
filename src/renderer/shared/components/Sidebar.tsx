@@ -10,9 +10,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '◉' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
-    { id: 'customers', label: 'Customers', icon: '○' },
-    { id: 'invoices', label: 'Invoices', icon: '◐' },
-    { id: 'payments', label: 'Payments', icon: '◑' },
+    // { id: 'customers', label: 'Customers', icon: '○' },
+    // { id: 'invoices', label: 'Invoices', icon: '◐' },
+    // { id: 'payments', label: 'Payments', icon: '◑' },
     { id: 'logs', label: 'Logs', icon: '📋' },
     { id: 'settings', label: 'Settings', icon: '⚙' },
   ];

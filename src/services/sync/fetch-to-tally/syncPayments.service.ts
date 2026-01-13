@@ -108,8 +108,32 @@ export async function syncPayments(
     });
 
     if (syncMode === 'first' && dateRangeFrom && dateRangeTo) {
-      const monthlyBatches = generateMonthlyBatches(dateRangeFrom, dateRangeTo);
-      db.log('INFO', `First sync: Processing ${monthlyBatches.length} months for payments`);
+      // FIRST SYNC: Check for incomplete months first
+      const incompleteMonths = await db.getIncompleteMonths(ENTITY_TYPE);
+      
+      let monthlyBatches: Array<{
+        month: string;
+        fromDate: string;
+        toDate: string;
+        tallyFromDate: string;
+        tallyToDate: string;
+      }>;
+      
+      if (incompleteMonths.length > 0) {
+        // Resume incomplete months only
+        db.log('INFO', `Resuming first sync: ${incompleteMonths.length} incomplete months found: ${incompleteMonths.join(', ')}`);
+        
+        const allMonthlyBatches = generateMonthlyBatches(dateRangeFrom, dateRangeTo);
+        monthlyBatches = allMonthlyBatches.filter(batch => 
+          incompleteMonths.includes(batch.month)
+        );
+        
+        db.log('INFO', `Resuming ${monthlyBatches.length} incomplete months`);
+      } else {
+        // Normal first sync - process all months
+        monthlyBatches = generateMonthlyBatches(dateRangeFrom, dateRangeTo);
+        db.log('INFO', `First sync: Processing ${monthlyBatches.length} months for payments`);
+      }
 
       for (const monthBatch of monthlyBatches) {
         const { month, tallyFromDate, tallyToDate } = monthBatch;
@@ -289,6 +313,15 @@ export async function syncPayments(
     const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
     if (successCount > 0 || newMaxAlterId !== '0') {
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+    }
+
+    // After successful first sync, check if entity should be marked as complete
+    if (syncMode === 'first' && successCount > 0) {
+      const incompleteMonths = await db.getIncompleteMonths(ENTITY_TYPE);
+      if (incompleteMonths.length === 0) {
+        await db.completeEntityFirstSync(ENTITY_TYPE);
+        db.log('INFO', `PAYMENT first sync completed successfully, marked as complete`);
+      }
     }
 
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} payments synced`);

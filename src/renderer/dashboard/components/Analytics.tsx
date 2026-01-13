@@ -38,10 +38,50 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
   if (!data) {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
-        <div style={{ color: 'var(--text-secondary)' }}>No analytics data available</div>
+        <div style={{ color: 'var(--text-secondary)', marginBottom: '12px' }}>No analytics data available</div>
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          Analytics data will appear here once sync operations and API calls are recorded.
+        </div>
       </div>
     );
   }
+
+  // Ensure data has required structure with defaults
+  const syncStats = data.syncStats || {
+    totalSyncs: 0,
+    successfulSyncs: 0,
+    failedSyncs: 0,
+    last7Days: []
+  };
+
+  const apiStats = data.apiStats || {
+    totalCalls: 0,
+    successfulCalls: 0,
+    failedCalls: 0,
+    last7Days: []
+  };
+
+  const processingStats = data.processingStats || {
+    customers: { total: 0, processed: 0, pending: 0, failed: 0 },
+    invoices: { total: 0, processed: 0, pending: 0, failed: 0 },
+    payments: { total: 0, processed: 0, pending: 0, failed: 0 }
+  };
+
+  // Ensure last7Days arrays have 7 days of data
+  const ensure7Days = (days: any[]) => {
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const existing = days.find(d => d.date === dateStr);
+      result.push(existing || { date: dateStr, count: 0, success: 0, failed: 0 });
+    }
+    return result;
+  };
+
+  const last7DaysSync = ensure7Days(syncStats.last7Days || []);
+  const last7DaysApi = ensure7Days(apiStats.last7Days || []);
 
   const SimpleBarChart: React.FC<{ data: Array<{ date: string; count: number; success: number; failed: number }>; title: string; color: string }> = ({ data, title, color }) => {
     const maxValue = Math.max(...data.map(d => d.count), 1);
@@ -190,40 +230,40 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
         <div className="card">
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Total Syncs</div>
           <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {data.syncStats.totalSyncs}
+            {syncStats.totalSyncs}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {data.syncStats.successfulSyncs} success, {data.syncStats.failedSyncs} failed
+            {syncStats.successfulSyncs} success, {syncStats.failedSyncs} failed
           </div>
         </div>
         
         <div className="card">
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>API Calls</div>
           <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {data.apiStats.totalCalls}
+            {apiStats.totalCalls}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {data.apiStats.successfulCalls} success, {data.apiStats.failedCalls} failed
+            {apiStats.successfulCalls} success, {apiStats.failedCalls} failed
           </div>
         </div>
         
         <div className="card">
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Customers</div>
           <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {data.processingStats.customers.total}
+            {processingStats.customers.total}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {data.processingStats.customers.processed} processed
+            {processingStats.customers.processed} processed
           </div>
         </div>
         
         <div className="card">
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Invoices</div>
           <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {data.processingStats.invoices.total}
+            {processingStats.invoices.total}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {data.processingStats.invoices.processed} processed
+            {processingStats.invoices.processed} processed
           </div>
         </div>
       </div>
@@ -232,7 +272,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
         <div className="card">
           <SimpleBarChart 
-            data={data.syncStats.last7Days} 
+            data={last7DaysSync} 
             title="Sync Activity (Last 7 Days)" 
             color="#2196f3"
           />
@@ -240,7 +280,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
         
         <div className="card">
           <SimpleBarChart 
-            data={data.apiStats.last7Days} 
+            data={last7DaysApi} 
             title="API Calls (Last 7 Days)" 
             color="#ff9800"
           />
@@ -252,17 +292,17 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
         <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-primary)' }}>Data Processing Status</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
           <ProcessingChart 
-            data={data.processingStats.customers} 
+            data={processingStats.customers} 
             title="Customers" 
             colors={{ processed: '#4caf50', pending: '#ffc107', failed: '#f44336' }}
           />
           <ProcessingChart 
-            data={data.processingStats.invoices} 
+            data={processingStats.invoices} 
             title="Invoices" 
             colors={{ processed: '#2196f3', pending: '#ffc107', failed: '#f44336' }}
           />
           <ProcessingChart 
-            data={data.processingStats.payments} 
+            data={processingStats.payments} 
             title="Payments" 
             colors={{ processed: '#ff9800', pending: '#ffc107', failed: '#f44336' }}
           />

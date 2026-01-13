@@ -359,6 +359,15 @@ export async function syncCustomers(
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
     }
 
+    // After successful first sync, check if entity should be marked as complete
+    if (syncMode === 'first' && successCount > 0) {
+      const incompleteBatches = await db.getIncompleteSyncBatches(ENTITY_TYPE);
+      if (incompleteBatches.length === 0) {
+        await db.completeEntityFirstSync(ENTITY_TYPE);
+        db.log('INFO', `CUSTOMER first sync completed successfully, marked as complete`);
+      }
+    }
+
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`);
     db.log('INFO', 'Customer sync completed', { success: successCount, failed: failedCount });
 

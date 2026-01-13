@@ -10,6 +10,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
     soundEnabled: true,
     theme: 'dark',
     syncDuration: 300, // 5 minutes in seconds
+    backgroundSyncEnabled: true,
     apiEndpoint: '',
     autoSync: true,
     syncOnStartup: true,
@@ -38,6 +39,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
         soundEnabled: allSettings.soundEnabled !== 'false',
         theme: loadedTheme,
         syncDuration: parseInt(allSettings.syncDuration || '300', 10),
+        backgroundSyncEnabled: allSettings.backgroundSyncEnabled !== 'false',
         apiEndpoint: allSettings.apiEndpoint || '',
         autoSync: allSettings.autoSync !== 'false',
         syncOnStartup: allSettings.syncOnStartup !== 'false',
@@ -119,10 +121,16 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
         window.electronAPI.setSetting('soundEnabled', String(settings.soundEnabled)),
         window.electronAPI.setSetting('theme', settings.theme),
         window.electronAPI.setSetting('syncDuration', String(settings.syncDuration)),
+        window.electronAPI.setSetting('backgroundSyncEnabled', String(settings.backgroundSyncEnabled)),
         window.electronAPI.setSetting('autoSync', String(settings.autoSync)),
         window.electronAPI.setSetting('syncOnStartup', String(settings.syncOnStartup)),
         window.electronAPI.setSetting('showNotifications', String(settings.showNotifications)),
       ]);
+      
+      // Restart background sync if settings changed
+      if (window.electronAPI?.restartBackgroundSync) {
+        await window.electronAPI.restartBackgroundSync();
+      }
       
       applyTheme(settings.theme);
       
@@ -393,6 +401,20 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       {/* Sync Settings */}
       <SettingSection title="Sync Settings" icon="⇄">
         <div>
+          <ToggleSwitch
+            checked={settings.backgroundSyncEnabled}
+            onChange={async (checked) => {
+              setSettings(prev => ({ ...prev, backgroundSyncEnabled: checked }));
+              await saveSetting('backgroundSyncEnabled', checked);
+              // Restart background sync with new setting
+              if (window.electronAPI?.restartBackgroundSync) {
+                await window.electronAPI.restartBackgroundSync();
+              }
+            }}
+            label="Background Sync"
+            description="Enable automatic background synchronization"
+          />
+          <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }} />
           <div style={{ marginBottom: '12px' }}>
             <label style={{
               display: 'block',
@@ -415,7 +437,13 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
                   setSettings(prev => ({ ...prev, syncDuration: value }));
                 }
               }}
-              onBlur={() => saveSetting('syncDuration', settings.syncDuration)}
+              onBlur={async () => {
+                await saveSetting('syncDuration', settings.syncDuration);
+                // Restart background sync with new interval
+                if (window.electronAPI?.restartBackgroundSync) {
+                  await window.electronAPI.restartBackgroundSync();
+                }
+              }}
               style={{
                 width: '100%',
                 padding: '8px 10px',

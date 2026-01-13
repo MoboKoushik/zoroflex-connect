@@ -2175,6 +2175,40 @@ export class DatabaseService {
     return stmt.all(runId) as SyncBatchRow[];
   }
 
+  /**
+   * Get incomplete/failed batches from sync_batches table for an entity
+   */
+  async getIncompleteSyncBatches(entity: string): Promise<SyncBatchRow[]> {
+    const stmt = this.db!.prepare(`
+      SELECT sb.* 
+      FROM sync_batches sb
+      INNER JOIN sync_history sh ON sb.sync_run_id = sh.id
+      WHERE sb.entity_type = ? 
+        AND sb.sync_mode = 'first_sync'
+        AND sb.status NOT IN ('COMPLETED', 'API_SUCCESS')
+        AND sh.completed_at IS NULL
+      ORDER BY sb.month_identifier ASC, sb.batch_number ASC
+    `);
+    return stmt.all(entity.toUpperCase()) as SyncBatchRow[];
+  }
+
+  /**
+   * Get incomplete months for an entity (for Invoice/Payment resume)
+   */
+  async getIncompleteMonths(entity: string): Promise<string[]> {
+    const stmt = this.db!.prepare(`
+      SELECT DISTINCT month_identifier
+      FROM sync_batches
+      WHERE entity_type = ? 
+        AND sync_mode = 'first_sync'
+        AND month_identifier IS NOT NULL
+        AND status NOT IN ('COMPLETED', 'API_SUCCESS')
+      ORDER BY month_identifier ASC
+    `);
+    const rows = stmt.all(entity.toUpperCase()) as Array<{ month_identifier: string }>;
+    return rows.map(r => r.month_identifier).filter(Boolean);
+  }
+
   // === Dashboard Query Methods ===
   async getDashboardStats(): Promise<{
     totalCustomers: number;

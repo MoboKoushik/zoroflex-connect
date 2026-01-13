@@ -8,11 +8,11 @@ import { createLoginWindow } from './login.window';
 
 let tray: Tray | null = null;
 
-export function createTrayAndStartSync(
+export async function createTrayAndStartSync(
   profile: any,
   syncService: SyncService,
   dbService: DatabaseService
-): void {
+): Promise<void> {
   if (tray) return;
 
   const iconPath = app.isPackaged
@@ -84,9 +84,14 @@ export function createTrayAndStartSync(
     }
   });
 
-  // Start background sync
-  syncService.startBackgroundSync(profile);
-  console.log('Tray created + Background sync started');
+  // Start background sync (check settings first)
+  const backgroundSyncEnabled = await dbService.getSetting('backgroundSyncEnabled');
+  if (backgroundSyncEnabled !== 'false') {
+    await syncService.startBackgroundSync(profile);
+    console.log('Tray created + Background sync started');
+  } else {
+    console.log('Tray created (Background sync disabled in settings)');
+  }
 }
 
 export function destroyTray(): void {

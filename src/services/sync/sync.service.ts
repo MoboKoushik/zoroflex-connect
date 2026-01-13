@@ -15,6 +15,7 @@ export class SyncService {
   private syncDateManager: SyncDateManager;
   private companyRepository: CompanyRepository;
   private isRunning = false;
+  private backgroundSyncInterval: NodeJS.Timeout | null = null;
 
   constructor(dbService: DatabaseService, organizationService: OrganizationService) {
     this.dbService = dbService;
@@ -91,39 +92,76 @@ export class SyncService {
       } else {
         // BACKGROUND sync: Check per-entity first sync status
         this.dbService.log('INFO', 'Background sync: Checking per-entity first sync status');
-
-        // Check which entities need first sync
-        const entitiesNeedingFirstSync = await this.dbService.getEntitiesNeedingFirstSync();
-        const allEntitiesComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
+        const toDate = this.syncDateManager.getSyncEndDate();
 
         // Customer sync
-        const customerNeedsFirstSync = entitiesNeedingFirstSync.includes('CUSTOMER');
-        if (customerNeedsFirstSync) {
+        const entitiesNeedingFirstSync = await this.dbService.getEntitiesNeedingFirstSync();
+        const customerIncompleteBatches = await this.dbService.getIncompleteSyncBatches('CUSTOMER');
+        const customerIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('CUSTOMER');
+        
+        if (entitiesNeedingFirstSync.includes('CUSTOMER') || customerIncompleteBatches.length > 0) {
+          if (customerIncompleteBatches.length > 0) {
+            this.dbService.log('INFO', `CUSTOMER has ${customerIncompleteBatches.length} incomplete batches, resuming first sync`);
+          } else {
+            this.dbService.log('INFO', 'CUSTOMER first sync needed, running first sync');
+          }
           const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
-          this.dbService.log('INFO', 'CUSTOMER first sync needed, running first sync');
           await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteSyncBatches('CUSTOMER');
+          if (stillIncomplete.length === 0 && !customerIsFirstSyncComplete) {
+            await this.dbService.completeEntityFirstSync('CUSTOMER');
+            this.dbService.log('INFO', 'CUSTOMER first sync completed, marked as complete');
+          }
         } else {
           this.dbService.log('INFO', 'CUSTOMER first sync complete, running incremental sync');
           await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
         }
 
         // Invoice sync
-        const invoiceNeedsFirstSync = entitiesNeedingFirstSync.includes('INVOICE');
-        if (invoiceNeedsFirstSync) {
+        const invoiceIncompleteMonths = await this.dbService.getIncompleteMonths('INVOICE');
+        const invoiceIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('INVOICE');
+        
+        if (entitiesNeedingFirstSync.includes('INVOICE') || invoiceIncompleteMonths.length > 0) {
+          if (invoiceIncompleteMonths.length > 0) {
+            this.dbService.log('INFO', `INVOICE has incomplete months: ${invoiceIncompleteMonths.join(', ')}, resuming first sync`);
+          } else {
+            this.dbService.log('INFO', 'INVOICE first sync needed, running first sync');
+          }
           const invoiceFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
-          this.dbService.log('INFO', 'INVOICE first sync needed, running first sync');
           await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('INVOICE');
+          if (stillIncomplete.length === 0 && !invoiceIsFirstSyncComplete) {
+            await this.dbService.completeEntityFirstSync('INVOICE');
+            this.dbService.log('INFO', 'INVOICE first sync completed, marked as complete');
+          }
         } else {
           this.dbService.log('INFO', 'INVOICE first sync complete, running incremental sync');
           await syncInvoices(profile, 'incremental', undefined, undefined, this.dbService);
         }
 
         // Payment sync
-        const paymentNeedsFirstSync = entitiesNeedingFirstSync.includes('PAYMENT');
-        if (paymentNeedsFirstSync) {
+        const paymentIncompleteMonths = await this.dbService.getIncompleteMonths('PAYMENT');
+        const paymentIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('PAYMENT');
+        
+        if (entitiesNeedingFirstSync.includes('PAYMENT') || paymentIncompleteMonths.length > 0) {
+          if (paymentIncompleteMonths.length > 0) {
+            this.dbService.log('INFO', `PAYMENT has incomplete months: ${paymentIncompleteMonths.join(', ')}, resuming first sync`);
+          } else {
+            this.dbService.log('INFO', 'PAYMENT first sync needed, running first sync');
+          }
           const paymentFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'PAYMENT', 'fresh');
-          this.dbService.log('INFO', 'PAYMENT first sync needed, running first sync');
           await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('PAYMENT');
+          if (stillIncomplete.length === 0 && !paymentIsFirstSyncComplete) {
+            await this.dbService.completeEntityFirstSync('PAYMENT');
+            this.dbService.log('INFO', 'PAYMENT first sync completed, marked as complete');
+          }
         } else {
           this.dbService.log('INFO', 'PAYMENT first sync complete, running incremental sync');
           await syncPayments(profile, 'incremental', undefined, undefined, this.dbService);
@@ -151,35 +189,270 @@ export class SyncService {
     }
   }
 
-  // Manual sync - full sync from BOOKSTARTFROM
-  async manualSync(profile: UserProfile, syncType: 'full' | 'fresh' = 'full'): Promise<void> {
-    const syncTypeLabel = syncType === 'full' ? 'full (from BOOKSTARTFROM)' : 'fresh (from last sync + 1)';
-    this.dbService.log('INFO', `Manual sync requested - performing ${syncTypeLabel} sync`);
-    await this.fullSync(profile, 'MANUAL');
+  // Manual sync - smart sync (per-entity status check করে)
+  async manualSync(profile: UserProfile): Promise<void> {
+    this.dbService.log('INFO', 'Manual sync requested - performing smart sync (per-entity status check)');
+    
+    if (this.isRunning) {
+      this.dbService.log('WARN', 'Sync already in progress; skipping this run');
+      return;
+    }
+    this.isRunning = true;
+
+    try {
+      this.dbService.log('INFO', 'MANUAL sync initiated');
+
+      // 1. Fetch current company from Tally
+      const companyData = await fetchCurrentCompany(this.dbService);
+      if (!companyData) {
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // 2. Validate organization matches
+      const prof = await this.dbService.getProfile();
+      const profileOrgId = prof?.organization?.response?.organization_id?.trim() || '';
+      const billerData = companyData.BILLER_DATA || companyData;
+      const tallyOrgId = (billerData.ORGANIZATION_ID || companyData.COMPANYNUMBER || '').trim();
+
+      if (profileOrgId && tallyOrgId && profileOrgId !== tallyOrgId) {
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // 3. Sync Organization (only on first time)
+      if (!prof?.organization?.synced_at) {
+        this.dbService.log('INFO', 'Syncing organization data');
+        await this.organizationService.syncOrganization(profile, companyData);
+      }
+
+      // 4. Get active company
+      const activeCompany = this.companyRepository.getActiveCompany(profile.biller_id || '');
+      if (!activeCompany) {
+        throw new Error('No active company selected. Please select a company first.');
+      }
+
+      // 5. Smart sync: Check per-entity first sync status
+      this.dbService.log('INFO', 'Manual sync: Checking per-entity first sync status');
+      const toDate = this.syncDateManager.getSyncEndDate();
+      const entitiesNeedingFirstSync = await this.dbService.getEntitiesNeedingFirstSync();
+
+      // Customer sync
+      const customerIncompleteBatches = await this.dbService.getIncompleteSyncBatches('CUSTOMER');
+      const customerIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('CUSTOMER');
+      
+      if (entitiesNeedingFirstSync.includes('CUSTOMER') || customerIncompleteBatches.length > 0) {
+        if (customerIncompleteBatches.length > 0) {
+          this.dbService.log('INFO', `CUSTOMER has ${customerIncompleteBatches.length} incomplete batches, resuming first sync`);
+        } else {
+          this.dbService.log('INFO', 'CUSTOMER first sync needed, running first sync');
+        }
+        const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
+        await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteSyncBatches('CUSTOMER');
+        if (stillIncomplete.length === 0 && !customerIsFirstSyncComplete) {
+          await this.dbService.completeEntityFirstSync('CUSTOMER');
+          this.dbService.log('INFO', 'CUSTOMER first sync completed, marked as complete');
+        }
+      } else {
+        this.dbService.log('INFO', 'CUSTOMER first sync complete, running incremental sync');
+        await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
+      }
+
+      // Invoice sync
+      const invoiceIncompleteMonths = await this.dbService.getIncompleteMonths('INVOICE');
+      const invoiceIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('INVOICE');
+      
+      if (entitiesNeedingFirstSync.includes('INVOICE') || invoiceIncompleteMonths.length > 0) {
+        if (invoiceIncompleteMonths.length > 0) {
+          this.dbService.log('INFO', `INVOICE has incomplete months: ${invoiceIncompleteMonths.join(', ')}, resuming first sync`);
+        } else {
+          this.dbService.log('INFO', 'INVOICE first sync needed, running first sync');
+        }
+        const invoiceFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
+        await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('INVOICE');
+        if (stillIncomplete.length === 0 && !invoiceIsFirstSyncComplete) {
+          await this.dbService.completeEntityFirstSync('INVOICE');
+          this.dbService.log('INFO', 'INVOICE first sync completed, marked as complete');
+        }
+      } else {
+        this.dbService.log('INFO', 'INVOICE first sync complete, running incremental sync');
+        await syncInvoices(profile, 'incremental', undefined, undefined, this.dbService);
+      }
+
+      // Payment sync
+      const paymentIncompleteMonths = await this.dbService.getIncompleteMonths('PAYMENT');
+      const paymentIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('PAYMENT');
+      
+      if (entitiesNeedingFirstSync.includes('PAYMENT') || paymentIncompleteMonths.length > 0) {
+        if (paymentIncompleteMonths.length > 0) {
+          this.dbService.log('INFO', `PAYMENT has incomplete months: ${paymentIncompleteMonths.join(', ')}, resuming first sync`);
+        } else {
+          this.dbService.log('INFO', 'PAYMENT first sync needed, running first sync');
+        }
+        const paymentFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'PAYMENT', 'fresh');
+        await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('PAYMENT');
+        if (stillIncomplete.length === 0 && !paymentIsFirstSyncComplete) {
+          await this.dbService.completeEntityFirstSync('PAYMENT');
+          this.dbService.log('INFO', 'PAYMENT first sync completed, marked as complete');
+        }
+      } else {
+        this.dbService.log('INFO', 'PAYMENT first sync complete, running incremental sync');
+        await syncPayments(profile, 'incremental', undefined, undefined, this.dbService);
+      }
+
+      // Check if all entities have completed first sync
+      const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
+      if (allComplete) {
+        this.dbService.log('INFO', 'All entities first sync complete, dumping database to backend');
+        const currentOrgUuid = this.dbService.getCurrentOrganizationUuid();
+        if (currentOrgUuid && profile.biller_id) {
+          await this.dbService.dumpDatabaseToBackend(profile.biller_id, currentOrgUuid);
+        }
+      }
+
+      await this.dbService.updateLastSuccessfulSync();
+      this.dbService.log('INFO', 'MANUAL sync completed successfully');
+
+    } catch (error: any) {
+      this.dbService.log('ERROR', 'MANUAL sync failed', { error: error?.message || error });
+      throw error;
+    } finally {
+      this.isRunning = false;
+    }
   }
 
-  // Force full sync from BOOKSTARTFROM
+  // Force full fresh sync - সব entity-র জন্য fresh sync
+  async forceFullFreshSync(profile: UserProfile): Promise<void> {
+    this.dbService.log('INFO', 'Force full fresh sync requested - performing fresh sync for all entities');
+    
+    if (this.isRunning) {
+      this.dbService.log('WARN', 'Sync already in progress; skipping this run');
+      return;
+    }
+    this.isRunning = true;
+
+    try {
+      this.dbService.log('INFO', 'FORCE FULL FRESH sync initiated');
+
+      // 1. Fetch current company from Tally
+      const companyData = await fetchCurrentCompany(this.dbService);
+      if (!companyData) {
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // 2. Validate organization matches
+      const prof = await this.dbService.getProfile();
+      const profileOrgId = prof?.organization?.response?.organization_id?.trim() || '';
+      const billerData = companyData.BILLER_DATA || companyData;
+      const tallyOrgId = (billerData.ORGANIZATION_ID || companyData.COMPANYNUMBER || '').trim();
+
+      if (profileOrgId && tallyOrgId && profileOrgId !== tallyOrgId) {
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // 3. Sync Organization (only on first time)
+      if (!prof?.organization?.synced_at) {
+        this.dbService.log('INFO', 'Syncing organization data');
+        await this.organizationService.syncOrganization(profile, companyData);
+      }
+
+      // 4. Get active company
+      const activeCompany = this.companyRepository.getActiveCompany(profile.biller_id || '');
+      if (!activeCompany) {
+        throw new Error('No active company selected. Please select a company first.');
+      }
+
+      // 5. Force fresh sync for all entities
+      const toDate = this.syncDateManager.getSyncEndDate();
+      
+      const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
+      const invoiceFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
+      const paymentFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'PAYMENT', 'fresh');
+
+      this.dbService.log('INFO', 'Force full fresh sync: Running fresh sync for all entities');
+      
+      await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
+      await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
+      await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
+
+      await this.dbService.updateLastSuccessfulSync();
+      this.dbService.log('INFO', 'Force full fresh sync completed successfully');
+
+    } catch (error: any) {
+      this.dbService.log('ERROR', 'Force full fresh sync failed', { error: error?.message || error });
+      throw error;
+    } finally {
+      this.isRunning = false;
+    }
+  }
+
+  // Keep old methods for backward compatibility
   async forceFullSync(profile: UserProfile): Promise<void> {
-    await this.manualSync(profile, 'full');
+    await this.forceFullFreshSync(profile);
   }
 
-  // Force fresh sync from last sync + 1
   async forceFreshSync(profile: UserProfile): Promise<void> {
-    await this.manualSync(profile, 'fresh');
+    await this.forceFullFreshSync(profile);
   }
 
   // Background sync - smart (first_sync or incremental based on entity state)
-  startBackgroundSync(profile: UserProfile): void {
-    this.dbService.log('INFO', 'Starting background sync (initial run + every 5 minutes)');
-    this.fullSync(profile, 'BACKGROUND');
+  async startBackgroundSync(profile: UserProfile): Promise<void> {
+    // Stop existing background sync if running
+    this.stopBackgroundSync();
+    
+    // Check if background sync is enabled
+    const enabled = await this.dbService.getSetting('backgroundSyncEnabled');
+    if (enabled === 'false') {
+      this.dbService.log('INFO', 'Background sync is disabled in settings');
+      return;
+    }
 
-    setInterval(() => {
-      this.fullSync(profile, 'BACKGROUND');
-    }, 5 * 60 * 1000); // Every 5 minutes
+    // Get sync interval from settings (default: 5 minutes = 300 seconds)
+    const intervalStr = await this.dbService.getSetting('syncDuration');
+    const intervalSeconds = intervalStr ? parseInt(intervalStr, 10) : 300;
+    const intervalMs = intervalSeconds * 1000;
+    
+    this.dbService.log('INFO', `Starting background sync (initial run + every ${intervalSeconds} seconds)`);
+    
+    // Initial sync
+    this.fullSync(profile, 'BACKGROUND').catch(err => {
+      this.dbService.log('ERROR', 'Background sync initial run failed', { error: err.message });
+    });
+
+    // Periodic sync
+    this.backgroundSyncInterval = setInterval(() => {
+      this.fullSync(profile, 'BACKGROUND').catch(err => {
+        this.dbService.log('ERROR', 'Background sync periodic run failed', { error: err.message });
+      });
+    }, intervalMs);
+  }
+
+  stopBackgroundSync(): void {
+    if (this.backgroundSyncInterval) {
+      clearInterval(this.backgroundSyncInterval);
+      this.backgroundSyncInterval = null;
+      this.dbService.log('INFO', 'Background sync interval stopped');
+    }
+  }
+
+  // Restart background sync with new settings
+  async restartBackgroundSync(profile: UserProfile): Promise<void> {
+    this.stopBackgroundSync();
+    // Wait a bit before restarting
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await this.startBackgroundSync(profile);
   }
 
   stop(): void {
     this.isRunning = false;
+    this.stopBackgroundSync();
     this.dbService.log('INFO', 'Background sync stopped');
   }
 

@@ -40,73 +40,102 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logType }) => {
       let logsData: LogEntry[] = [];
       
       if (logType === 'system' || logType === 'all') {
-        const systemLogs = await window.electronAPI?.getLogs?.() || [];
-        logsData = [...logsData, ...systemLogs.map((log: any) => {
-          let metadata = null;
-          if (log.metadata) {
-            try {
-              // If metadata is already an object, use it directly
-              if (typeof log.metadata === 'object') {
-                metadata = log.metadata;
-              } else if (typeof log.metadata === 'string') {
-                // Try to parse as JSON
-                metadata = JSON.parse(log.metadata);
+        try {
+          const systemLogs = await window.electronAPI?.getLogs?.() || [];
+          if (Array.isArray(systemLogs)) {
+            logsData = [...logsData, ...systemLogs.map((log: any) => {
+              if (!log || !log.id) return null;
+              let metadata = null;
+              if (log.metadata) {
+                try {
+                  // If metadata is already an object, use it directly
+                  if (typeof log.metadata === 'object') {
+                    metadata = log.metadata;
+                  } else if (typeof log.metadata === 'string') {
+                    // Try to parse as JSON
+                    metadata = JSON.parse(log.metadata);
+                  }
+                } catch (e) {
+                  // If parsing fails, use the string as-is or set to null
+                  console.warn('Failed to parse log metadata:', e, log.metadata);
+                  metadata = typeof log.metadata === 'string' ? log.metadata : null;
+                }
               }
-            } catch (e) {
-              // If parsing fails, use the string as-is or set to null
-              console.warn('Failed to parse log metadata:', e, log.metadata);
-              metadata = typeof log.metadata === 'string' ? log.metadata : null;
-            }
+              return {
+                id: log.id,
+                timestamp: log.created_at || log.timestamp || new Date().toISOString(),
+                level: log.level || 'INFO',
+                type: 'system',
+                message: log.message || 'No message',
+                metadata
+              };
+            }).filter(Boolean) as LogEntry[]];
           }
-          return {
-            id: log.id,
-            timestamp: log.created_at,
-            level: log.level,
-            type: 'system',
-            message: log.message,
-            metadata
-          };
-        })];
+        } catch (error: any) {
+          console.error('Error fetching system logs:', error);
+        }
       }
       
       if (logType === 'api' || logType === 'all') {
-        const apiLogs = await window.electronAPI?.getApiLogs?.() || [];
-        logsData = [...logsData, ...apiLogs.map((log: any) => ({
-          id: log.id,
-          timestamp: log.created_at,
-          level: log.status === 'success' ? 'INFO' : 'ERROR',
-          type: 'api',
-          message: `${log.method} ${log.endpoint}`,
-          endpoint: log.endpoint,
-          method: log.method,
-          status_code: log.status_code,
-          duration_ms: log.duration_ms,
-          metadata: { request: log.request_payload, response: log.response_payload }
-        }))];
+        try {
+          const apiLogs = await window.electronAPI?.getApiLogs?.() || [];
+          if (Array.isArray(apiLogs)) {
+            logsData = [...logsData, ...apiLogs.map((log: any) => {
+              if (!log || !log.id) return null;
+              return {
+                id: log.id,
+                timestamp: log.created_at || log.timestamp || new Date().toISOString(),
+                level: log.status === 'success' ? 'INFO' : (log.status === 'error' ? 'ERROR' : 'WARN'),
+                type: 'api',
+                message: `${log.method || 'UNKNOWN'} ${log.endpoint || 'N/A'}`,
+                endpoint: log.endpoint,
+                method: log.method,
+                status_code: log.status_code,
+                duration_ms: log.duration_ms,
+                metadata: { request: log.request_payload, response: log.response_payload }
+              };
+            }).filter(Boolean) as LogEntry[]];
+          }
+        } catch (error: any) {
+          console.error('Error fetching API logs:', error);
+        }
       }
       
       if (logType === 'tally-sync' || logType === 'all') {
-        const syncLogs = await window.electronAPI?.getTallySyncLogs?.() || [];
-        logsData = [...logsData, ...syncLogs.map((log: any) => ({
-          id: log.id,
-          timestamp: log.created_at,
-          level: log.status === 'SUCCESS' ? 'INFO' : 'ERROR',
-          type: 'tally-sync',
-          message: `${log.entity_type} ${log.sync_type} - ${log.sync_mode}`,
-          entity_type: log.entity_type,
-          status: log.status,
-          metadata: { 
-            request: log.request_payload, 
-            response: log.response_payload,
-            records_fetched: log.records_fetched,
-            records_stored: log.records_stored,
-            records_sent: log.records_sent
+        try {
+          const syncLogs = await window.electronAPI?.getTallySyncLogs?.() || [];
+          if (Array.isArray(syncLogs)) {
+            logsData = [...logsData, ...syncLogs.map((log: any) => {
+              if (!log || !log.id) return null;
+              return {
+                id: log.id,
+                timestamp: log.created_at || log.timestamp || new Date().toISOString(),
+                level: log.status === 'SUCCESS' ? 'INFO' : (log.status === 'FAILED' ? 'ERROR' : 'WARN'),
+                type: 'tally-sync',
+                message: `${log.entity_type || 'Unknown'} ${log.sync_type || ''} - ${log.sync_mode || ''}`,
+                entity_type: log.entity_type,
+                status: log.status,
+                metadata: { 
+                  request: log.request_payload, 
+                  response: log.response_payload,
+                  records_fetched: log.records_fetched,
+                  records_stored: log.records_stored,
+                  records_sent: log.records_sent
+                }
+              };
+            }).filter(Boolean) as LogEntry[]];
           }
-        }))];
+        } catch (error: any) {
+          console.error('Error fetching tally sync logs:', error);
+        }
       }
 
       // Sort by timestamp descending
-      logsData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      logsData.sort((a, b) => {
+        const timeA = new Date(a.timestamp).getTime();
+        const timeB = new Date(b.timestamp).getTime();
+        return timeB - timeA;
+      });
       
       // Apply filters
       let filtered = logsData;
@@ -123,6 +152,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logType }) => {
       setLogs(filtered.slice(0, 500)); // Limit to 500 most recent
     } catch (error: any) {
       console.error('Error fetching logs:', error);
+      setLogs([]);
     } finally {
       setLoading(false);
     }

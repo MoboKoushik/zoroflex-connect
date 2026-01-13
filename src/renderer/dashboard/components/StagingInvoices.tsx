@@ -41,23 +41,41 @@ export const StagingInvoices: React.FC = () => {
     totalResults: 0
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchInvoices = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await window.electronAPI?.getStagingInvoices?.(page, 10, search);
       
       if (result?.success) {
         setInvoices(result.details || []);
         setPagination(result.paginate_data || pagination);
+        setError(null);
       } else {
-        const errorMsg = result?.error || 'Unknown error';
+        const errorMsg = result?.error || 'Failed to fetch staging invoices. Please try again.';
         console.error('Error fetching staging invoices:', errorMsg);
+        setError(errorMsg);
         setInvoices([]);
+        setPagination({
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+          totalResults: 0
+        });
       }
     } catch (error: any) {
-      const errorMsg = error?.message || String(error) || 'Unknown error';
+      const errorMsg = error?.message || String(error) || 'Failed to fetch staging invoices. Please try again.';
       console.error('Error fetching staging invoices:', errorMsg);
+      setError(errorMsg);
       setInvoices([]);
+      setPagination({
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+        totalResults: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -118,11 +136,25 @@ export const StagingInvoices: React.FC = () => {
         </div>
       </div>
 
+      {error && (
+        <div style={{
+          padding: '12px 16px',
+          background: 'rgba(244, 67, 54, 0.1)',
+          border: '1px solid #f44336',
+          borderRadius: '4px',
+          marginBottom: '20px',
+          color: '#f44336',
+          fontSize: '14px'
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
           Loading...
         </div>
-      ) : invoices.length === 0 ? (
+      ) : error ? null : invoices.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
           No staging invoices found
         </div>

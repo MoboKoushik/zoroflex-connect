@@ -2,9 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Sync methods
-  manualSync: (syncType?: 'full' | 'fresh') => ipcRenderer.invoke('manual-sync', syncType),
-  forceFullSync: () => ipcRenderer.invoke('force-full-sync'),
-  forceFreshSync: () => ipcRenderer.invoke('force-fresh-sync'),
+  manualSync: () => ipcRenderer.invoke('manual-sync'),
+  forceFullFreshSync: () => ipcRenderer.invoke('force-full-fresh-sync'),
+  forceFullSync: () => ipcRenderer.invoke('force-full-sync'), // Keep for backward compatibility
+  forceFreshSync: () => ipcRenderer.invoke('force-fresh-sync'), // Keep for backward compatibility
+  restartBackgroundSync: () => ipcRenderer.invoke('restart-background-sync'),
   logout: () => ipcRenderer.invoke('logout'),
   
   // Company methods
@@ -76,4 +78,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
   },
+  
+  // Status methods
+  getTallyStatus: () => ipcRenderer.invoke('get-tally-status'),
+  getApiStatus: () => ipcRenderer.invoke('get-api-status'),
+  getSyncStatus: () => ipcRenderer.invoke('get-sync-status'),
+  testTallyConnectivity: () => ipcRenderer.invoke('test-tally-connectivity'),
+  testApiConnectivity: () => ipcRenderer.invoke('test-api-connectivity'),
+  
+  // Staging data
+  getStagingCustomers: (page?: number, limit?: number, search?: string) => 
+    ipcRenderer.invoke('get-staging-customers', page, limit, search),
+  getStagingInvoices: (page?: number, limit?: number, search?: string) => 
+    ipcRenderer.invoke('get-staging-invoices', page, limit, search),
+  getStagingPayments: (page?: number, limit?: number, search?: string) => 
+    ipcRenderer.invoke('get-staging-payments', page, limit, search),
+  
+  // Analytics
+  getAnalytics: () => ipcRenderer.invoke('get-analytics'),
 });

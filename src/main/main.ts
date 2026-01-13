@@ -113,7 +113,9 @@ ipcMain.on('login-success', async () => {
       tray = null;
     }
     app.setLoginItemSettings({ openAtLogin: true });
-    createTrayAndStartSync(profile);
+    createTrayAndStartSync(profile, syncService, dbService).catch(err => {
+      console.error('Error creating tray and starting sync:', err);
+    });
     createDashboardWindow(profile, false); // Don't show window on startup, run in background
   } else {
     // No active company - fetch from Tally and check for matches
@@ -247,7 +249,9 @@ app.whenReady().then(async () => {
     if (activeCompany) {
       console.log('Active company found → Starting in background');
       app.setLoginItemSettings({ openAtLogin: true });
-      createTrayAndStartSync(profile);
+      createTrayAndStartSync(profile, syncService, dbService).catch(err => {
+        console.error('Error creating tray and starting sync:', err);
+      });
       createDashboardWindow(profile, false); // Don't show window on startup, run in background
     } else {
       console.log('No active company → Showing company selector');
@@ -495,7 +499,7 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
 });
 
 // IPC for manual sync from dashboard
-ipcMain.handle('manual-sync', async (event, syncType: 'full' | 'fresh' = 'full') => {
+ipcMain.handle('manual-sync', async (event) => {
   try {
     const profile = await dbService.getProfile();
     if (!profile) {
@@ -503,16 +507,12 @@ ipcMain.handle('manual-sync', async (event, syncType: 'full' | 'fresh' = 'full')
     }
     if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
       try {
-        dashboardWindow.webContents.send('sync-started', { syncType });
+        dashboardWindow.webContents.send('sync-started', { syncType: 'smart' });
       } catch (err) {
         console.error('Error sending sync-started event:', err);
       }
     }
-    if (syncType === 'full') {
-      await syncService.forceFullSync(profile);
-    } else {
-      await syncService.forceFreshSync(profile);
-    }
+    await syncService.manualSync(profile);
     if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
       try {
         dashboardWindow.webContents.send('sync-completed');
@@ -538,14 +538,66 @@ ipcMain.handle('manual-sync', async (event, syncType: 'full' | 'fresh' = 'full')
   }
 });
 
-// Force full sync (from BOOKSTARTFROM)
+ipcMain.handle('force-full-fresh-sync', async (event) => {
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { success: false, error: 'No profile found' };
+    }
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-started', { syncType: 'full' });
+      } catch (err) {
+        console.error('Error sending sync-started event:', err);
+      }
+    }
+    await syncService.forceFullFreshSync(profile);
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-completed');
+      } catch (err) {
+        console.error('Error sending sync-completed event:', err);
+      }
+    }
+    await notificationService.notifySyncSuccess();
+    return { success: true };
+  } catch (error: any) {
+    console.error('Force full fresh sync error:', error);
+    if (dashboardWindow && !dashboardWindow.isDestroyed() && !dashboardWindow.webContents.isDestroyed()) {
+      try {
+        dashboardWindow.webContents.send('sync-completed', { error: error.message });
+      } catch (err) {
+        console.error('Error sending sync-completed event:', err);
+      }
+    }
+    await notificationService.notifySyncFailed(error.message || 'Sync failed');
+    return { success: false, error: error.message || 'Sync failed' };
+  }
+});
+
+// Restart background sync with new settings
+ipcMain.handle('restart-background-sync', async (event) => {
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { success: false, error: 'Not logged in' };
+    }
+    await syncService.restartBackgroundSync(profile);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Restart background sync error:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
+});
+
+// Keep old handlers for backward compatibility
 ipcMain.handle('force-full-sync', async (event) => {
   try {
     const profile = await dbService.getProfile();
     if (!profile) {
       return { success: false, error: 'No profile found' };
     }
-    await syncService.forceFullSync(profile);
+    await syncService.forceFullFreshSync(profile);
     await notificationService.notifySyncSuccess();
     return { success: true };
   } catch (error: any) {
@@ -554,14 +606,13 @@ ipcMain.handle('force-full-sync', async (event) => {
   }
 });
 
-// Force fresh sync (from last sync + 1)
 ipcMain.handle('force-fresh-sync', async (event) => {
   try {
     const profile = await dbService.getProfile();
     if (!profile) {
       return { success: false, error: 'No profile found' };
     }
-    await syncService.forceFreshSync(profile);
+    await syncService.forceFullFreshSync(profile);
     await notificationService.notifySyncSuccess();
     return { success: true };
   } catch (error: any) {
@@ -694,18 +745,36 @@ ipcMain.handle('get-analytics', async () => {
       // Get staging stats from backend
       const statsRes = await axios.get(`${apiUrl}/billers/tally/staging-stats`, {
         params: { biller_id: profile.biller_id },
-        headers: { 'API-KEY': apiKey }
-      }).catch(() => null);
+        headers: { 
+          'API-KEY': apiKey,
+          'X-Biller-Id': profile.biller_id
+        },
+        timeout: 10000
+      }).catch((error: any) => {
+        console.error('Error fetching staging stats:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+        return null;
+      });
 
-      if (statsRes?.data?.status && statsRes.data.customers) {
+      if (statsRes?.data?.status === true && statsRes.data.customers) {
         processingStats = {
-          customers: statsRes.data.customers,
-          invoices: statsRes.data.invoices,
-          payments: statsRes.data.payments
+          customers: statsRes.data.customers || { total: 0, processed: 0, pending: 0, failed: 0 },
+          invoices: statsRes.data.invoices || { total: 0, processed: 0, pending: 0, failed: 0 },
+          payments: statsRes.data.payments || { total: 0, processed: 0, pending: 0, failed: 0 }
         };
+      } else if (statsRes?.data && !statsRes.data.status) {
+        console.warn('Staging stats API returned status false:', statsRes.data);
       }
-    } catch (error) {
-      console.error('Error fetching processing stats:', error);
+    } catch (error: any) {
+      console.error('Error fetching processing stats:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      // Continue with default values
     }
 
     return {
@@ -969,7 +1038,9 @@ ipcMain.handle('continue-to-dashboard', async () => {
       tray = null;
     }
     app.setLoginItemSettings({ openAtLogin: true });
-    createTrayAndStartSync(profile);
+    createTrayAndStartSync(profile, syncService, dbService).catch(err => {
+      console.error('Error creating tray and starting sync:', err);
+    });
     
     // Open dashboard window
     createDashboardWindow(profile);
@@ -1096,7 +1167,10 @@ ipcMain.handle('window-is-maximized', () => {
   }
 });
 
-function createTrayAndStartSync(profile: any): void {
+async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncService, dbServiceParam?: DatabaseService): Promise<void> {
+  // Use provided services or fall back to global ones
+  const syncSvc = syncServiceParam || syncService;
+  const dbSvc = dbServiceParam || dbService;
   if (tray) return;
 
   const iconPath = app.isPackaged
@@ -1122,7 +1196,7 @@ function createTrayAndStartSync(profile: any): void {
         }
       }
     },
-    { label: 'Sync Now', click: () => syncService.manualSync(profile) },
+    { label: 'Sync Now', click: () => syncSvc.manualSync(profile) },
     { type: 'separator' },
     {
       label: 'Disconnect',
@@ -1136,8 +1210,8 @@ function createTrayAndStartSync(profile: any): void {
         });
 
         if (response === 1) {
-          syncService.stop();
-          await dbService.logoutAndClearProfile();
+          syncSvc.stop();
+          await dbSvc.logoutAndClearProfile();
           if (tray) {
             tray.destroy();
             tray = null;
@@ -1176,8 +1250,13 @@ function createTrayAndStartSync(profile: any): void {
   tallyConnectivityService.onStatusChange(() => updateTrayTooltip());
   apiHealthService.onStatusChange(() => updateTrayTooltip());
   
-  // Start background sync
-  syncService.startBackgroundSync(profile);
+  // Start background sync (check settings first)
+  const backgroundSyncEnabled = await dbSvc.getSetting('backgroundSyncEnabled');
+  if (backgroundSyncEnabled !== 'false') {
+    await syncSvc.startBackgroundSync(profile);
+  } else {
+    console.log('Background sync is disabled in settings');
+  }
   
   // Start connectivity monitoring if not already started
   const tallyStatus = tallyConnectivityService.getStatus();
@@ -1272,11 +1351,109 @@ function updateTrayTooltip(): void {
 
 // IPC Handlers for status
 ipcMain.handle('get-tally-status', async () => {
-  return tallyConnectivityService.getStatus();
+  try {
+    const status = tallyConnectivityService.getStatus();
+    
+    // If status hasn't been checked recently (within last 5 seconds), perform immediate check
+    const now = new Date();
+    // Handle both Date object and null properly
+    const lastCheck = status?.lastCheckTime instanceof Date 
+      ? status.lastCheckTime 
+      : (status?.lastCheckTime ? new Date(status.lastCheckTime) : null);
+    
+    const shouldCheck = !lastCheck || (now.getTime() - lastCheck.getTime()) > 5000;
+    
+    if (shouldCheck) {
+      // Perform immediate check
+      console.log('Performing immediate Tally connectivity check...');
+      await tallyConnectivityService.checkConnectivity();
+    }
+    
+    // Get updated status after check
+    const updatedStatus = tallyConnectivityService.getStatus();
+    
+    console.log('Tally status response:', {
+      isOnline: updatedStatus?.isOnline,
+      lastCheckTime: updatedStatus?.lastCheckTime,
+      port: updatedStatus?.port,
+      errorMessage: updatedStatus?.errorMessage
+    });
+    
+    // Ensure status always has required fields
+    return {
+      isOnline: updatedStatus?.isOnline ?? false,
+      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date 
+        ? updatedStatus.lastCheckTime.toISOString() 
+        : (updatedStatus?.lastCheckTime ? new Date(updatedStatus.lastCheckTime).toISOString() : null),
+      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date 
+        ? updatedStatus.lastSuccessTime.toISOString() 
+        : (updatedStatus?.lastSuccessTime ? new Date(updatedStatus.lastSuccessTime).toISOString() : null),
+      errorMessage: updatedStatus?.errorMessage ?? null,
+      port: updatedStatus?.port ?? 9000
+    };
+  } catch (error: any) {
+    console.error('Error getting Tally status:', error);
+    return {
+      isOnline: false,
+      lastCheckTime: null,
+      lastSuccessTime: null,
+      errorMessage: error?.message || 'Unknown error',
+      port: 9000
+    };
+  }
 });
 
 ipcMain.handle('get-api-status', async () => {
-  return apiHealthService.getStatus();
+  try {
+    const status = apiHealthService.getStatus();
+    
+    // If status hasn't been checked recently (within last 5 seconds), perform immediate check
+    const now = new Date();
+    // Handle both Date object and null properly
+    const lastCheck = status?.lastCheckTime instanceof Date 
+      ? status.lastCheckTime 
+      : (status?.lastCheckTime ? new Date(status.lastCheckTime) : null);
+    
+    const shouldCheck = !lastCheck || (now.getTime() - lastCheck.getTime()) > 5000;
+    
+    if (shouldCheck) {
+      // Perform immediate check
+      console.log('Performing immediate API health check...');
+      await apiHealthService.checkHealth();
+    }
+    
+    // Get updated status after check
+    const updatedStatus = apiHealthService.getStatus();
+    
+    console.log('API status response:', {
+      isOnline: updatedStatus?.isOnline,
+      lastCheckTime: updatedStatus?.lastCheckTime,
+      responseTime: updatedStatus?.responseTime,
+      errorMessage: updatedStatus?.errorMessage
+    });
+    
+    // Ensure status always has required fields
+    return {
+      isOnline: updatedStatus?.isOnline ?? false,
+      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date 
+        ? updatedStatus.lastCheckTime.toISOString() 
+        : (updatedStatus?.lastCheckTime ? new Date(updatedStatus.lastCheckTime).toISOString() : null),
+      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date 
+        ? updatedStatus.lastSuccessTime.toISOString() 
+        : (updatedStatus?.lastSuccessTime ? new Date(updatedStatus.lastSuccessTime).toISOString() : null),
+      errorMessage: updatedStatus?.errorMessage ?? null,
+      responseTime: updatedStatus?.responseTime ?? null
+    };
+  } catch (error: any) {
+    console.error('Error getting API status:', error);
+    return {
+      isOnline: false,
+      lastCheckTime: null,
+      lastSuccessTime: null,
+      errorMessage: error?.message || 'Unknown error',
+      responseTime: null
+    };
+  }
 });
 
 ipcMain.handle('get-sync-status', async () => {
@@ -1293,6 +1470,7 @@ ipcMain.handle('get-sync-status', async () => {
 
 ipcMain.handle('test-tally-connectivity', async () => {
   const result = await tallyConnectivityService.checkConnectivity();
+  console.log('Tally connectivity test result:', { success: result, status: tallyConnectivityService.getStatus() });
   return { success: result, status: tallyConnectivityService.getStatus() };
 });
 
@@ -1306,12 +1484,41 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging customers: Missing profile, biller_id, or API key');
-      return { success: false, error: 'No profile, biller_id, or API key found' };
+      console.error('Staging customers: Missing profile, biller_id, or API key', { 
+        hasProfile: !!profile, 
+        hasBillerId: !!profile?.biller_id, 
+        hasApiKey: !!profile?.apikey 
+      });
+      return { 
+        success: false, 
+        error: 'No profile, biller_id, or API key found. Please login again.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
     }
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging customers:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
+    
+    if (!apiUrl) {
+      console.error('Staging customers: API URL is empty');
+      return {
+        success: false,
+        error: 'API URL is not configured. Please check settings.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
     
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-customers`, {
       params: {
@@ -1327,6 +1534,8 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
       timeout: 15000,
       validateStatus: (status) => status < 500 // Accept 4xx as valid responses
     });
+
+    console.log('response==>', response)
     
     console.log('Staging customers response:', { 
       status: response.status, 
@@ -1337,6 +1546,23 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
       detailsLength: Array.isArray(response.data?.details) ? response.data.details.length : 'not array',
       fullResponse: JSON.stringify(response.data).substring(0, 500) // First 500 chars for debugging
     });
+
+    // Handle HTTP error status codes (4xx)
+    if (response.status >= 400 && response.status < 500) {
+      const errorMsg = response.data?.message || response.data?.error || response.data?.status === false ? (response.data?.message || response.data?.error || 'Bad request') : 'Bad request';
+      console.error('Staging customers HTTP error:', { status: response.status, error: errorMsg, data: response.data });
+      return {
+        success: false,
+        error: errorMsg,
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
 
     // Check if response has data
     if (response.data) {
@@ -1355,9 +1581,11 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
           };
         } else {
           // status is false - return error
+          const errorMsg = response.data.message || response.data.error || 'Request failed';
+          console.error('Staging customers request failed:', errorMsg);
           return {
             success: false,
-            error: response.data.message || response.data.error || 'Request failed',
+            error: errorMsg,
             details: [],
             paginate_data: {
               page: page || 1,
@@ -1384,9 +1612,11 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
     }
 
     // If we get here, response format is unexpected
+    const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
+    console.error('Staging customers invalid response format:', { data: response.data });
     return { 
       success: false, 
-      error: response.data?.message || response.data?.error || 'Invalid response format',
+      error: errorMsg,
       details: [],
       paginate_data: {
         page: page || 1,
@@ -1396,15 +1626,50 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
       }
     };
   } catch (error: any) {
+    let errorMessage = 'Failed to fetch staging customers';
+    
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
+    } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+      errorMessage = 'Request timed out. The server may be slow or unreachable.';
+    } else if (error.response) {
+      // HTTP error response
+      const status = error.response.status;
+      if (status === 401 || status === 403) {
+        errorMessage = 'Authentication failed. Please login again.';
+      } else if (status === 404) {
+        errorMessage = 'API endpoint not found. Please check the API URL.';
+      } else if (status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      `Request failed with status ${status}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     console.error('Error fetching staging customers:', {
       message: error.message,
+      errorMessage,
+      code: error.code,
       response: error.response?.data,
       status: error.response?.status,
-      statusText: error.response?.statusText
+      statusText: error.response?.statusText,
+      url: error.config?.url
     });
+    
     return {
       success: false,
-      error: error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to fetch staging customers'
+      error: errorMessage,
+      details: [],
+      paginate_data: {
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: 0,
+        totalResults: 0
+      }
     };
   }
 });
@@ -1413,12 +1678,41 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging invoices: Missing profile, biller_id, or API key');
-      return { success: false, error: 'No profile, biller_id, or API key found' };
+      console.error('Staging invoices: Missing profile, biller_id, or API key', { 
+        hasProfile: !!profile, 
+        hasBillerId: !!profile?.biller_id, 
+        hasApiKey: !!profile?.apikey 
+      });
+      return { 
+        success: false, 
+        error: 'No profile, biller_id, or API key found. Please login again.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
     }
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging invoices:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
+    
+    if (!apiUrl) {
+      console.error('Staging invoices: API URL is empty');
+      return {
+        success: false,
+        error: 'API URL is not configured. Please check settings.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
     
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-invoices`, {
       params: {
@@ -1442,6 +1736,23 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
       statusValue: response.data?.status
     });
 
+    // Handle HTTP error status codes (4xx)
+    if (response.status >= 400 && response.status < 500) {
+      const errorMsg = response.data?.message || response.data?.error || response.data?.status === false ? (response.data?.message || response.data?.error || 'Bad request') : 'Bad request';
+      console.error('Staging invoices HTTP error:', { status: response.status, error: errorMsg, data: response.data });
+      return {
+        success: false,
+        error: errorMsg,
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+
     // Check if response has data
     if (response.data) {
       // Backend returns { status: true, details: [], paginate_data: {} }
@@ -1459,9 +1770,11 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
           };
         } else {
           // status is false - return error
+          const errorMsg = response.data.message || response.data.error || 'Request failed';
+          console.error('Staging invoices request failed:', errorMsg);
           return {
             success: false,
-            error: response.data.message || response.data.error || 'Request failed',
+            error: errorMsg,
             details: [],
             paginate_data: {
               page: page || 1,
@@ -1488,9 +1801,11 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
     }
 
     // If we get here, response format is unexpected
+    const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
+    console.error('Staging invoices invalid response format:', { data: response.data });
     return { 
       success: false, 
-      error: response.data?.message || response.data?.error || 'Invalid response format',
+      error: errorMsg,
       details: [],
       paginate_data: {
         page: page || 1,
@@ -1500,15 +1815,50 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
       }
     };
   } catch (error: any) {
+    let errorMessage = 'Failed to fetch staging invoices';
+    
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
+    } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+      errorMessage = 'Request timed out. The server may be slow or unreachable.';
+    } else if (error.response) {
+      // HTTP error response
+      const status = error.response.status;
+      if (status === 401 || status === 403) {
+        errorMessage = 'Authentication failed. Please login again.';
+      } else if (status === 404) {
+        errorMessage = 'API endpoint not found. Please check the API URL.';
+      } else if (status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      `Request failed with status ${status}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     console.error('Error fetching staging invoices:', {
       message: error.message,
+      errorMessage,
+      code: error.code,
       response: error.response?.data,
       status: error.response?.status,
-      statusText: error.response?.statusText
+      statusText: error.response?.statusText,
+      url: error.config?.url
     });
+    
     return {
       success: false,
-      error: error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to fetch staging invoices'
+      error: errorMessage,
+      details: [],
+      paginate_data: {
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: 0,
+        totalResults: 0
+      }
     };
   }
 });
@@ -1517,12 +1867,41 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging payments: Missing profile, biller_id, or API key');
-      return { success: false, error: 'No profile, biller_id, or API key found' };
+      console.error('Staging payments: Missing profile, biller_id, or API key', { 
+        hasProfile: !!profile, 
+        hasBillerId: !!profile?.biller_id, 
+        hasApiKey: !!profile?.apikey 
+      });
+      return { 
+        success: false, 
+        error: 'No profile, biller_id, or API key found. Please login again.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
     }
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging payments:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
+    
+    if (!apiUrl) {
+      console.error('Staging payments: API URL is empty');
+      return {
+        success: false,
+        error: 'API URL is not configured. Please check settings.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
     
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-payments`, {
       params: {
@@ -1546,6 +1925,23 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       statusValue: response.data?.status
     });
 
+    // Handle HTTP error status codes (4xx)
+    if (response.status >= 400 && response.status < 500) {
+      const errorMsg = response.data?.message || response.data?.error || response.data?.status === false ? (response.data?.message || response.data?.error || 'Bad request') : 'Bad request';
+      console.error('Staging payments HTTP error:', { status: response.status, error: errorMsg, data: response.data });
+      return {
+        success: false,
+        error: errorMsg,
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+
     // Check if response has data
     if (response.data) {
       // Backend returns { status: true, details: [], paginate_data: {} }
@@ -1563,9 +1959,11 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
           };
         } else {
           // status is false - return error
+          const errorMsg = response.data.message || response.data.error || 'Request failed';
+          console.error('Staging payments request failed:', errorMsg);
           return {
             success: false,
-            error: response.data.message || response.data.error || 'Request failed',
+            error: errorMsg,
             details: [],
             paginate_data: {
               page: page || 1,
@@ -1592,9 +1990,11 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
     }
 
     // If we get here, response format is unexpected
+    const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
+    console.error('Staging payments invalid response format:', { data: response.data });
     return { 
       success: false, 
-      error: response.data?.message || response.data?.error || 'Invalid response format',
+      error: errorMsg,
       details: [],
       paginate_data: {
         page: page || 1,
@@ -1604,15 +2004,50 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       }
     };
   } catch (error: any) {
+    let errorMessage = 'Failed to fetch staging payments';
+    
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
+    } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+      errorMessage = 'Request timed out. The server may be slow or unreachable.';
+    } else if (error.response) {
+      // HTTP error response
+      const status = error.response.status;
+      if (status === 401 || status === 403) {
+        errorMessage = 'Authentication failed. Please login again.';
+      } else if (status === 404) {
+        errorMessage = 'API endpoint not found. Please check the API URL.';
+      } else if (status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      `Request failed with status ${status}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     console.error('Error fetching staging payments:', {
       message: error.message,
+      errorMessage,
+      code: error.code,
       response: error.response?.data,
       status: error.response?.status,
-      statusText: error.response?.statusText
+      statusText: error.response?.statusText,
+      url: error.config?.url
     });
+    
     return {
       success: false,
-      error: error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to fetch staging payments'
+      error: errorMessage,
+      details: [],
+      paginate_data: {
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: 0,
+        totalResults: 0
+      }
     };
   }
 });

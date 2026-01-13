@@ -2,15 +2,15 @@
 import React, { useState } from 'react';
 
 interface SyncControlsProps {
-  onSyncStart: (type: 'full' | 'fresh') => void;
+  onSyncStart: (type: 'full' | 'smart') => void;
   onSyncComplete: () => void;
 }
 
 export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncComplete }) => {
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncType, setSyncType] = useState<'full' | 'fresh' | null>(null);
+  const [syncType, setSyncType] = useState<'full' | 'smart' | null>(null);
 
-  const handleSync = async (type: 'full' | 'fresh') => {
+  const handleSync = async (type: 'full' | 'smart') => {
     if (isSyncing) return;
 
     setIsSyncing(true);
@@ -22,9 +22,21 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncC
         alert('Electron API not available');
         return;
       }
-      const result = type === 'full'
-        ? (window.electronAPI.forceFullSync ? await window.electronAPI.forceFullSync() : { success: false, error: 'Method not available' })
-        : (window.electronAPI.forceFreshSync ? await window.electronAPI.forceFreshSync() : { success: false, error: 'Method not available' });
+      
+      let result;
+      if (type === 'full') {
+        // Full Fresh Sync - সব entity-র জন্য fresh sync
+        result = window.electronAPI.forceFullFreshSync 
+          ? await window.electronAPI.forceFullFreshSync() 
+          : { success: false, error: 'Method not available' };
+      } else if (type === 'smart') {
+        // Manual Sync - Smart sync (per-entity status check করে)
+        result = window.electronAPI.manualSync 
+          ? await window.electronAPI.manualSync() 
+          : { success: false, error: 'Method not available' };
+      } else {
+        result = { success: false, error: 'Invalid sync type' };
+      }
 
       if (!result?.success) {
         alert(`Sync failed: ${result?.error || 'Unknown error'}`);
@@ -53,25 +65,25 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncC
             cursor: isSyncing && syncType !== 'full' ? 'not-allowed' : 'pointer'
           }}
         >
-          {isSyncing && syncType === 'full' ? 'Syncing...' : 'Force Full Sync'}
+          {isSyncing && syncType === 'full' ? 'Syncing...' : 'Full Fresh Sync'}
           <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>
-            From BOOKSTARTFROM
+            All entities fresh sync
           </div>
         </button>
         
         <button
-          onClick={() => handleSync('fresh')}
+          onClick={() => handleSync('smart')}
           disabled={isSyncing}
           className="btn btn-secondary"
           style={{
             flex: 1,
-            opacity: isSyncing && syncType !== 'fresh' ? 0.5 : 1,
-            cursor: isSyncing && syncType !== 'fresh' ? 'not-allowed' : 'pointer'
+            opacity: isSyncing && syncType !== 'smart' ? 0.5 : 1,
+            cursor: isSyncing && syncType !== 'smart' ? 'not-allowed' : 'pointer'
           }}
         >
-          {isSyncing && syncType === 'fresh' ? 'Syncing...' : 'Force Fresh Sync'}
+          {isSyncing && syncType === 'smart' ? 'Syncing...' : 'Manual Sync'}
           <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>
-            From last sync + 1
+            Smart sync (per entity)
           </div>
         </button>
       </div>

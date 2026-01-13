@@ -193,7 +193,7 @@ export function setupIpcHandlers(
       destroyTray();
       
       // Create tray and start background sync
-      createTrayAndStartSync(profile, syncService, dbService);
+      await createTrayAndStartSync(profile, syncService, dbService);
       
       // Open dashboard window
       createDashboardWindow(profile);
