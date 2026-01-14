@@ -62,14 +62,31 @@ function generateMonthlyBatches(fromDate: string, toDate: string): Array<{
 }
 
 /**
- * Format date from various Tally formats
+ * Format date from various Tally formats to DD-MM-YYYY
  */
 function formatDate(dateStr: string): string {
   if (!dateStr || dateStr.trim() === '') return '';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const [day, month, year] = parts;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  
+  // If already in DD-MM-YYYY format, return as is
+  const ddMMyyyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (ddMMyyyyMatch) {
+    const [, day, month, year] = ddMMyyyyMatch;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+  }
+  
+  // If in YYYY-MM-DD format, convert to DD-MM-YYYY
+  const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (yyyyMMddMatch) {
+    const [, year, month, day] = yyyyMMddMatch;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+  }
+  
+  // If in DD-MM-YY format (2 digit year), convert to DD-MM-YYYY
+  const ddMMyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
+  if (ddMMyyMatch) {
+    const [, day, month, year] = ddMMyyMatch;
+    const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${fullYear}`;
   }
 
   const monthMap: { [key: string]: string } = {
@@ -78,15 +95,56 @@ function formatDate(dateStr: string): string {
     'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
   };
 
+  // If in DD-MMM-YY format (e.g., 15-Jan-24)
   const match = dateStr.match(/(\d{1,2})-([a-zA-Z]{3})-(\d{2})/);
   if (match) {
     const [, day, monthAbbr, year] = match;
     const month = monthMap[monthAbbr.toLowerCase()];
-    const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
-    return `${fullYear}-${month}-${day.padStart(2, '0')}`;
+    if (month) {
+      const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
+      return `${day.padStart(2, '0')}-${month}-${fullYear}`;
+    }
+  }
+  
+  // If in YYYYMMDD format (8 digits)
+  const yyyyMMdd8Match = dateStr.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (yyyyMMdd8Match) {
+    const [, year, month, day] = yyyyMMdd8Match;
+    return `${day}-${month}-${year}`;
   }
 
+  // Return as is if no pattern matches (might already be in correct format)
   return dateStr;
+}
+
+/**
+ * Calculate due date from issue date (add 2 days if due date is not provided)
+ */
+function calculateDueDate(issueDateStr: string, dueDateStr?: string): string {
+  if (dueDateStr && dueDateStr.trim() !== '') {
+    return formatDate(dueDateStr);
+  }
+  
+  if (!issueDateStr || issueDateStr.trim() === '') {
+    return '';
+  }
+  
+  // Parse issue date and add 2 days
+  const formattedIssueDate = formatDate(issueDateStr);
+  const parts = formattedIssueDate.split('-');
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    const issueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    issueDate.setDate(issueDate.getDate() + 2);
+    
+    const dueDay = String(issueDate.getDate()).padStart(2, '0');
+    const dueMonth = String(issueDate.getMonth() + 1).padStart(2, '0');
+    const dueYear = issueDate.getFullYear();
+    
+    return `${dueDay}-${dueMonth}-${dueYear}`;
+  }
+  
+  return formattedIssueDate; // Fallback to issue date if parsing fails
 }
 
 export async function syncInvoices(
@@ -176,12 +234,17 @@ export async function syncInvoices(
             const alterId = parseInt(getReportText(invoice, 'ALTER_ID') || '0', 10);
             if (alterId > monthMaxAlterId) monthMaxAlterId = alterId;
 
+            const issueDateStr = getReportText(invoice, 'ISSUE_DATE');
+            const dueDateStr = getReportText(invoice, 'DUE_DATE');
+            const formattedIssueDate = formatDate(issueDateStr);
+            const formattedDueDate = calculateDueDate(issueDateStr, dueDateStr);
+
             const invoiceData = {
               invoice_id: getReportText(invoice, 'INVOICE_ID'),
               invoice_number: getReportText(invoice, 'INVOICE_NUMBER'),
               voucher_type: getReportText(invoice, 'VOUCHER_TYPE'),
-              issue_date: formatDate(getReportText(invoice, 'ISSUE_DATE')),
-              due_date: formatDate(getReportText(invoice, 'DUE_DATE')),
+              issue_date: formattedIssueDate,
+              due_date: formattedDueDate,
               customer_id: getReportText(invoice, 'CUSTOMER_ID'),
               status: getReportText(invoice, 'STATUS'),
               type: getReportText(invoice, 'TYPE'),
@@ -280,15 +343,45 @@ export async function syncInvoices(
             const alterId = parseInt(getReportText(invoice, 'ALTER_ID') || '0', 10);
             if (alterId > maxAlterId) maxAlterId = alterId;
 
+            const issueDateStr = getReportText(invoice, 'ISSUE_DATE');
+            const dueDateStr = getReportText(invoice, 'DUE_DATE');
+            const formattedIssueDate = formatDate(issueDateStr);
+            const formattedDueDate = calculateDueDate(issueDateStr, dueDateStr);
+
             const invoiceData = {
               invoice_id: getReportText(invoice, 'INVOICE_ID'),
               invoice_number: getReportText(invoice, 'INVOICE_NUMBER'),
               voucher_type: getReportText(invoice, 'VOUCHER_TYPE'),
-              issue_date: formatDate(getReportText(invoice, 'ISSUE_DATE')),
+              issue_date: formattedIssueDate,
+              due_date: formattedDueDate,
               customer_id: getReportText(invoice, 'CUSTOMER_ID'),
+              status: getReportText(invoice, 'STATUS'),
+              type: getReportText(invoice, 'TYPE'),
               total: parseFloat(getReportText(invoice, 'TOTAL') || '0'),
+              balance: parseFloat(getReportText(invoice, 'BALANCE') || '0'),
               biller_id: profile?.biller_id || '',
-              // Add other required fields as needed
+              address: getReportText(invoice, 'ADDRESS'),
+              state: getReportText(invoice, 'STATE'),
+              country: getReportText(invoice, 'COUNTRY'),
+              company_name: getReportText(invoice, 'COMPANY_NAME'),
+              Ewaybill_Num: getReportText(invoice, 'EWAYBILL_NUM'),
+              Date: formatDate(getReportText(invoice, 'DATE')),
+              DispatchFrom: getReportText(invoice, 'DISPATCHFROM'),
+              Dispatchto: getReportText(invoice, 'DISPATCHTO'),
+              TransporatName: getReportText(invoice, 'TRANSPORATNAME'),
+              TransporatId: getReportText(invoice, 'TRANSPORATID'),
+              Mode: getReportText(invoice, 'MODE'),
+              LadingNo: getReportText(invoice, 'LADINGNO'),
+              LadingDate: getReportText(invoice, 'LADINGDATE'),
+              Vehicle_number: getReportText(invoice, 'VEHICLE_NUMBER'),
+              Vehicle_type: getReportText(invoice, 'VEHICLE_TYPE'),
+              Acknowledge_No: getReportText(invoice, 'ACKNOWLEDGE_NO'),
+              Ack_Date: getReportText(invoice, 'ACK_DATE'),
+              IRN: getReportText(invoice, 'IRN'),
+              BilltoPlace: getReportText(invoice, 'BILLTOPLACE'),
+              ShiptoPlace: getReportText(invoice, 'SHIPTOPLACE'),
+              Inventory_Entries: getReportText(invoice, 'INVENTORY_ENTRIES') === 'Yes',
+              Delivery_note_no: getReportText(invoice, 'DELIVERY_NOTE_NO')
             };
 
             invoicesForApi.push(invoiceData);

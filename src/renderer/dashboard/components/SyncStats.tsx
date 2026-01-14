@@ -154,8 +154,17 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "Never";
     try {
-      // Parse the date - SQLite stores dates in UTC format
-      const date = new Date(dateString);
+      // SQLite datetime format is "YYYY-MM-DD HH:MM:SS" (UTC)
+      // JavaScript Date() interprets this as local time, so we need to explicitly treat it as UTC
+      let date: Date;
+      if (dateString.includes("T") || dateString.includes("Z")) {
+        // Already in ISO format
+        date = new Date(dateString);
+      } else {
+        // SQLite format: "YYYY-MM-DD HH:MM:SS" - treat as UTC
+        // Replace space with 'T' and add 'Z' to indicate UTC
+        date = new Date(dateString.replace(" ", "T") + "Z");
+      }
 
       // Convert to Indian timezone and format
       return date.toLocaleString("en-IN", {
@@ -176,12 +185,21 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
   const formatTimeAgo = (dateString: string | null) => {
     if (!dateString) return "Never";
     try {
-      // Parse the date string (it's in UTC from database)
-      const date = new Date(dateString);
+      // SQLite datetime format is "YYYY-MM-DD HH:MM:SS" (UTC)
+      // JavaScript Date() interprets this as local time, so we need to explicitly treat it as UTC
+      let date: Date;
+      if (dateString.includes("T") || dateString.includes("Z")) {
+        // Already in ISO format
+        date = new Date(dateString);
+      } else {
+        // SQLite format: "YYYY-MM-DD HH:MM:SS" - treat as UTC
+        // Replace space with 'T' and add 'Z' to indicate UTC
+        date = new Date(dateString.replace(" ", "T") + "Z");
+      }
+
       const now = new Date();
 
       // Calculate difference - both dates are in UTC internally
-      // The difference will be correct regardless of timezone
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMs / 3600000);
@@ -203,7 +221,8 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
         minute: "2-digit",
         hour12: true,
       });
-    } catch {
+    } catch (error) {
+      console.error("Error formatting time ago:", dateString, error);
       return "Invalid date";
     }
   };

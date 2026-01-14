@@ -1,16 +1,54 @@
-; Custom NSIS installer script for Zorrofin Connect
-; Adds Terms & Conditions page and Desktop Shortcut option checkbox
+; Professional NSIS installer script for Zorrofin Connect
+; VS Code style installer with proper installation steps and options
 
 !include "MUI2.nsh"
 !include "nsDialogs.nsh"
+!include "FileFunc.nsh"
 
+; Variables
 Var TermsAccepted
 Var DesktopShortcutCheckbox
+Var StartMenuShortcutCheckbox
+Var AutoStartCheckbox
 Var TermsCheckboxHandle
+
+; Modern UI Configuration
+!define MUI_ABORTWARNING
+!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+
+; Welcome Page
+!define MUI_WELCOMEPAGE_TITLE "Welcome to Zorrofin Connect Setup"
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Zorrofin Connect.$\r$\n$\r$\nZorrofin Connect is a desktop application that syncs data from Tally to your Nest backend.$\r$\n$\r$\nClick Next to continue."
+
+; Finish Page
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Zorrofin Connect"
+!define MUI_FINISHPAGE_RUN_FUNCTION "LaunchApp"
+
+; Pages
+!insertmacro MUI_PAGE_WELCOME
+Page custom ShowTermsPage OnTermsPageLeave
+Page custom ShowComponentsPage OnComponentsPageLeave
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+; Uninstaller Pages
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
+; Languages
+!insertmacro MUI_LANGUAGE "English"
 
 ; Initialize variables
 !macro customInit
     StrCpy $TermsAccepted "0"
+    StrCpy $DesktopShortcutCheckbox "1"
+    StrCpy $StartMenuShortcutCheckbox "1"
+    StrCpy $AutoStartCheckbox "1"
 !macroend
 
 ; Custom Terms & Conditions page
@@ -33,11 +71,6 @@ Function ShowTermsPage
     ${NSD_CreateCheckbox} 0 200u 100% 12u "I accept the terms of the License Agreement"
     Pop $TermsCheckboxHandle
     ${NSD_OnClick} $TermsCheckboxHandle OnTermsCheckboxClick
-    
-    ; Desktop Shortcut Checkbox
-    ${NSD_CreateCheckbox} 0 220u 100% 12u "Create a desktop shortcut"
-    Pop $DesktopShortcutCheckbox
-    ${NSD_Check} $DesktopShortcutCheckbox
     
     ; Disable Next button initially
     GetDlgItem $1 $HWNDPARENT 1
@@ -67,17 +100,82 @@ Function OnTermsPageLeave
     ${EndIf}
 FunctionEnd
 
-; Custom install - create desktop shortcut if checkbox was checked
-!macro customInstall
+; Components/Options Page (like VS Code)
+Function ShowComponentsPage
+    !insertmacro MUI_HEADER_TEXT "Select Additional Tasks" "Choose additional tasks you would like Setup to perform"
+    
+    nsDialogs::Create 1018
+    Pop $0
+    
+    ${NSD_CreateLabel} 0 0 100% 10u "Select the additional tasks you would like Setup to perform while installing Zorrofin Connect, then click Next."
+    Pop $0
+    
+    ; Desktop Shortcut Checkbox
+    ${NSD_CreateCheckbox} 0 30u 100% 12u "Create a desktop shortcut"
+    Pop $DesktopShortcutCheckbox
+    ${NSD_Check} $DesktopShortcutCheckbox
+    
+    ; Start Menu Shortcut Checkbox
+    ${NSD_CreateCheckbox} 0 50u 100% 12u "Create a Start Menu shortcut"
+    Pop $StartMenuShortcutCheckbox
+    ${NSD_Check} $StartMenuShortcutCheckbox
+    
+    ; Auto-start with Windows Checkbox
+    ${NSD_CreateCheckbox} 0 70u 100% 12u "Start Zorrofin Connect automatically when Windows starts"
+    Pop $AutoStartCheckbox
+    ${NSD_Check} $AutoStartCheckbox
+    
+    ${NSD_CreateLabel} 0 95u 100% 20u "Note: You can change these settings later from the application settings."
+    Pop $0
+    
+    nsDialogs::Show
+FunctionEnd
+
+Function OnComponentsPageLeave
+    ; Store checkbox states
     ${NSD_GetState} $DesktopShortcutCheckbox $0
-    ${If} $0 == "1"
-        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" "$INSTDIR\${PRODUCT_FILENAME}"
+    StrCpy $DesktopShortcutCheckbox $0
+    
+    ${NSD_GetState} $StartMenuShortcutCheckbox $0
+    StrCpy $StartMenuShortcutCheckbox $0
+    
+    ${NSD_GetState} $AutoStartCheckbox $0
+    StrCpy $AutoStartCheckbox $0
+FunctionEnd
+
+; Launch application function
+Function LaunchApp
+    Exec "$INSTDIR\ZorrofinConnect.exe"
+FunctionEnd
+
+; Custom install section
+!macro customInstall
+    ; Create Desktop Shortcut if checked
+    ${If} $DesktopShortcutCheckbox == "1"
+        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" "$INSTDIR\ZorrofinConnect.exe" "" "$INSTDIR\ZorrofinConnect.exe" 0 SW_SHOWNORMAL "" ""
+    ${EndIf}
+    
+    ; Create Start Menu Shortcut if checked
+    ${If} $StartMenuShortcutCheckbox == "1"
+        CreateDirectory "$SMPROGRAMS\Zorrofin Connect"
+        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Zorrofin Connect.lnk" "$INSTDIR\ZorrofinConnect.exe" "" "$INSTDIR\ZorrofinConnect.exe" 0 SW_SHOWNORMAL "" ""
+        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Uninstall Zorrofin Connect.lnk" "$INSTDIR\Uninstall Zorrofin Connect.exe"
+    ${EndIf}
+    
+    ; Set Auto-start with Windows if checked
+    ${If} $AutoStartCheckbox == "1"
+        WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "ZorrofinConnect" "$INSTDIR\ZorrofinConnect.exe"
     ${EndIf}
 !macroend
 
+; Custom uninstall section
 !macro customUnInstall
+    ; Remove Desktop Shortcut
     Delete "$DESKTOP\Zorrofin Connect.lnk"
+    
+    ; Remove Start Menu Shortcut
+    RMDir /r "$SMPROGRAMS\Zorrofin Connect"
+    
+    ; Remove Auto-start registry entry
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "ZorrofinConnect"
 !macroend
-
-; Insert custom page
-Page custom ShowTermsPage OnTermsPageLeave

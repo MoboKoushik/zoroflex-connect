@@ -58,12 +58,32 @@ function generateMonthlyBatches(fromDate: string, toDate: string): Array<{
   return batches;
 }
 
+/**
+ * Format date from various Tally formats to DD-MM-YYYY
+ */
 function formatDate(dateStr: string): string {
   if (!dateStr || dateStr.trim() === '') return '';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const [day, month, year] = parts;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  
+  // If already in DD-MM-YYYY format, return as is
+  const ddMMyyyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (ddMMyyyyMatch) {
+    const [, day, month, year] = ddMMyyyyMatch;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+  }
+  
+  // If in YYYY-MM-DD format, convert to DD-MM-YYYY
+  const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (yyyyMMddMatch) {
+    const [, year, month, day] = yyyyMMddMatch;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+  }
+  
+  // If in DD-MM-YY format (2 digit year), convert to DD-MM-YYYY
+  const ddMMyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
+  if (ddMMyyMatch) {
+    const [, day, month, year] = ddMMyyMatch;
+    const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
+    return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${fullYear}`;
   }
 
   const monthMap: { [key: string]: string } = {
@@ -72,14 +92,25 @@ function formatDate(dateStr: string): string {
     'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
   };
 
+  // If in DD-MMM-YY format (e.g., 15-Jan-24)
   const match = dateStr.match(/(\d{1,2})-([a-zA-Z]{3})-(\d{2})/);
   if (match) {
     const [, day, monthAbbr, year] = match;
     const month = monthMap[monthAbbr.toLowerCase()];
-    const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
-    return `${fullYear}-${month}-${day.padStart(2, '0')}`;
+    if (month) {
+      const fullYear = parseInt(year) >= 50 ? `19${year}` : `20${year}`;
+      return `${day.padStart(2, '0')}-${month}-${fullYear}`;
+    }
+  }
+  
+  // If in YYYYMMDD format (8 digits)
+  const yyyyMMdd8Match = dateStr.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (yyyyMMdd8Match) {
+    const [, year, month, day] = yyyyMMdd8Match;
+    return `${day}-${month}-${year}`;
   }
 
+  // Return as is if no pattern matches (might already be in correct format)
   return dateStr;
 }
 

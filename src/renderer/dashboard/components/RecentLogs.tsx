@@ -75,7 +75,17 @@ export const RecentLogs: React.FC<RecentLogsProps> = ({ logs: initialLogs }) => 
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      // SQLite datetime format is "YYYY-MM-DD HH:MM:SS" (UTC)
+      // JavaScript Date() interprets this as local time, so we need to explicitly treat it as UTC
+      let date: Date;
+      if (dateString.includes('T') || dateString.includes('Z')) {
+        // Already in ISO format
+        date = new Date(dateString);
+      } else {
+        // SQLite format: "YYYY-MM-DD HH:MM:SS" - treat as UTC
+        // Replace space with 'T' and add 'Z' to indicate UTC
+        date = new Date(dateString.replace(' ', 'T') + 'Z');
+      }
       return date.toLocaleString('en-IN', {
         timeZone: 'Asia/Kolkata',
         day: '2-digit',
@@ -86,7 +96,8 @@ export const RecentLogs: React.FC<RecentLogsProps> = ({ logs: initialLogs }) => 
         second: '2-digit',
         hour12: true
       });
-    } catch {
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
       return dateString;
     }
   };

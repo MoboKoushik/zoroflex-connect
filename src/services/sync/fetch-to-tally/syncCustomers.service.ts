@@ -247,6 +247,15 @@ export async function syncCustomers(
     } else {
       // INCREMENTAL SYNC: Using ALTER_ID only
       const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
+      
+      // If max alter id is 0 or empty, it means first sync didn't properly store alter ids
+      // In this case, we should not do incremental sync - it would fetch all data
+      if (!lastAlterId || lastAlterId === '0') {
+        db.log('WARN', 'Cannot do incremental sync: max alter id is 0. First sync may not have stored alter ids properly.');
+        await db.logSyncEnd(runId, 'FAILED', 0, 0, '0', 'Cannot do incremental sync: max alter id is 0. Please run first sync again.');
+        return;
+      }
+      
       db.log('INFO', 'Starting incremental customer sync', { from_alter_id: lastAlterId });
 
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
@@ -355,8 +364,17 @@ export async function syncCustomers(
     }
 
     const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
+    
+    // Update max alter id if we have records synced OR if we have a valid alter id
+    // This ensures max alter id is updated even if no new records were found in incremental sync
+    // Match the logic used in invoice/payment sync
     if (successCount > 0 || newMaxAlterId !== '0') {
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+      if (newMaxAlterId !== '0') {
+        db.log('INFO', `Updated max alter id for ${ENTITY_TYPE}: ${newMaxAlterId}`);
+      } else {
+        db.log('WARN', `Max alter id is 0. ALTER_ID may not be available in Tally response.`);
+      }
     }
 
     // After successful first sync, check if entity should be marked as complete

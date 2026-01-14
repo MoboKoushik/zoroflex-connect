@@ -63,7 +63,7 @@
   },
   "build": {
     "appId": "com.zorrofin.connect",
-    "productName": "ZorrofinConnect",
+    "productName": "Zorrofin Connect",
     "directories": {
       "output": "release"
     },
@@ -92,20 +92,16 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "publisherName": "Zorrofin Solutions"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "allowElevation": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
@@ -114,10 +110,12 @@
       "runAfterFinish": true,
       "menuCategory": false,
       "perMachine": false,
-      "allowElevation": true,
-      "include": "installer.nsh"
+      "shortcutName": "Zorrofin Connect",
+      "include": "installer.nsh",
+      "warningsAsErrors": false
     },
     "forceCodeSigning": false,
+    "npmRebuild": false,
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"
     }

@@ -2666,15 +2666,19 @@ export class DatabaseService {
   }>> {
     try {
       // Only get sync_history records that are truly in progress
-      // Exclude records that have completed_at set (they're done)
+      // The most reliable indicator is completed_at IS NULL (sync hasn't finished)
+      // logSyncEnd always sets completed_at when sync completes (SUCCESS/FAILED/PARTIAL)
+      // Also exclude records older than 24 hours (stale records that might not have been updated)
       const stmt = this.db!.prepare(`
         SELECT sh.*, 
                (SELECT COUNT(*) FROM sync_batches WHERE sync_run_id = sh.id AND status IN ('COMPLETED', 'API_SUCCESS')) as completed_batches,
                (SELECT COUNT(*) FROM sync_batches WHERE sync_run_id = sh.id) as total_batches
         FROM sync_history sh
-        WHERE sh.status IN ('STARTED', 'IN_PROGRESS')
-          AND sh.completed_at IS NULL
+        WHERE sh.completed_at IS NULL
+          AND sh.status NOT IN ('SUCCESS', 'FAILED', 'PARTIAL')
+          AND datetime(sh.started_at) > datetime('now', '-24 hours')
         ORDER BY sh.started_at DESC
+        LIMIT 10
       `);
       const active = stmt.all() as any[];
       
@@ -2736,15 +2740,17 @@ export class DatabaseService {
     `);
     const ledgerSyncs = ledgerStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count of all synced customers
-    const ledgerTotalStmt = this.db!.prepare(`
-      SELECT COALESCE(SUM(entity_count), 0) as total
-      FROM sync_history 
-      WHERE entity_type = 'CUSTOMER' 
-        AND status IN ('SUCCESS', 'PARTIAL')
-        AND entity_count > 0
-    `);
-    const ledgerTotal = (ledgerTotalStmt.get() as { total: number })?.total || 0;
+    // Get total count: Use customers table if available, otherwise use sync history
+    // (Customers are sent to API but may not be stored locally)
+    const customersTableCountStmt = this.db!.prepare(`SELECT COUNT(*) as total FROM customers`);
+    const customersTableCount = (customersTableCountStmt.get() as { total: number })?.total || 0;
+    
+    let ledgerTotal = customersTableCount;
+    if (ledgerTotal === 0) {
+      // If customers table is empty, use the last successful sync count
+      // This represents the most recent sync count
+      ledgerTotal = ledgerSyncs[0]?.entity_count || 0;
+    }
 
     const invoiceStmt = this.db!.prepare(`
       SELECT completed_at, entity_count 
@@ -2758,15 +2764,20 @@ export class DatabaseService {
     `);
     const invoiceSyncs = invoiceStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count of all synced invoices
+    // Get total count of unique invoices (vouchers with invoice types)
     const invoiceTotalStmt = this.db!.prepare(`
-      SELECT COALESCE(SUM(entity_count), 0) as total
-      FROM sync_history 
-      WHERE entity_type = 'INVOICE' 
-        AND status IN ('SUCCESS', 'PARTIAL')
-        AND entity_count > 0
+      SELECT COUNT(*) as total 
+      FROM vouchers 
+      WHERE voucher_type IN ('sales', 'credit_note')
     `);
-    const invoiceTotal = (invoiceTotalStmt.get() as { total: number })?.total || 0;
+    const invoiceTableCount = (invoiceTotalStmt.get() as { total: number })?.total || 0;
+    
+    let invoiceTotal = invoiceTableCount;
+    if (invoiceTotal === 0) {
+      // If vouchers table is empty, use the last successful sync count
+      // This represents the most recent sync count
+      invoiceTotal = invoiceSyncs[0]?.entity_count || 0;
+    }
 
     const paymentStmt = this.db!.prepare(`
       SELECT completed_at, entity_count 
@@ -2780,15 +2791,20 @@ export class DatabaseService {
     `);
     const paymentSyncs = paymentStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count of all synced payments
+    // Get total count of unique payments (vouchers with receipt type)
     const paymentTotalStmt = this.db!.prepare(`
-      SELECT COALESCE(SUM(entity_count), 0) as total
-      FROM sync_history 
-      WHERE entity_type = 'PAYMENT' 
-        AND status IN ('SUCCESS', 'PARTIAL')
-        AND entity_count > 0
+      SELECT COUNT(*) as total 
+      FROM vouchers 
+      WHERE voucher_type = 'receipt'
     `);
-    const paymentTotal = (paymentTotalStmt.get() as { total: number })?.total || 0;
+    const paymentTableCount = (paymentTotalStmt.get() as { total: number })?.total || 0;
+    
+    let paymentTotal = paymentTableCount;
+    if (paymentTotal === 0) {
+      // If vouchers table is empty, use the last successful sync count
+      // This represents the most recent sync count
+      paymentTotal = paymentSyncs[0]?.entity_count || 0;
+    }
 
     return {
       ledger: {

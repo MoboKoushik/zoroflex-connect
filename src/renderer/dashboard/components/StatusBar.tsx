@@ -96,7 +96,17 @@ export const StatusBar: React.FC = () => {
   const formatTime = (timeStr: string | null): string => {
     if (!timeStr) return "Never";
     try {
-      const date = new Date(timeStr);
+      // SQLite datetime format is "YYYY-MM-DD HH:MM:SS" (UTC)
+      // JavaScript Date() interprets this as local time, so we need to explicitly treat it as UTC
+      let date: Date;
+      if (timeStr.includes('T') || timeStr.includes('Z')) {
+        // Already in ISO format
+        date = new Date(timeStr);
+      } else {
+        // SQLite format: "YYYY-MM-DD HH:MM:SS" - treat as UTC
+        // Replace space with 'T' and add 'Z' to indicate UTC
+        date = new Date(timeStr.replace(' ', 'T') + 'Z');
+      }
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffSecs = Math.floor(diffMs / 1000);

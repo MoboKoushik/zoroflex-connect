@@ -29,14 +29,36 @@ let notificationService = new SystemNotificationService(dbService);
 // Setup API logging interceptor
 apiLogger.setupInterceptor(axios);
 
-ipcMain.on('login-success', async () => {
-  console.log('login-success event received → Initializing organization database');
-  if (loginWindow) {
-    loginWindow.hide();
-    loginWindow = null;
+// Add error handlers to prevent app crashes
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  try {
+    dbService.log('ERROR', 'Uncaught Exception', { error: error.message, stack: error.stack });
+  } catch (logError) {
+    console.error('Failed to log uncaught exception:', logError);
   }
+  // Don't quit - let the app continue running
+});
 
-  const profile = await dbService.getProfile();
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  try {
+    dbService.log('ERROR', 'Unhandled Rejection', { reason: String(reason) });
+  } catch (logError) {
+    console.error('Failed to log unhandled rejection:', logError);
+  }
+  // Don't quit - let the app continue running
+});
+
+// Handle login success - can be called directly or via IPC event
+async function handleLoginSuccess(): Promise<void> {
+  console.log('handleLoginSuccess called → Initializing organization database');
+  
+  try {
+    // Don't close/hide login window yet - company selector will be shown
+    // Login window will be handled when company is selected
+
+    const profile = await dbService.getProfile();
   if (!profile) {
     console.error('Profile missing after login!');
     createLoginWindow();
@@ -59,68 +81,96 @@ ipcMain.on('login-success', async () => {
   // Store organization UUID in settings
   await dbService.setOrganizationUuid(organizationUuid);
 
-  // Initialize database with organization UUID
-  const localDbExists = dbService.databaseExists(organizationUuid);
-  
-  if (!localDbExists) {
-    // Try to restore from backend
-    console.log('Local database not found, attempting to restore from backend...');
-    const restored = await dbService.restoreDatabaseFromBackend(
-      profile.biller_id || '',
-      organizationUuid
-    );
+    // Initialize database with organization UUID
+    const localDbExists = dbService.databaseExists(organizationUuid);
     
-    if (restored) {
-      console.log('Database restored from backend successfully');
-      // Reinitialize database service with organization UUID
-      dbService.switchDatabase(organizationUuid);
+    if (!localDbExists) {
+      // Try to restore from backend
+      console.log('Local database not found, attempting to restore from backend...');
+      try {
+        const restored = await dbService.restoreDatabaseFromBackend(
+          profile.biller_id || '',
+          organizationUuid
+        );
+        
+        if (restored) {
+          console.log('Database restored from backend successfully');
+          dbService.switchDatabase(organizationUuid);
+        } else {
+          console.log('Database not found in backend, creating new database');
+          dbService.initializeDatabase(organizationUuid);
+        }
+      } catch (dbError: any) {
+        console.error('Error initializing database:', dbError);
+        dbService.log('ERROR', 'Database initialization failed', { error: dbError.message });
+        // Still try to create new database
+        dbService.initializeDatabase(organizationUuid);
+      }
     } else {
-      console.log('Database not found in backend, creating new database');
+      console.log('Local database found, using existing database');
       dbService.initializeDatabase(organizationUuid);
     }
-  } else {
-    console.log('Local database found, using existing database');
-    dbService.initializeDatabase(organizationUuid);
-  }
   
-  // Re-initialize services with correct database
-  organizationService = new OrganizationService(dbService);
-  syncService = new SyncService(dbService, organizationService);
-  apiLogger = new ApiLoggerService(dbService);
-  companyRepository = new CompanyRepository(dbService);
-  apiLogger.setupInterceptor(axios);
-  
-  // Re-initialize monitoring services
-  tallyConnectivityService.stopMonitoring();
-  apiHealthService.stopMonitoring();
-  tallyConnectivityService = new TallyConnectivityService(dbService);
-  apiHealthService = new ApiHealthService(dbService);
-  notificationService = new SystemNotificationService(dbService);
-  
-  // Start connectivity monitoring
-  startConnectivityMonitoring().catch(err => {
-    console.error('Error starting connectivity monitoring:', err);
-  });
-
-  // Check if user already has an active company
-  const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
-  
-  if (activeCompany) {
-    // User already has a company selected, go directly to dashboard
-    console.log('Active company found, opening dashboard:', activeCompany.name);
-    if (tray) {
-      tray.destroy();
-      tray = null;
-    }
-    app.setLoginItemSettings({ openAtLogin: true });
-    createTrayAndStartSync(profile, syncService, dbService).catch(err => {
-      console.error('Error creating tray and starting sync:', err);
-    });
-    createDashboardWindow(profile, false); // Don't show window on startup, run in background
-  } else {
-    // No active company - fetch from Tally and check for matches
-    console.log('No active company, fetching companies from Tally...');
+    // Re-initialize services with correct database
     try {
+      organizationService = new OrganizationService(dbService);
+      syncService = new SyncService(dbService, organizationService);
+      apiLogger = new ApiLoggerService(dbService);
+      companyRepository = new CompanyRepository(dbService);
+      apiLogger.setupInterceptor(axios);
+      
+      // Re-initialize monitoring services
+      tallyConnectivityService.stopMonitoring();
+      apiHealthService.stopMonitoring();
+      tallyConnectivityService = new TallyConnectivityService(dbService);
+      apiHealthService = new ApiHealthService(dbService);
+      notificationService = new SystemNotificationService(dbService);
+      
+      // Start connectivity monitoring
+      startConnectivityMonitoring().catch(err => {
+        console.error('Error starting connectivity monitoring:', err);
+      });
+    } catch (serviceError: any) {
+      console.error('Error re-initializing services:', serviceError);
+      dbService.log('ERROR', 'Service re-initialization failed', { error: serviceError.message });
+      // Ensure companyRepository is initialized even if other services fail
+      if (!companyRepository) {
+        companyRepository = new CompanyRepository(dbService);
+      }
+    }
+
+    // Check if user already has an active company
+    // Ensure companyRepository is available
+    if (!companyRepository) {
+      console.error('CompanyRepository not initialized, creating new instance');
+      companyRepository = new CompanyRepository(dbService);
+    }
+    
+    const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
+    
+    if (activeCompany) {
+      // User already has a company selected, go directly to dashboard
+      console.log('Active company found, opening dashboard:', activeCompany.name);
+      
+      // Hide login window when going to dashboard
+      if (loginWindow) {
+        loginWindow.hide();
+        loginWindow = null;
+      }
+      
+      if (tray) {
+        tray.destroy();
+        tray = null;
+      }
+      app.setLoginItemSettings({ openAtLogin: true });
+      createTrayAndStartSync(profile, syncService, dbService).catch(err => {
+        console.error('Error creating tray and starting sync:', err);
+      });
+      createDashboardWindow(profile, false); // Don't show window on startup, run in background
+    } else {
+      // No active company - fetch from Tally and check for matches
+      console.log('No active company, fetching companies from Tally...');
+      try {
       // Fetch companies from Tally
       const companies = await fetchCompanies(dbService);
       const filteredCompanies = companies.filter(c => c.biller_id === profile.biller_id);
@@ -217,16 +267,45 @@ ipcMain.on('login-success', async () => {
         console.log('No matching company found, showing all companies for selection');
         createCompanySelectorWindow(profile, null);
       }
-    } catch (error: any) {
-      console.error('Error fetching companies:', error);
-      dbService.log('ERROR', 'Failed to fetch companies from Tally', {
-        error: error.message,
-        stack: error.stack
-      });
-      // Still show selector even if fetch fails
-      createCompanySelectorWindow(profile, null);
+      } catch (error: any) {
+        console.error('Error fetching companies:', error);
+        dbService.log('ERROR', 'Failed to fetch companies from Tally', {
+          error: error.message,
+          stack: error.stack
+        });
+        // Still show selector even if fetch fails
+        createCompanySelectorWindow(profile, null);
+      }
+    }
+  } catch (error: any) {
+    console.error('Critical error in login-success handler:', error);
+    dbService.log('ERROR', 'Critical error in login-success', {
+      error: error.message,
+      stack: error.stack
+    });
+    
+    // Try to get profile and show company selector even on error
+    try {
+      const profile = await dbService.getProfile();
+      if (profile) {
+        console.log('Showing company selector despite error');
+        createCompanySelectorWindow(profile, null);
+      } else {
+        // Show login window again on critical error if no profile
+        createLoginWindow();
+      }
+    } catch (fallbackError: any) {
+      console.error('Fallback error:', fallbackError);
+      // Show login window again on critical error
+      createLoginWindow();
     }
   }
+}
+
+// Listen for login-success event from renderer (if needed)
+ipcMain.on('login-success', async () => {
+  console.log('login-success IPC event received');
+  await handleLoginSuccess();
 });
 
 app.whenReady().then(async () => {
@@ -311,11 +390,21 @@ function createLoginWindow(): void {
 
 // Create Company Selector Window
 function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number | null = null): void {
+  console.log('createCompanySelectorWindow called', { profile: profile?.email, autoSelectedCompanyId });
+  
   if (companySelectorWindow) {
+    console.log('Company selector window already exists, focusing');
     companySelectorWindow.focus();
     return;
   }
 
+  // Hide login window when company selector is shown
+  if (loginWindow) {
+    console.log('Hiding login window');
+    loginWindow.hide();
+  }
+
+  console.log('Creating new company selector window');
   companySelectorWindow = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -345,8 +434,18 @@ function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number
   }
 
   companySelectorWindow.once('ready-to-show', () => {
+    console.log('Company selector window ready to show');
     companySelectorWindow?.show();
     companySelectorWindow?.center();
+  });
+  
+  companySelectorWindow.on('closed', () => {
+    console.log('Company selector window closed');
+    companySelectorWindow = null;
+  });
+  
+  companySelectorWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Company selector window failed to load:', errorCode, errorDescription);
   });
 
   companySelectorWindow.webContents.once('did-finish-load', () => {
@@ -473,17 +572,22 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
       const { token, biller_id, apikey, organization } = data;
 
       await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
-      console.log('Profile saved successfully, sending login-success event');
+      console.log('Profile saved successfully, triggering login-success handler');
 
-      if (loginWindow) {
-        loginWindow.hide();
-        loginWindow = null;
-      }
+      // Don't hide login window yet - company selector will be shown
+      // Login window will be hidden when company selector window is created
 
-      // Send login-success event to trigger navigation flow
+      // Trigger login-success handler directly in main process
       // The login-success handler will check for active company and either go to dashboard or show company selector
       // Background sync will only start after Continue button is clicked (or if user already has active company)
-      event.sender.send('login-success');
+      // Use setImmediate to ensure profile is saved before processing
+      setImmediate(async () => {
+        try {
+          await handleLoginSuccess();
+        } catch (err) {
+          console.error('Error in handleLoginSuccess:', err);
+        }
+      });
       
       return { success: true };
     } else {
@@ -1290,8 +1394,18 @@ async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncServi
 }
 
 app.on('window-all-closed', () => {
+  // On Windows/Linux, don't quit if we have a tray icon
+  // Only quit if user explicitly quits
   if (process.platform !== 'darwin') {
-    app.quit();
+    // Check if we have a tray - if yes, keep app running
+    if (tray) {
+      console.log('All windows closed but tray exists - keeping app running');
+      return;
+    }
+    // Only quit if no tray and no windows
+    if (BrowserWindow.getAllWindows().length === 0) {
+      app.quit();
+    }
   }
 });
 
