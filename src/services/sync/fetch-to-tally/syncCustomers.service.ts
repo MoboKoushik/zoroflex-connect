@@ -145,12 +145,16 @@ export async function syncCustomers(
 
           const customersForApi: any[] = [];
           let maxAlterId = 0;
+          let alterIdFound = false;
 
           // Process all customers and prepare for API
           for (const customer of customers) {
             const alterIdStr = getReportText(customer, 'ALTER_ID') || getReportText(customer, 'ALTERID') || '0';
             const alterId = parseInt(alterIdStr, 10);
-            if (alterId > maxAlterId) maxAlterId = alterId;
+            if (alterId > 0) {
+              alterIdFound = true;
+              if (alterId > maxAlterId) maxAlterId = alterId;
+            }
 
             const customerId = getReportText(customer, 'CUSTOMER_ID');
             const name = getReportText(customer, 'NAME');
@@ -196,6 +200,12 @@ export async function syncCustomers(
           }
 
           newMaxAlterId = String(maxAlterId);
+          
+          // Log warning if ALTER_ID not found in any customer
+          if (!alterIdFound && customers.length > 0) {
+            db.log('WARN', `ALTER_ID not found in Tally response for any customer. This may cause issues with incremental sync.`);
+            db.log('WARN', `Sample customer keys: ${Object.keys(customers[0] || {}).join(', ')}`);
+          }
 
           // Send all customers to API in batches
           let apiSuccess = 0;
@@ -365,15 +375,28 @@ export async function syncCustomers(
 
     const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
     
-    // Update max alter id if we have records synced OR if we have a valid alter id
-    // This ensures max alter id is updated even if no new records were found in incremental sync
-    // Match the logic used in invoice/payment sync
-    if (successCount > 0 || newMaxAlterId !== '0') {
+    // Update max alter id if we have records synced
+    // For first sync, we MUST update max alter id even if it's 0 (to mark first sync as attempted)
+    // For incremental sync, only update if we have a valid alter id
+    if (syncMode === 'first') {
+      // Always update for first sync, even if alter id is 0
+      // This ensures we can track that first sync was attempted
       await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
       if (newMaxAlterId !== '0') {
-        db.log('INFO', `Updated max alter id for ${ENTITY_TYPE}: ${newMaxAlterId}`);
+        db.log('INFO', `Updated max alter id for ${ENTITY_TYPE} after first sync: ${newMaxAlterId}`);
       } else {
-        db.log('WARN', `Max alter id is 0. ALTER_ID may not be available in Tally response.`);
+        db.log('WARN', `Max alter id is 0 after first sync. ALTER_ID may not be available in Tally ZeroFinnCust report.`);
+        db.log('WARN', `This will prevent incremental sync. Please check if ALTER_ID field is available in Tally response.`);
+      }
+    } else {
+      // For incremental sync, only update if we have records synced OR if we have a valid alter id
+      if (successCount > 0 || newMaxAlterId !== '0') {
+        await db.updateEntityMaxAlterId(ENTITY_TYPE, newMaxAlterId);
+        if (newMaxAlterId !== '0') {
+          db.log('INFO', `Updated max alter id for ${ENTITY_TYPE}: ${newMaxAlterId}`);
+        } else {
+          db.log('WARN', `Max alter id is 0. ALTER_ID may not be available in Tally response.`);
+        }
       }
     }
 

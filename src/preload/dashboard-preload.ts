@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSetting: (key: string) => ipcRenderer.invoke('get-setting', key),
   setSetting: (key: string, value: string) => ipcRenderer.invoke('set-setting', key, value),
   getAllSettings: () => ipcRenderer.invoke('get-all-settings'),
+  // Auto-start
+  getAutoStart: () => ipcRenderer.invoke('get-auto-start'),
+  setAutoStart: (enabled: boolean) => ipcRenderer.invoke('set-auto-start', enabled),
   // Log management
   clearLogs: (logType: 'system' | 'api' | 'voucher') => ipcRenderer.invoke('clear-logs', logType),
   // Sound

@@ -1,9 +1,10 @@
 ; Professional NSIS installer script for Zorrofin Connect
 ; VS Code style installer with proper installation steps and options
+; This file is included by electron-builder's NSIS installer
 
 !include "MUI2.nsh"
 !include "nsDialogs.nsh"
-!include "FileFunc.nsh"
+!include "LogicLib.nsh"
 
 ; Variables
 Var TermsAccepted
@@ -11,37 +12,6 @@ Var DesktopShortcutCheckbox
 Var StartMenuShortcutCheckbox
 Var AutoStartCheckbox
 Var TermsCheckboxHandle
-
-; Modern UI Configuration
-!define MUI_ABORTWARNING
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-
-; Welcome Page
-!define MUI_WELCOMEPAGE_TITLE "Welcome to Zorrofin Connect Setup"
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Zorrofin Connect.$\r$\n$\r$\nZorrofin Connect is a desktop application that syncs data from Tally to your Nest backend.$\r$\n$\r$\nClick Next to continue."
-
-; Finish Page
-!define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Launch Zorrofin Connect"
-!define MUI_FINISHPAGE_RUN_FUNCTION "LaunchApp"
-
-; Pages
-!insertmacro MUI_PAGE_WELCOME
-Page custom ShowTermsPage OnTermsPageLeave
-Page custom ShowComponentsPage OnComponentsPageLeave
-!insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_PAGE_FINISH
-
-; Uninstaller Pages
-!insertmacro MUI_UNPAGE_WELCOME
-!insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_INSTFILES
-!insertmacro MUI_UNPAGE_FINISH
-
-; Languages
-!insertmacro MUI_LANGUAGE "English"
 
 ; Initialize variables
 !macro customInit
@@ -51,8 +21,14 @@ Page custom ShowComponentsPage OnComponentsPageLeave
     StrCpy $AutoStartCheckbox "1"
 !macroend
 
-; Custom Terms & Conditions page
-Function ShowTermsPage
+; Hook into electron-builder's page flow
+; Insert custom pages after welcome page
+!macro customWelcomePage
+    ; This runs after the welcome page
+!macroend
+
+; Custom License Page
+Function ShowLicensePage
     !insertmacro MUI_HEADER_TEXT "License Agreement" "Please review the license terms before installing"
     
     nsDialogs::Create 1018
@@ -61,11 +37,11 @@ Function ShowTermsPage
     ${NSD_CreateLabel} 0 0 100% 10u "Please read the license agreement below. You must accept to continue:"
     Pop $0
     
-    ; Terms text (read-only)
-    ${NSD_CreateTextMultiline} 0 15u 100% 180u "SOFTWARE LICENSE AGREEMENT$\r$\n$\r$\nZorrofin Connect$\r$\nCopyright (c) 2025 Zorrofin Solutions. All rights reserved.$\r$\n$\r$\nIMPORTANT - READ CAREFULLY: This License Agreement is a legal agreement between you and Zorrofin Solutions for the Zorrofin Connect software product.$\r$\n$\r$\nBy installing, copying, or otherwise using the Software, you agree to be bound by the terms of this Agreement. If you do not agree, do not install or use the Software.$\r$\n$\r$\nLICENSE GRANT: Zorrofin Solutions grants you a limited, non-exclusive, non-transferable license to install and use the Software on a single computer or device for your internal business purposes.$\r$\n$\r$\nRESTRICTIONS: You may not modify, adapt, alter, translate, or create derivative works of the Software; reverse engineer, decompile, disassemble the Software; or distribute, sublicense, lease, rent, loan, or transfer the Software to any third party.$\r$\n$\r$\nTERMINATION: This Agreement is effective until terminated. Your rights will terminate automatically if you fail to comply with any term of this Agreement.$\r$\n$\r$\nDISCLAIMER: THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT WARRANTY OF ANY KIND.$\r$\n$\r$\nLIMITATION OF LIABILITY: ZORROFIN SOLUTIONS SHALL NOT BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES."
+    ; License text (embedded)
+    ${NSD_CreateText} 0 15u 100% 180u "SOFTWARE LICENSE AGREEMENT$\r$\n$\r$\nZorrofin Connect$\r$\nCopyright (c) 2025 Zorrofin Solutions. All rights reserved.$\r$\n$\r$\nIMPORTANT - READ CAREFULLY: This License Agreement is a legal agreement between you and Zorrofin Solutions for the Zorrofin Connect software product.$\r$\n$\r$\nBy installing, copying, or otherwise using the Software, you agree to be bound by the terms of this Agreement. If you do not agree, do not install or use the Software.$\r$\n$\r$\nLICENSE GRANT: Zorrofin Solutions grants you a limited, non-exclusive, non-transferable license to install and use the Software on a single computer or device for your internal business purposes.$\r$\n$\r$\nRESTRICTIONS: You may not modify, adapt, alter, translate, or create derivative works of the Software; reverse engineer, decompile, disassemble the Software; or distribute, sublicense, lease, rent, loan, or transfer the Software to any third party.$\r$\n$\r$\nTERMINATION: This Agreement is effective until terminated. Your rights will terminate automatically if you fail to comply with any term of this Agreement.$\r$\n$\r$\nDISCLAIMER: THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.$\r$\n$\r$\nLIMITATION OF LIABILITY: ZORROFIN SOLUTIONS SHALL NOT BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE SOFTWARE."
     Pop $0
     SendMessage $0 ${EM_SETREADONLY} 1 0
-    ${NSD_AddStyle} $0 ${WS_VSCROLL}|${ES_MULTILINE}
+    System::Call "user32::SendMessage(i $0, i ${EM_SETWORDBREAKPROC}, i 0, i 0)"
     
     ; Terms acceptance checkbox
     ${NSD_CreateCheckbox} 0 200u 100% 12u "I accept the terms of the License Agreement"
@@ -93,14 +69,14 @@ Function OnTermsCheckboxClick
     ${EndIf}
 FunctionEnd
 
-Function OnTermsPageLeave
+Function OnLicensePageLeave
     ${If} $TermsAccepted != "1"
         MessageBox MB_ICONEXCLAMATION|MB_OK "You must accept the license agreement to continue."
         Abort
     ${EndIf}
 FunctionEnd
 
-; Components/Options Page (like VS Code)
+; Components/Options Page
 Function ShowComponentsPage
     !insertmacro MUI_HEADER_TEXT "Select Additional Tasks" "Choose additional tasks you would like Setup to perform"
     
@@ -145,26 +121,26 @@ FunctionEnd
 
 ; Launch application function
 Function LaunchApp
-    Exec "$INSTDIR\ZorrofinConnect.exe"
+    Exec '"$INSTDIR\${PRODUCT_FILENAME}.exe"'
 FunctionEnd
 
 ; Custom install section
 !macro customInstall
     ; Create Desktop Shortcut if checked
     ${If} $DesktopShortcutCheckbox == "1"
-        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" "$INSTDIR\ZorrofinConnect.exe" "" "$INSTDIR\ZorrofinConnect.exe" 0 SW_SHOWNORMAL "" ""
+        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' "" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' 0 SW_SHOWNORMAL "" ""
     ${EndIf}
     
     ; Create Start Menu Shortcut if checked
     ${If} $StartMenuShortcutCheckbox == "1"
         CreateDirectory "$SMPROGRAMS\Zorrofin Connect"
-        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Zorrofin Connect.lnk" "$INSTDIR\ZorrofinConnect.exe" "" "$INSTDIR\ZorrofinConnect.exe" 0 SW_SHOWNORMAL "" ""
-        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Uninstall Zorrofin Connect.lnk" "$INSTDIR\Uninstall Zorrofin Connect.exe"
+        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Zorrofin Connect.lnk" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' "" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' 0 SW_SHOWNORMAL "" ""
+        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Uninstall Zorrofin Connect.lnk" "$INSTDIR\Uninstall ${PRODUCT_FILENAME}.exe"
     ${EndIf}
     
     ; Set Auto-start with Windows if checked
     ${If} $AutoStartCheckbox == "1"
-        WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "ZorrofinConnect" "$INSTDIR\ZorrofinConnect.exe"
+        WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "ZorrofinConnect" '"$INSTDIR\${PRODUCT_FILENAME}.exe"'
     ${EndIf}
 !macroend
 

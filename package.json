@@ -94,18 +94,14 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico",
       "publisherName": "Zorrofin Solutions"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "allowElevation": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false,
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
       "menuCategory": false,

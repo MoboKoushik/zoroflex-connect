@@ -29,6 +29,33 @@ let notificationService = new SystemNotificationService(dbService);
 // Setup API logging interceptor
 apiLogger.setupInterceptor(axios);
 
+// Helper function to apply auto-start settings
+async function applyAutoStartSettings(): Promise<void> {
+  try {
+    const autoStartSetting = await dbService.getSetting('autoStart');
+    const autoStartEnabled = autoStartSetting !== 'false'; // Default to true if not set
+    
+    app.setLoginItemSettings({ 
+      openAtLogin: autoStartEnabled,
+      openAsHidden: autoStartEnabled, // Start minimized in background
+      args: autoStartEnabled ? ['--hidden'] : [] // Pass hidden flag if enabled
+    });
+    
+    console.log(`Auto-start ${autoStartEnabled ? 'enabled' : 'disabled'}`);
+  } catch (error: any) {
+    console.error('Error applying auto-start settings:', error);
+    // Default to enabled on error
+    app.setLoginItemSettings({ 
+      openAtLogin: true,
+      openAsHidden: true,
+      args: ['--hidden']
+    });
+  }
+}
+
+// Check if app was started with --hidden flag (auto-start)
+const isAutoStart = process.argv.includes('--hidden');
+
 // Add error handlers to prevent app crashes
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
@@ -162,7 +189,10 @@ async function handleLoginSuccess(): Promise<void> {
         tray.destroy();
         tray = null;
       }
-      app.setLoginItemSettings({ openAtLogin: true });
+      
+      // Apply auto-start settings
+      await applyAutoStartSettings();
+      
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
@@ -319,6 +349,15 @@ app.whenReady().then(async () => {
     console.log('Initialized API endpoint setting with default:', defaultUrl);
   }
 
+  // Initialize auto-start setting if not exists (default to true)
+  const autoStartSetting = await dbService.getSetting('autoStart');
+  if (autoStartSetting === null) {
+    await dbService.setSetting('autoStart', 'true');
+  }
+  
+  // Apply auto-start settings
+  await applyAutoStartSettings();
+
   const profile = await dbService.getProfile().catch(() => null);
 
   if (profile) {
@@ -327,11 +366,17 @@ app.whenReady().then(async () => {
     
     if (activeCompany) {
       console.log('Active company found → Starting in background');
-      app.setLoginItemSettings({ openAtLogin: true });
+      
+      // Apply auto-start settings
+      await applyAutoStartSettings();
+      
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
-      createDashboardWindow(profile, false); // Don't show window on startup, run in background
+      
+      // If auto-start, don't show window; otherwise show window
+      const shouldShowWindow = !isAutoStart;
+      createDashboardWindow(profile, shouldShowWindow);
     } else {
       console.log('No active company → Showing company selector');
       // Don't start sync - wait for company selection
@@ -574,13 +619,6 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
       await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
       console.log('Profile saved successfully, triggering login-success handler');
 
-      // Don't hide login window yet - company selector will be shown
-      // Login window will be hidden when company selector window is created
-
-      // Trigger login-success handler directly in main process
-      // The login-success handler will check for active company and either go to dashboard or show company selector
-      // Background sync will only start after Continue button is clicked (or if user already has active company)
-      // Use setImmediate to ensure profile is saved before processing
       setImmediate(async () => {
         try {
           await handleLoginSuccess();
@@ -916,6 +954,36 @@ ipcMain.handle('get-all-settings', async () => {
   return await dbService.getAllSettings();
 });
 
+// Auto-start handlers
+ipcMain.handle('get-auto-start', async () => {
+  try {
+    const loginItemSettings = app.getLoginItemSettings();
+    return { enabled: loginItemSettings.openAtLogin || false };
+  } catch (error: any) {
+    console.error('Error getting auto-start setting:', error);
+    return { enabled: false };
+  }
+});
+
+ipcMain.handle('set-auto-start', async (event, enabled: boolean) => {
+  try {
+    app.setLoginItemSettings({ 
+      openAtLogin: enabled,
+      openAsHidden: enabled, // Start minimized in background
+      args: enabled ? ['--hidden'] : [] // Pass hidden flag if enabled
+    });
+    
+    // Also save to database for persistence
+    await dbService.setSetting('autoStart', String(enabled));
+    
+    console.log(`Auto-start ${enabled ? 'enabled' : 'disabled'}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error setting auto-start:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Log export/clear handlers
 ipcMain.handle('clear-logs', async (event, logType: 'system' | 'api' | 'voucher') => {
   await dbService.clearLogs(logType);
@@ -1141,7 +1209,9 @@ ipcMain.handle('continue-to-dashboard', async () => {
       tray.destroy();
       tray = null;
     }
-    app.setLoginItemSettings({ openAtLogin: true });
+    // Apply auto-start settings
+    await applyAutoStartSettings();
+    
     createTrayAndStartSync(profile, syncService, dbService).catch(err => {
       console.error('Error creating tray and starting sync:', err);
     });
@@ -2037,7 +2107,7 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       };
     }
     
-    const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-payments`, {
+    const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-payments-app`, {
       params: {
         search: search || '',
         page: page || 1,

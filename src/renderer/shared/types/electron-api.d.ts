@@ -55,6 +55,9 @@ export interface ElectronAPI {
   getSetting?: (key: string) => Promise<string | null>;
   setSetting?: (key: string, value: string) => Promise<{ success: boolean }>;
   getAllSettings?: () => Promise<Record<string, string>>;
+  // Auto-start
+  getAutoStart?: () => Promise<{ enabled: boolean }>;
+  setAutoStart?: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
   
   // Status
   getTallyStatus?: () => Promise<any>;

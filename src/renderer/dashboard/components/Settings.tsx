@@ -15,6 +15,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
     autoSync: true,
     syncOnStartup: true,
     showNotifications: true,
+    autoStart: true, // Auto-start with Windows
     tallyPort: 9000,
     tallyHealthCheckInterval: 30,
     apiHealthCheckInterval: 60,
@@ -34,6 +35,20 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       
       const allSettings = await window.electronAPI.getAllSettings();
       
+      // Load auto-start setting separately
+      let autoStartEnabled = true; // Default to true
+      if (window.electronAPI?.getAutoStart) {
+        try {
+          const autoStartResult = await window.electronAPI.getAutoStart();
+          autoStartEnabled = autoStartResult?.enabled ?? (allSettings.autoStart !== 'false');
+        } catch (error) {
+          console.error('Error loading auto-start setting:', error);
+          autoStartEnabled = allSettings.autoStart !== 'false';
+        }
+      } else {
+        autoStartEnabled = allSettings.autoStart !== 'false';
+      }
+      
       const loadedTheme = allSettings.theme || 'dark';
       setSettings({
         soundEnabled: allSettings.soundEnabled !== 'false',
@@ -44,6 +59,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
         autoSync: allSettings.autoSync !== 'false',
         syncOnStartup: allSettings.syncOnStartup !== 'false',
         showNotifications: allSettings.showNotifications !== 'false',
+        autoStart: autoStartEnabled,
         tallyPort: parseInt(allSettings.tallyPort || '9000', 10),
         tallyHealthCheckInterval: parseInt(allSettings.tallyHealthCheckInterval || '30', 10),
         apiHealthCheckInterval: parseInt(allSettings.apiHealthCheckInterval || '60', 10),
@@ -717,6 +733,39 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               Test API Connection
             </button>
           </div>
+        </div>
+      </SettingSection>
+
+      {/* System Settings */}
+      <SettingSection title="System Settings" icon="⚙️">
+        <div>
+          <ToggleSwitch
+            checked={settings.autoStart}
+            onChange={async (checked) => {
+              setSettings(prev => ({ ...prev, autoStart: checked }));
+              
+              // Save to database
+              await saveSetting('autoStart', checked);
+              
+              // Apply auto-start setting via IPC
+              if (window.electronAPI?.setAutoStart) {
+                try {
+                  const result = await window.electronAPI.setAutoStart(checked);
+                  if (result?.success) {
+                    setSaveMessage({ type: 'success', text: `Auto-start ${checked ? 'enabled' : 'disabled'}. Changes will take effect after restart.` });
+                  } else {
+                    setSaveMessage({ type: 'error', text: `Failed to ${checked ? 'enable' : 'disable'} auto-start: ${result?.error || 'Unknown error'}` });
+                  }
+                } catch (error: any) {
+                  console.error('Error setting auto-start:', error);
+                  setSaveMessage({ type: 'error', text: `Failed to update auto-start: ${error.message}` });
+                }
+                setTimeout(() => setSaveMessage(null), 5000);
+              }
+            }}
+            label="Start with Windows"
+            description="Automatically start Zorrofin Connect when Windows starts (runs minimized in background)"
+          />
         </div>
       </SettingSection>
     </div>
