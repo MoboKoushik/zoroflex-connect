@@ -211,9 +211,10 @@ export async function syncPayments(
             const paymentData = {
               receipt_id: getReportText(receipt, 'RECEIPT_ID'),
               receipt_number: getReportText(receipt, 'RECEIPT_NUMBER'),
-              customer_id: getReportText(receipt, 'CUSTOMER_ID') || getReportText(receipt, 'CUSTOMER_NAME'),
+              customer_id: getReportText(receipt, 'CUSTOMER_ID'),
+              customer_name: getReportText(receipt, 'CUSTOMER_NAME'),
               receipt_date: formatDate(getReportText(receipt, 'RECEIPT_DATE')),
-              amount: parseFloat(getReportText(receipt, 'RECEIPT_AMOUNT') || '0'),
+              receipt_amount: getReportText(receipt, 'RECEIPT_AMOUNT'),
               transaction_type: getReportText(receipt, 'TRANSACTION_TYPE'),
               biller_id: profile?.biller_id || '',
               bill_details: bill_details
