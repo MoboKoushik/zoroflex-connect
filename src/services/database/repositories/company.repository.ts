@@ -115,14 +115,22 @@ export class CompanyRepository {
     }
 
     /**
-     * Get all companies for a biller
+     * Get all companies for a biller (or all companies if billerId is not provided)
      */
-    getAllCompanies(billerId: string): Company[] {
-        const stmt = this.db.prepare(
-            'SELECT * FROM companies WHERE biller_id = ? ORDER BY name'
-        );
-        const rows = stmt.all(billerId) as any[];
-        return rows.map(row => this.mapRowToCompany(row));
+    getAllCompanies(billerId?: string): Company[] {
+        if (billerId) {
+            const stmt = this.db.prepare(
+                'SELECT * FROM companies WHERE biller_id = ? ORDER BY name'
+            );
+            const rows = stmt.all(billerId) as any[];
+            return rows.map(row => this.mapRowToCompany(row));
+        } else {
+            const stmt = this.db.prepare(
+                'SELECT * FROM companies ORDER BY name'
+            );
+            const rows = stmt.all() as any[];
+            return rows.map(row => this.mapRowToCompany(row));
+        }
     }
 
     /**

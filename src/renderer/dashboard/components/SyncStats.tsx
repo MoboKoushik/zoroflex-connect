@@ -16,12 +16,14 @@ interface SyncStatsProps {
   customers: number;
   invoices: number;
   payments: number;
+  journalVouchers: number;
 }
 
 export const SyncStats: React.FC<SyncStatsProps> = ({
   customers,
   invoices,
   payments,
+  journalVouchers,
 }) => {
   const [syncInfo, setSyncInfo] = useState<EntitySyncInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
     loadSyncInfo();
     const interval = setInterval(loadSyncInfo, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
-  }, [customers, invoices, payments]);
+  }, [customers, invoices, payments, journalVouchers]);
 
   const loadSyncInfo = async () => {
     try {
@@ -66,6 +68,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
             previousSyncTime: null,
             previousSyncCount: 0,
             totalCount: payments,
+          },
+          {
+            label: "Journal Voucher",
+            icon: "📝",
+            color: "#9c27b0",
+            lastSyncTime: null,
+            lastSyncCount: 0,
+            previousSyncTime: null,
+            previousSyncCount: 0,
+            totalCount: journalVouchers,
           },
         ]);
         setLoading(false);
@@ -109,6 +121,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
             previousSyncCount: info.payment?.previousSyncCount || 0,
             totalCount: info.payment?.totalCount || payments, // Use from API, fallback to props
           },
+          {
+            label: "Journal Voucher",
+            icon: "📝",
+            color: "#9c27b0",
+            lastSyncTime: info.journal?.lastSyncTime || null,
+            lastSyncCount: info.journal?.lastSyncCount || 0,
+            previousSyncTime: info.journal?.previousSyncTime || null,
+            previousSyncCount: info.journal?.previousSyncCount || 0,
+            totalCount: info.journal?.totalCount || journalVouchers, // Use from API, fallback to props
+          },
         ]);
       }
       setLoading(false);
@@ -145,6 +167,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
           previousSyncTime: null,
           previousSyncCount: 0,
           totalCount: payments,
+        },
+        {
+          label: "Journal Voucher",
+          icon: "📝",
+          color: "#9c27b0",
+          lastSyncTime: null,
+          lastSyncCount: 0,
+          previousSyncTime: null,
+          previousSyncCount: 0,
+          totalCount: journalVouchers,
         },
       ]);
       setLoading(false);
@@ -232,11 +264,11 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: "16px",
         }}
       >
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className="card"

@@ -100,274 +100,7 @@ async function withRetry<T>(
   throw lastError;
 }
 
-/**
- * Fetches customers (ledgers) from Tally in batches using AlterID windowing
- * @param fromAlterId Starting AlterID (exclusive, so we fetch > fromAlterId)
- * @param sizeMax Maximum number of records to return per request (default: 100)
- * @returns Parsed XML response with LEDGER array
- */
-export async function fetchCustomersBatch(fromAlterId: string, sizeMax: number = 100): Promise<any> {
-  const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <VERSION>1</VERSION>
-    <TALLYREQUEST>Export</TALLYREQUEST>
-    <TYPE>Collection</TYPE>
-    <ID>ARCUSTOMERS</ID>
-  </HEADER>
-  <BODY>
-    <DESC>
-      <STATICVARIABLES>
-        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVFromAlterID>${fromAlterId}</SVFromAlterID>
-      </STATICVARIABLES>
-      <TDL>
-        <TDLMESSAGE>
-          <COLLECTION NAME="ARCUSTOMERS" ISINITIALIZE="Yes" SIZEMAX="${sizeMax}">
-            <TYPE>Ledger</TYPE>
-            <BELONGSTO>Yes</BELONGSTO>
-            <CHILDOF>$$GroupSundryDebtors</CHILDOF>
-            <FILTERS>BatchFilter</FILTERS>
-            <NATIVEMETHOD>Name</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerContact</NATIVEMETHOD>
-            <NATIVEMETHOD>Email</NATIVEMETHOD>
-            <NATIVEMETHOD>EmailCC</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerPhone</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerMobile</NATIVEMETHOD>
-            <NATIVEMETHOD>OpeningBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>ClosingBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>Address.List</NATIVEMETHOD>
-            <NATIVEMETHOD>PartyGSTIN</NATIVEMETHOD>
-            <NATIVEMETHOD>GSTRegistrationType</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerState</NATIVEMETHOD>
-            <NATIVEMETHOD>BankAllocations.List</NATIVEMETHOD>
-            <NATIVEMETHOD>MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>AlterID</NATIVEMETHOD>
-          </COLLECTION>
-          <SYSTEM TYPE="Formulae" NAME="BatchFilter">
-            $$Number:$AlterID > $$Number:##SVFromAlterID
-          </SYSTEM>
-        </TDLMESSAGE>
-      </TDL>
-    </DESC>
-  </BODY>
-</ENVELOPE>
-`.trim();
-  return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
-      timeout: 30000,
-      httpAgent: new http.Agent({ keepAlive: true }),
-      validateStatus: () => true // Don't throw on HTTP errors, we'll check response
-    });
 
-    const parsed = await parseStringPromise(response.data);
-
-    // Check for Tally error response
-    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-      }
-    }
-
-    // No upper bound filtering - fetch all records with AlterID > fromAlterId
-    // The sizeMax parameter limits the number of records returned
-
-    return parsed;
-  }, `fetchCustomersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
-    if (error.message && error.message.includes('Tally error')) {
-      throw error;
-    }
-    throw new Error(`Batch fetch customers failed: ${error.message}`);
-  });
-}
-
-/**
- * Fetches vouchers from Tally in batches using AlterID windowing
- * Optimized query using FETCH for nested data to prevent Tally crashes
- * @param fromAlterId Starting AlterID (exclusive, so we fetch > fromAlterId)
- * @param sizeMax Maximum number of records to return per request (default: 10)
- * @returns Parsed XML response with VOUCHER array
- */
-export async function fetchVouchersBatch(fromAlterId: string, sizeMax: number = 10): Promise<any> {
-  const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <VERSION>1</VERSION>
-    <TALLYREQUEST>Export</TALLYREQUEST>
-    <TYPE>Collection</TYPE>
-    <ID>ALLVOUCHERS</ID>
-  </HEADER>
-  <BODY>
-    <DESC>
-      <STATICVARIABLES>
-        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVLastMaxAlterID>${fromAlterId}</SVLastMaxAlterID>
-      </STATICVARIABLES>
-      <TDL>
-        <TDLMESSAGE>
-          <COLLECTION NAME="ALLVOUCHERS" ISINITIALIZE="Yes" SIZEMAX="${sizeMax}">
-            <TYPE>Voucher</TYPE>
-            <FILTERS>IncrementalFilter</FILTERS>
-            <NATIVEMETHOD>Date</NATIVEMETHOD>
-            <NATIVEMETHOD>VoucherNumber</NATIVEMETHOD>
-            <NATIVEMETHOD>VoucherTypeName</NATIVEMETHOD>
-            <NATIVEMETHOD>PartyLedgerName</NATIVEMETHOD>
-            <NATIVEMETHOD>MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>Narration</NATIVEMETHOD>
-            <NATIVEMETHOD>AlterID</NATIVEMETHOD>
-          </COLLECTION>
-          <SYSTEM TYPE="Formulae" NAME="IncrementalFilter">
-            $$Number:$AlterID > $$Number:##SVLastMaxAlterID
-          </SYSTEM>
-        </TDLMESSAGE>
-      </TDL>
-    </DESC>
-  </BODY>
-</ENVELOPE>
-`.trim();
-
-  return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
-      timeout: 120000, // 120 seconds (2 minutes)
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      httpAgent: new http.Agent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 1,
-        maxFreeSockets: 1
-      }),
-      validateStatus: () => true // Don't throw on HTTP errors, we'll check response
-    });
-
-    const parsed = await parseStringPromise(response.data);
-
-    // Check for Tally error response
-    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-      }
-    }
-
-    return parsed;
-  }, `fetchVouchersBatch(AlterID > ${fromAlterId})`).catch((error: any) => {
-    console.log('Error in fetchVouchersBatch after retries:', error);
-    if (error.message && error.message.includes('Tally error')) {
-      throw error;
-    }
-    throw new Error(`Batch fetch vouchers failed: ${error.message}`);
-  });
-}
-
-/**
- * Extracts LEDGER array from parsed customers batch response
- */
-export function extractLedgersFromBatch(parsed: any): any[] {
-  return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.LEDGER || [];
-}
-
-/**
- * Extracts VOUCHER array from parsed vouchers batch response
- */
-export function extractVouchersFromBatch(parsed: any): any[] {
-  return parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0]?.VOUCHER || [];
-}
-
-/**
- * Fetches customers with date range filter (for first sync)
- * @param fromDate Date range start (YYYYMMDD format, e.g., "20200401")
- * @param toDate Date range end (YYYYMMDD format, e.g., "20200430")
- * @param fromAlterId Starting AlterID (exclusive)
- * @param sizeMax Maximum number of records to return per request
- * @returns Parsed XML response with LEDGER array
- */
-export async function fetchCustomersBatchByDateRange(
-  fromDate: string,
-  toDate: string,
-  fromAlterId: string,
-  sizeMax: number = 100
-): Promise<any> {
-  const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <VERSION>1</VERSION>
-    <TALLYREQUEST>Export</TALLYREQUEST>
-    <TYPE>Collection</TYPE>
-    <ID>ARCUSTOMERS</ID>
-  </HEADER>
-  <BODY>
-    <DESC>
-      <STATICVARIABLES>
-        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-        <SVFROMDATE>${fromDate}</SVFROMDATE>
-        <SVTODATE>${toDate}</SVTODATE>
-        <SVFromAlterID>${fromAlterId}</SVFromAlterID>
-      </STATICVARIABLES>
-      <TDL>
-        <TDLMESSAGE>
-          <COLLECTION NAME="ARCUSTOMERS" ISINITIALIZE="Yes" SIZEMAX="${sizeMax}">
-            <TYPE>Ledger</TYPE>
-            <BELONGSTO>Yes</BELONGSTO>
-            <CHILDOF>$$GroupSundryDebtors</CHILDOF>
-            <FILTERS>DateAndAlterFilter</FILTERS>
-            <NATIVEMETHOD>Name</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerContact</NATIVEMETHOD>
-            <NATIVEMETHOD>Email</NATIVEMETHOD>
-            <NATIVEMETHOD>EmailCC</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerPhone</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerMobile</NATIVEMETHOD>
-            <NATIVEMETHOD>OpeningBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>ClosingBalance</NATIVEMETHOD>
-            <NATIVEMETHOD>Address.List</NATIVEMETHOD>
-            <NATIVEMETHOD>PartyGSTIN</NATIVEMETHOD>
-            <NATIVEMETHOD>GSTRegistrationType</NATIVEMETHOD>
-            <NATIVEMETHOD>LedgerState</NATIVEMETHOD>
-            <NATIVEMETHOD>BankAllocations.List</NATIVEMETHOD>
-            <NATIVEMETHOD>MasterID</NATIVEMETHOD>
-            <NATIVEMETHOD>AlterID</NATIVEMETHOD>
-          </COLLECTION>
-          <SYSTEM TYPE="Formulae" NAME="DateAndAlterFilter">
-            ($$Number:$AlterID > $$Number:##SVFromAlterID) AND
-            ($AlteredDate >= ##SVFROMDATE) AND
-            ($AlteredDate <= ##SVTODATE)
-          </SYSTEM>
-        </TDLMESSAGE>
-      </TDL>
-    </DESC>
-  </BODY>
-</ENVELOPE>
-`.trim();
-
-  return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
-      headers: { 'Content-Type': 'text/xml' },
-      timeout: 30000,
-      httpAgent: new http.Agent({ keepAlive: true }),
-      validateStatus: () => true
-    });
-
-    const parsed = await parseStringPromise(response.data);
-
-    // Check for Tally error response
-    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
-      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
-      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check XML request format.`);
-      }
-    }
-
-    return parsed;
-  }, `fetchCustomersBatchByDateRange(${fromDate} to ${toDate}, AlterID > ${fromAlterId})`).catch((error: any) => {
-    if (error.message && error.message.includes('Tally error')) {
-      throw error;
-    }
-    throw new Error(`Batch fetch customers by date range failed: ${error.message}`);
-  });
-}
 
 /**
  * Fetches vouchers using ZeroFinnReceipt report with date range (for first sync only)
@@ -687,7 +420,26 @@ export async function fetchOrganizationFromReport(): Promise<any> {
       validateStatus: () => true
     });
 
-    const parsed = await parseStringPromise(response.data);
+    // Log raw response for debugging (first 500 chars)
+    const rawResponsePreview = typeof response.data === 'string' 
+      ? response.data.substring(0, 500) 
+      : JSON.stringify(response.data).substring(0, 500);
+    console.log('Tally ZeroFinnCmp response preview:', rawResponsePreview);
+
+    const parsed = await parseStringPromise(response.data, {
+      explicitArray: true,
+      mergeAttrs: false,
+      explicitRoot: false
+    });
+
+    // Log parsed structure for debugging
+    console.log('Parsed response structure:', {
+      hasEnvelope: !!parsed.ENVELOPE,
+      envelopeKeys: parsed.ENVELOPE ? Object.keys(parsed.ENVELOPE) : [],
+      hasBiller: !!parsed.ENVELOPE?.BILLER,
+      billerType: Array.isArray(parsed.ENVELOPE?.BILLER) ? 'array' : typeof parsed.ENVELOPE?.BILLER,
+      billerLength: Array.isArray(parsed.ENVELOPE?.BILLER) ? parsed.ENVELOPE.BILLER.length : 'not array'
+    });
 
     // Check for Tally error response
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
@@ -711,17 +463,38 @@ export async function fetchOrganizationFromReport(): Promise<any> {
  * Extracts BILLER array from ZeroFinnCmp report response
  */
 export function extractBillersFromReport(parsed: any): any[] {
+  console.log('extractBillersFromReport - Parsed structure:', {
+    hasEnvelope: !!parsed?.ENVELOPE,
+    envelopeKeys: parsed?.ENVELOPE ? Object.keys(parsed.ENVELOPE) : [],
+    hasBiller: !!parsed?.ENVELOPE?.BILLER,
+    billerType: Array.isArray(parsed?.ENVELOPE?.BILLER) ? 'array' : typeof parsed?.ENVELOPE?.BILLER,
+    hasBody: !!parsed?.ENVELOPE?.BODY,
+    hasDirectBiller: !!parsed?.BILLER
+  });
+
   // Response structure: ENVELOPE.BILLER (array) or ENVELOPE.BODY[0].BILLER
-  if (parsed.ENVELOPE?.BILLER) {
-    return Array.isArray(parsed.ENVELOPE.BILLER) ? parsed.ENVELOPE.BILLER : [parsed.ENVELOPE.BILLER];
+  if (parsed?.ENVELOPE?.BILLER) {
+    const billers = Array.isArray(parsed.ENVELOPE.BILLER) 
+      ? parsed.ENVELOPE.BILLER 
+      : [parsed.ENVELOPE.BILLER];
+    console.log(`extractBillersFromReport - Found ${billers.length} billers in ENVELOPE.BILLER`);
+    return billers;
   }
-  if (parsed.ENVELOPE?.BODY?.[0]?.BILLER) {
+  
+  if (parsed?.ENVELOPE?.BODY?.[0]?.BILLER) {
     const billers = parsed.ENVELOPE.BODY[0].BILLER;
-    return Array.isArray(billers) ? billers : [billers];
+    const billerArray = Array.isArray(billers) ? billers : [billers];
+    console.log(`extractBillersFromReport - Found ${billerArray.length} billers in ENVELOPE.BODY[0].BILLER`);
+    return billerArray;
   }
-  if (parsed.BILLER) {
-    return Array.isArray(parsed.BILLER) ? parsed.BILLER : [parsed.BILLER];
+  
+  if (parsed?.BILLER) {
+    const billers = Array.isArray(parsed.BILLER) ? parsed.BILLER : [parsed.BILLER];
+    console.log(`extractBillersFromReport - Found ${billers.length} billers in BILLER`);
+    return billers;
   }
+  
+  console.warn('extractBillersFromReport - No BILLER found in response. Full parsed structure:', JSON.stringify(parsed, null, 2).substring(0, 1000));
   return [];
 }
 
@@ -736,4 +509,155 @@ export function getReportText(obj: any, key: string): string {
     return String(value[0] || '').trim();
   }
   return String(value || '').trim();
+}
+
+/**
+ * Fetches Journal Vouchers using ZeroFinnJV report with date range (for first sync only)
+ * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
+ * @param toDate Date range end (YYYYMMDD format, e.g., "20260330")
+ * @returns Parsed XML response with JV_ENTRY array
+ */
+export async function fetchJournalVouchersFromReportByDateRange(
+  fromDate: string,
+  toDate: string
+): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZeroFinnJV</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVFROMDATE>${fromDate}</SVFROMDATE>
+                    <SVTODATE>${toDate}</SVTODATE>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
+    });
+
+    const parsed = await parseStringPromise(response.data, {
+      explicitArray: true,
+      mergeAttrs: false,
+      explicitRoot: false
+    });
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnJV report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchJournalVouchersFromReportByDateRange(${fromDate} to ${toDate})`).catch((error: any) => {
+    console.log('Error in fetchJournalVouchersFromReportByDateRange after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch Journal Vouchers from ZeroFinnJV report (date range) failed: ${error.message}`);
+  });
+}
+
+/**
+ * Fetches Journal Vouchers using ZeroFinnJV report with ALTER_ID only (for incremental sync)
+ * @param fromAlterId Starting ALTER_ID (exclusive)
+ * @returns Parsed XML response with JV_ENTRY array
+ */
+export async function fetchJournalVouchersFromReportByAlterId(
+  fromAlterId: string
+): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZeroFinnJV</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1
+      }),
+      validateStatus: () => true
+    });
+
+    const parsed = await parseStringPromise(response.data, {
+      explicitArray: true,
+      mergeAttrs: false,
+      explicitRoot: false
+    });
+
+    // Check for Tally error response
+    if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
+      const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
+      if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
+        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnJV report exists in Tally.`);
+      }
+    }
+
+    return parsed;
+  }, `fetchJournalVouchersFromReportByAlterId(AlterID > ${fromAlterId})`).catch((error: any) => {
+    console.log('Error in fetchJournalVouchersFromReportByAlterId after retries:', error);
+    if (error.message && error.message.includes('Tally error')) {
+      throw error;
+    }
+    throw new Error(`Fetch Journal Vouchers from ZeroFinnJV report (ALTER_ID) failed: ${error.message}`);
+  });
+}
+
+/**
+ * Extracts JV_ENTRY array from ZeroFinnJV report response
+ */
+export function extractJournalVouchersFromReport(parsed: any): any[] {
+  // Response structure: ENVELOPE.JV_ENTRY (array) or direct JV_ENTRY
+  if (parsed.ENVELOPE?.JV_ENTRY) {
+    return Array.isArray(parsed.ENVELOPE.JV_ENTRY) 
+      ? parsed.ENVELOPE.JV_ENTRY 
+      : [parsed.ENVELOPE.JV_ENTRY];
+  }
+  if (parsed.ENVELOPE?.BODY?.[0]?.JV_ENTRY) {
+    const jvEntries = parsed.ENVELOPE.BODY[0].JV_ENTRY;
+    return Array.isArray(jvEntries) ? jvEntries : [jvEntries];
+  }
+  if (parsed.JV_ENTRY) {
+    return Array.isArray(parsed.JV_ENTRY) ? parsed.JV_ENTRY : [parsed.JV_ENTRY];
+  }
+  return [];
 }

@@ -9,6 +9,7 @@ import { Settings } from "./components/Settings";
 import { StagingCustomers } from "./components/StagingCustomers";
 import { StagingInvoices } from "./components/StagingInvoices";
 import { StagingPayments } from "./components/StagingPayments";
+import { StagingJournalVouchers } from "./components/StagingJournalVouchers";
 import { Analytics } from "./components/Analytics";
 import { LogViewer } from "./components/LogViewer";
 import { StatusBar } from "./components/StatusBar";
@@ -26,6 +27,7 @@ export const Dashboard: React.FC = () => {
     customers: 0,
     invoices: 0,
     payments: 0,
+    journalVouchers: 0,
   });
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -90,6 +92,7 @@ export const Dashboard: React.FC = () => {
           customers: statsData.totalCustomers || 0,
           invoices: statsData.invoiceCount || 0,
           payments: statsData.receiptCount || 0,
+          journalVouchers: statsData.jvCount || 0,
         });
       }
       if (logsData) setLogs(logsData);
@@ -176,6 +179,7 @@ export const Dashboard: React.FC = () => {
                   customers={stats.customers}
                   invoices={stats.invoices}
                   payments={stats.payments}
+                  journalVouchers={stats.journalVouchers}
                 />
 
                 <RecentLogs logs={logs} />
@@ -188,6 +192,8 @@ export const Dashboard: React.FC = () => {
           {currentPage === "invoices" && <StagingInvoices />}
 
           {currentPage === "payments" && <StagingPayments />}
+
+          {currentPage === "journal-vouchers" && <StagingJournalVouchers />}
 
           {currentPage === "analytics" && (
             <Analytics data={analyticsData} loading={analyticsLoading} />

@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => 
     // { id: 'customers', label: 'Customers', icon: '○' },
     // { id: 'invoices', label: 'Invoices', icon: '◐' },
     // { id: 'payments', label: 'Payments', icon: '◑' },
+    { id: 'journal-vouchers', label: 'Journal Vouchers', icon: '📝' },
     { id: 'logs', label: 'Logs', icon: '📋' },
     { id: 'settings', label: 'Settings', icon: '⚙' },
   ];

@@ -80,10 +80,14 @@ export async function fetchCompanies(dbService?: DatabaseService): Promise<Compa
 
         // Fetch organization data using ZeroFinnCmp report
         const parsed = await fetchOrganizationFromReport();
+        console.log('fetchCompanies - Parsed response received, extracting billers...');
+        
         const billers = extractBillersFromReport(parsed);
+        console.log(`fetchCompanies - Extracted ${billers.length} billers`);
 
         if (billers.length === 0) {
             db.log('WARN', 'No companies found in Tally');
+            console.warn('fetchCompanies - No billers found. Parsed structure:', JSON.stringify(parsed, null, 2).substring(0, 1000));
             return [];
         }
 
@@ -94,7 +98,7 @@ export async function fetchCompanies(dbService?: DatabaseService): Promise<Compa
             const bookStartFrom = getReportText(biller, 'BOOKSTARTFROM');
             const formattedDate = formatTallyDate(bookStartFrom);
 
-            return {
+            const companyData = {
                 biller_id: getReportText(biller, 'BILLER_ID'),
                 organization_id: getReportText(biller, 'ORGANIZATION_ID'),
                 tally_id: getReportText(biller, 'TALLY_ID'),
@@ -107,6 +111,14 @@ export async function fetchCompanies(dbService?: DatabaseService): Promise<Compa
                 trn: getReportText(biller, 'VATNUMBER') || undefined,
                 book_start_from: formattedDate
             };
+            
+            console.log('fetchCompanies - Mapped company:', {
+                name: companyData.name,
+                biller_id: companyData.biller_id,
+                organization_id: companyData.organization_id
+            });
+            
+            return companyData;
         });
 
         // If multiple entries have same ORGANIZATION_ID, prefer the one with GSTIN
@@ -132,11 +144,17 @@ export async function fetchCompanies(dbService?: DatabaseService): Promise<Compa
         });
 
         db.log('INFO', `Processed ${finalCompanies.length} unique companies`);
+        console.log(`fetchCompanies - Final companies count: ${finalCompanies.length}`);
         return finalCompanies;
 
     } catch (error: any) {
         const errorMsg = error?.message || 'Unknown error while fetching companies';
-        db.log('ERROR', 'Failed to fetch companies from Tally', { error: errorMsg });
+        console.error('fetchCompanies - Error:', errorMsg, error);
+        db.log('ERROR', 'Failed to fetch companies from Tally', { 
+            error: errorMsg,
+            stack: error.stack,
+            code: error.code
+        });
         throw error;
     }
 }

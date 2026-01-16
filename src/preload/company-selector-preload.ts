@@ -29,6 +29,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('auto-select-info', handler);
   },
   
+  onInitialError: (callback: (data: { error: string }) => void) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('initial-error');
+    const handler = (event: any, data: { error: string }) => callback(data);
+    ipcRenderer.on('initial-error', handler);
+    return () => ipcRenderer.removeListener('initial-error', handler);
+  },
+  
+  onWarningMessage: (callback: (data: { warning: string }) => void) => {
+    // Remove any existing listeners for this channel to prevent duplicates
+    ipcRenderer.removeAllListeners('warning-message');
+    const handler = (event: any, data: { warning: string }) => callback(data);
+    ipcRenderer.on('warning-message', handler);
+    return () => ipcRenderer.removeListener('warning-message', handler);
+  },
+  
   // Remove listeners
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);

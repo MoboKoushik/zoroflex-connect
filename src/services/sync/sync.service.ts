@@ -4,6 +4,7 @@ import { fetchCurrentCompany } from './fetch-to-tally/fetchCurrentCompany';
 import { syncCustomers } from './fetch-to-tally/syncCustomers.service';
 import { syncInvoices } from './fetch-to-tally/syncInvoices.service';
 import { syncPayments } from './fetch-to-tally/syncPayments.service';
+import { syncJournalVouchers } from './fetch-to-tally/syncJournalVouchers.service';
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { SyncDateManager, SyncType, EntityType } from './sync-date-manager';
 import { CompanyRepository } from '../database/repositories/company.repository';
@@ -87,7 +88,7 @@ export class SyncService {
         await syncCustomers(profile, 'first', fromDate, toDate, this.dbService);
         await syncInvoices(profile, 'first', fromDate, toDate, this.dbService);
         await syncPayments(profile, 'first', fromDate, toDate, this.dbService);
-        // await syncJournalEntries(profile, 'first', fromDate, toDate);
+        await syncJournalVouchers(profile, 'first', fromDate, toDate, this.dbService);
 
       } else {
         // BACKGROUND sync: Check per-entity first sync status
@@ -194,6 +195,40 @@ export class SyncService {
           // First sync complete, run incremental sync
           this.dbService.log('INFO', 'PAYMENT first sync complete, running incremental sync');
           await syncPayments(profile, 'incremental', undefined, undefined, this.dbService);
+        }
+
+        // Journal Voucher sync
+        const jvIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('JOURNAL');
+        const jvIncompleteMonths = await this.dbService.getIncompleteMonths('JOURNAL');
+        
+        // Only run first sync if it's not complete AND has incomplete months
+        if (!jvIsFirstSyncComplete && jvIncompleteMonths.length > 0) {
+          this.dbService.log('INFO', `JOURNAL has incomplete months: ${jvIncompleteMonths.join(', ')}, resuming first sync`);
+          const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+          await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('JOURNAL');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('JOURNAL');
+            this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+          }
+        } else if (!jvIsFirstSyncComplete) {
+          // First sync needed
+          this.dbService.log('INFO', 'JOURNAL first sync needed, running first sync');
+          const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+          await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('JOURNAL');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('JOURNAL');
+            this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+          }
+        } else {
+          // First sync complete, run incremental sync
+          this.dbService.log('INFO', 'JOURNAL first sync complete, running incremental sync');
+          await syncJournalVouchers(profile, 'incremental', undefined, undefined, this.dbService);
         }
 
         // Check if all entities have completed first sync - if yes, dump database to backend
@@ -365,6 +400,40 @@ export class SyncService {
         await syncPayments(profile, 'incremental', undefined, undefined, this.dbService);
       }
 
+      // Journal Voucher sync
+      const jvIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('JOURNAL');
+      const jvIncompleteMonths = await this.dbService.getIncompleteMonths('JOURNAL');
+      
+      // Only run first sync if it's not complete AND has incomplete months
+      if (!jvIsFirstSyncComplete && jvIncompleteMonths.length > 0) {
+        this.dbService.log('INFO', `JOURNAL has incomplete months: ${jvIncompleteMonths.join(', ')}, resuming first sync`);
+        const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+        await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('JOURNAL');
+        if (stillIncomplete.length === 0) {
+          await this.dbService.completeEntityFirstSync('JOURNAL');
+          this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+        }
+      } else if (!jvIsFirstSyncComplete) {
+        // First sync needed
+        this.dbService.log('INFO', 'JOURNAL first sync needed, running first sync');
+        const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+        await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('JOURNAL');
+        if (stillIncomplete.length === 0) {
+          await this.dbService.completeEntityFirstSync('JOURNAL');
+          this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+        }
+      } else {
+        // First sync complete, run incremental sync
+        this.dbService.log('INFO', 'JOURNAL first sync complete, running incremental sync');
+        await syncJournalVouchers(profile, 'incremental', undefined, undefined, this.dbService);
+      }
+
       // Check if all entities have completed first sync
       const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
       if (allComplete) {
@@ -439,6 +508,10 @@ export class SyncService {
       await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
       await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
       await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
+      
+      // Journal Voucher sync
+      const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+      await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
 
       await this.dbService.updateLastSuccessfulSync();
       this.dbService.log('INFO', 'Force full fresh sync completed successfully');

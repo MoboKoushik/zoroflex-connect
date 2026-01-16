@@ -7,11 +7,13 @@ export interface ElectronAPI {
   onLoginSuccess?: (callback: () => void) => void;
   
   // Company selection (company-selector)
-  fetchCompanies?: () => Promise<{ success: boolean; companies?: any[]; autoSelectedCompanyId?: number; error?: string }>;
+  fetchCompanies?: () => Promise<{ success: boolean; companies?: any[]; autoSelectedCompanyId?: number; error?: string; warning?: string }>;
   selectCompany?: (companyId: number) => Promise<{ success: boolean; error?: string }>;
   continueToDashboard?: () => Promise<{ success: boolean; error?: string }>;
   onProfileData?: (callback: (data: any) => void) => void;
   onAutoSelectInfo?: (callback: (data: { companyId: number }) => void) => void;
+  onInitialError?: (callback: (data: { error: string }) => void) => void;
+  onWarningMessage?: (callback: (data: { warning: string }) => void) => void;
   
   // Dashboard
   getProfile?: () => Promise<any>;
@@ -70,6 +72,7 @@ export interface ElectronAPI {
   getStagingCustomers?: (page?: number, limit?: number, search?: string) => Promise<any>;
   getStagingInvoices?: (page?: number, limit?: number, search?: string) => Promise<any>;
   getStagingPayments?: (page?: number, limit?: number, search?: string) => Promise<any>;
+  getStagingJvEntries?: (page?: number, limit?: number, search?: string) => Promise<any>;
   
   // Common
   removeAllListeners?: (channel: string) => void;

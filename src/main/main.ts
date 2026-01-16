@@ -77,6 +77,38 @@ process.on('unhandledRejection', (reason, promise) => {
   // Don't quit - let the app continue running
 });
 
+/**
+ * Format Tally connection errors into user-friendly messages
+ */
+function formatTallyError(error: any): string {
+  const errorMessage = error?.message || String(error || 'Unknown error');
+  const errorCode = error?.code || error?.errno;
+  
+  // Check for connection errors
+  if (errorCode === 'ECONNREFUSED' || errorMessage.includes('ECONNREFUSED')) {
+    return 'Tally is not running or not accessible on port 9000. Please ensure Tally Prime is running and try again.';
+  }
+  
+  if (errorCode === 'ETIMEDOUT' || errorMessage.includes('timeout')) {
+    return 'Connection to Tally timed out. Please ensure Tally Prime is running and try again.';
+  }
+  
+  if (errorCode === 'ECONNRESET' || errorMessage.includes('ECONNRESET')) {
+    return 'Connection to Tally was reset. Please ensure Tally Prime is running and try again.';
+  }
+  
+  if (errorMessage.includes('ZeroFinnCmp')) {
+    return 'ZeroFinnCmp report not found in Tally. Please ensure the report is installed in Tally Prime.';
+  }
+  
+  if (errorMessage.includes('Unknown Request')) {
+    return 'Tally returned an error. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
+  }
+  
+  // Generic error message
+  return `Failed to fetch companies from Tally: ${errorMessage}. Please ensure Tally Prime is running on port 9000.`;
+}
+
 // Handle login success - can be called directly or via IPC event
 async function handleLoginSuccess(): Promise<void> {
   console.log('handleLoginSuccess called → Initializing organization database');
@@ -203,29 +235,32 @@ async function handleLoginSuccess(): Promise<void> {
       try {
       // Fetch companies from Tally
       const companies = await fetchCompanies(dbService);
-      const filteredCompanies = companies.filter(c => c.biller_id === profile.biller_id);
       
-      if (filteredCompanies.length === 0) {
-        console.log('No companies found in Tally for this biller');
-        createCompanySelectorWindow(profile, null);
+      if (companies.length === 0) {
+        console.log('No companies found in Tally');
+        const errorMsg = 'No companies were found in Tally. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
+        createCompanySelectorWindow(profile, null, errorMsg);
         return;
       }
 
-      // Save companies to database
-      console.log(`Saving ${filteredCompanies.length} companies to database...`);
-      for (const companyData of filteredCompanies) {
+      // Save ALL companies to database
+      console.log(`Saving ${companies.length} companies to database...`);
+      for (const companyData of companies) {
         await companyRepository.upsertCompany(companyData);
       }
 
-      // Extract organization data from profile for matching
+      // Check if biller_id matches
       const billerId = profile.biller_id || '';
-      if (!billerId) {
-        console.error('No biller_id in profile');
-        createCompanySelectorWindow(profile, null);
-        return;
+      let warningMessage: string | null = null;
+      const matchingBillerCompanies = companies.filter(c => c.biller_id === billerId);
+      
+      if (billerId && matchingBillerCompanies.length === 0) {
+        warningMessage = `Your account's biller_id does not match any companies in Tally. You cannot proceed until a matching company is available.`;
+        console.warn('Biller ID mismatch:', { profileBillerId: billerId, companiesFromTally: companies.map(c => c.biller_id) });
       }
       
-      const savedCompanies = companyRepository.getAllCompanies(billerId);
+      // Get all companies from database (for display, but only matching ones will be selectable)
+      const savedCompanies = companyRepository.getAllCompanies();
       
       // Extract organization_id from profile.organization.response.organization_id
       let profileOrgId = '';
@@ -286,16 +321,16 @@ async function handleLoginSuccess(): Promise<void> {
       // Show company selector with auto-select info if match found
       // Don't auto-select in DB yet - let user confirm with Continue button
       console.log(`Found ${savedCompanies.length} companies, showing selector`);
-      if (matchedCompany) {
+      if (matchedCompany && matchedCompany.biller_id === billerId) {
         console.log('Matching company found, will auto-select in UI:', {
           id: matchedCompany.id,
           name: matchedCompany.name,
           organization_id: matchedCompany.organization_id
         });
-        createCompanySelectorWindow(profile, matchedCompany.id);
+        createCompanySelectorWindow(profile, matchedCompany.id, null, warningMessage);
       } else {
         console.log('No matching company found, showing all companies for selection');
-        createCompanySelectorWindow(profile, null);
+        createCompanySelectorWindow(profile, null, null, warningMessage);
       }
       } catch (error: any) {
         console.error('Error fetching companies:', error);
@@ -434,8 +469,8 @@ function createLoginWindow(): void {
 }
 
 // Create Company Selector Window
-function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number | null = null): void {
-  console.log('createCompanySelectorWindow called', { profile: profile?.email, autoSelectedCompanyId });
+function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number | null = null, initialError: string | null = null, warning: string | null = null): void {
+  console.log('createCompanySelectorWindow called', { profile: profile?.email, autoSelectedCompanyId, initialError });
   
   if (companySelectorWindow) {
     console.log('Company selector window already exists, focusing');
@@ -500,6 +535,14 @@ function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number
         // Send auto-select info if available
         if (autoSelectedCompanyId !== null) {
           companySelectorWindow.webContents.send('auto-select-info', { companyId: autoSelectedCompanyId });
+        }
+        // Send initial error if available
+        if (initialError) {
+          companySelectorWindow.webContents.send('initial-error', { error: initialError });
+        }
+        // Send warning if available
+        if (warning) {
+          companySelectorWindow.webContents.send('warning-message', { warning });
         }
       }
     } catch (error) {
@@ -1018,21 +1061,43 @@ ipcMain.handle('fetch-companies', async (event) => {
     }
 
     const companies = await fetchCompanies(dbService);
-    // Filter by biller_id and save to database
-    const filteredCompanies = companies.filter(c => c.biller_id === profile.biller_id);
-    
-    // Save companies to database
-    for (const companyData of filteredCompanies) {
+    // Save ALL companies to database
+    for (const companyData of companies) {
       await companyRepository.upsertCompany(companyData);
     }
 
-    // Get saved companies
-    const savedCompanies = companyRepository.getAllCompanies(profile.biller_id);
+    // Get all saved companies
+    const savedCompanies = companyRepository.getAllCompanies();
     
-    return { success: true, companies: savedCompanies };
+    // Check if biller_id matches and filter selectable companies
+    const billerId = profile.biller_id || '';
+    let warning: string | null = null;
+    const matchingCompanies = savedCompanies.filter(c => c.biller_id === billerId);
+    
+    if (billerId && matchingCompanies.length === 0 && savedCompanies.length > 0) {
+      warning = `Your account's biller_id does not match any companies in Tally. You cannot proceed until a matching company is available.`;
+    }
+    
+    // Return all companies (for display) but mark which ones are selectable
+    return { 
+      success: true, 
+      companies: savedCompanies.map(c => ({
+        ...c,
+        isSelectable: c.biller_id === billerId
+      })), 
+      warning,
+      billerId 
+    };
   } catch (error: any) {
     console.error('Error fetching companies:', error);
-    return { success: false, error: error.message || 'Failed to fetch companies' };
+    const userFriendlyError = formatTallyError(error);
+    dbService.log('ERROR', 'Failed to fetch companies from Tally', {
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+      userFriendlyError
+    });
+    return { success: false, error: userFriendlyError };
   }
 });
 
@@ -1576,13 +1641,6 @@ ipcMain.handle('get-tally-status', async () => {
     // Get updated status after check
     const updatedStatus = tallyConnectivityService.getStatus();
     
-    console.log('Tally status response:', {
-      isOnline: updatedStatus?.isOnline,
-      lastCheckTime: updatedStatus?.lastCheckTime,
-      port: updatedStatus?.port,
-      errorMessage: updatedStatus?.errorMessage
-    });
-    
     // Ensure status always has required fields
     return {
       isOnline: updatedStatus?.isOnline ?? false,
@@ -2056,6 +2114,173 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
     return {
       success: false,
       error: errorMessage,
+      details: [],
+      paginate_data: {
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: 0,
+        totalResults: 0
+      }
+    };
+  }
+});
+
+ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: number, search?: string) => {
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile || !profile.biller_id || !profile.apikey) {
+      console.error('Staging JV entries: Missing profile, biller_id, or API key', { 
+        hasProfile: !!profile, 
+        hasBillerId: !!profile?.biller_id, 
+        hasApiKey: !!profile?.apikey 
+      });
+      return { 
+        success: false, 
+        error: 'No profile, biller_id, or API key found. Please login again.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+
+    const apiUrl = await getApiUrl(dbService);
+    console.log('Fetching staging JV entries:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
+    
+    if (!apiUrl) {
+      console.error('Staging JV entries: API URL is empty');
+      return {
+        success: false,
+        error: 'API URL is not configured. Please check settings.',
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+    
+    const response = await axios.get(`${apiUrl}/ledgers/tally/jv-entries`, {
+      params: {
+        search: search || '',
+        page: page || 1,
+        pageSize: String(limit || 10),
+        biller_id: profile.biller_id // Also send in query params as fallback
+      },
+      headers: {
+        'API-KEY': profile.apikey,
+        'X-Biller-Id': profile.biller_id
+      },
+      timeout: 15000,
+      validateStatus: (status) => status < 500 // Accept 4xx as valid responses
+    });
+    
+    console.log('Staging JV entries response:', { 
+      status: response.status, 
+      dataKeys: Object.keys(response.data || {}),
+      hasStatus: 'status' in (response.data || {}),
+      statusValue: response.data?.status
+    });
+
+    // Handle HTTP error status codes (4xx)
+    if (response.status >= 400 && response.status < 500) {
+      const errorMsg = response.data?.message || response.data?.error || response.data?.status === false ? (response.data?.message || response.data?.error || 'Bad request') : 'Bad request';
+      console.error('Staging JV entries HTTP error:', { status: response.status, error: errorMsg, data: response.data });
+      return {
+        success: false,
+        error: errorMsg,
+        details: [],
+        paginate_data: {
+          page: page || 1,
+          limit: limit || 10,
+          totalPages: 0,
+          totalResults: 0
+        }
+      };
+    }
+
+    // Check if response has data
+    if (response.data) {
+      // Backend returns { status: true, details: [], paginate_data: {} }
+      if (typeof response.data.status === 'boolean') {
+        if (response.data.status === true) {
+          return {
+            success: true,
+            details: response.data.details || [],
+            paginate_data: response.data.paginate_data || {
+              page: page || 1,
+              limit: limit || 10,
+              totalPages: 1,
+              totalResults: 0
+            }
+          };
+        } else {
+          // status is false - return error
+          const errorMsg = response.data.message || response.data.error || 'Request failed';
+          console.error('Staging JV entries request failed:', errorMsg);
+          return {
+            success: false,
+            error: errorMsg,
+            details: [],
+            paginate_data: {
+              page: page || 1,
+              limit: limit || 10,
+              totalPages: 0,
+              totalResults: 0
+            }
+          };
+        }
+      }
+      
+      // If response.data is an array or object with details, return it
+      if (Array.isArray(response.data)) {
+        return {
+          success: true,
+          details: response.data,
+          paginate_data: {
+            page: page || 1,
+            limit: limit || 10,
+            totalPages: 1,
+            totalResults: response.data.length
+          }
+        };
+      }
+      
+      if (response.data.details) {
+        return {
+          success: true,
+          details: response.data.details || [],
+          paginate_data: response.data.paginate_data || {
+            page: page || 1,
+            limit: limit || 10,
+            totalPages: 1,
+            totalResults: 0
+          }
+        };
+      }
+    }
+
+    // Fallback: return empty result
+    return {
+      success: true,
+      details: [],
+      paginate_data: {
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: 0,
+        totalResults: 0
+      }
+    };
+  } catch (error: any) {
+    console.error('Error fetching staging JV entries:', error);
+    return {
+      success: false,
+      error: error?.message || 'Failed to fetch staging JV entries. Please try again.',
       details: [],
       paginate_data: {
         page: page || 1,

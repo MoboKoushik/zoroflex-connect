@@ -2230,8 +2230,18 @@ export class DatabaseService {
     const receiptStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'`);
     const receiptCount = (receiptStmt.get() as { count: number }).count;
 
-    const jvStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'journal'`);
-    const jvCount = (jvStmt.get() as { count: number }).count;
+    // JV count from sync_history (since JV entries are not stored in vouchers table)
+    const jvStmt = this.db!.prepare(`
+      SELECT entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'JOURNAL' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+      ORDER BY completed_at DESC 
+      LIMIT 1
+    `);
+    const jvResult = jvStmt.get() as { entity_count: number } | undefined;
+    const jvCount = jvResult?.entity_count || 0;
 
     const lastSyncStmt = this.db!.prepare(`SELECT MAX(completed_at) as last_sync FROM sync_history WHERE status = 'SUCCESS'`);
     const lastSync = (lastSyncStmt.get() as { last_sync: string | null }).last_sync;
@@ -2726,6 +2736,13 @@ export class DatabaseService {
       previousSyncCount: number;
       totalCount: number;
     };
+    journal: {
+      lastSyncTime: string | null;
+      lastSyncCount: number;
+      previousSyncTime: string | null;
+      previousSyncCount: number;
+      totalCount: number;
+    };
   }> {
     // Get last 2 successful syncs for each entity - include PARTIAL status
     const ledgerStmt = this.db!.prepare(`
@@ -2806,6 +2823,22 @@ export class DatabaseService {
       paymentTotal = paymentSyncs[0]?.entity_count || 0;
     }
 
+    // Get last 2 successful syncs for JOURNAL entity
+    const journalStmt = this.db!.prepare(`
+      SELECT completed_at, entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'JOURNAL' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+        AND entity_count > 0
+      ORDER BY completed_at DESC 
+      LIMIT 2
+    `);
+    const journalSyncs = journalStmt.all() as Array<{ completed_at: string; entity_count: number }>;
+
+    // Get total count: Use the last successful sync count (JV entries are not stored locally)
+    let journalTotal = journalSyncs[0]?.entity_count || 0;
+
     return {
       ledger: {
         lastSyncTime: ledgerSyncs[0]?.completed_at || null,
@@ -2827,6 +2860,13 @@ export class DatabaseService {
         previousSyncTime: paymentSyncs[1]?.completed_at || null,
         previousSyncCount: paymentSyncs[1]?.entity_count || 0,
         totalCount: paymentTotal,
+      },
+      journal: {
+        lastSyncTime: journalSyncs[0]?.completed_at || null,
+        lastSyncCount: journalSyncs[0]?.entity_count || 0,
+        previousSyncTime: journalSyncs[1]?.completed_at || null,
+        previousSyncCount: journalSyncs[1]?.entity_count || 0,
+        totalCount: journalTotal,
       },
     };
   }

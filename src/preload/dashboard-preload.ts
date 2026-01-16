@@ -99,6 +99,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-staging-invoices', page, limit, search),
   getStagingPayments: (page?: number, limit?: number, search?: string) => 
     ipcRenderer.invoke('get-staging-payments', page, limit, search),
+  getStagingJvEntries: (page?: number, limit?: number, search?: string) => 
+    ipcRenderer.invoke('get-staging-jv-entries', page, limit, search),
   
   // Analytics
   getAnalytics: () => ipcRenderer.invoke('get-analytics'),

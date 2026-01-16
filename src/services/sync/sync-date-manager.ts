@@ -3,7 +3,7 @@ import moment from 'moment';
 import { DatabaseService } from '../database/database.service';
 
 export type SyncType = 'full' | 'fresh' | 'incremental';
-export type EntityType = 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'ALL';
+export type EntityType = 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'ALL';
 
 export interface Company {
     id: number;
