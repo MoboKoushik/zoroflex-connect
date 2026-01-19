@@ -9,6 +9,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '◉' },
+    { id: 'books', label: 'Manage Books', icon: '📚' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
     // { id: 'customers', label: 'Customers', icon: '○' },
     // { id: 'invoices', label: 'Invoices', icon: '◐' },

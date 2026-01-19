@@ -11,6 +11,11 @@ import { fetchCompanies } from '../services/sync/fetch-to-tally/fetchCompanies';
 import { TallyConnectivityService } from '../services/tally/tally-connectivity.service';
 import { ApiHealthService } from '../services/api/api-health.service';
 import { SystemNotificationService } from '../services/notifications/system-notification.service';
+import { BookManagerService } from '../services/book-management/book-manager.service';
+import { createBookSelectorWindow, closeBookSelectorWindow } from './windows/book-selector.window';
+import { fetchBooksFromApi } from '../services/api/fetch-books-from-api.service';
+import { createSplashWindow, closeSplashWindow } from './windows/splash.window';
+import { createBookLoginWindow } from './windows/book-login.window';
 
 let tray: Tray | null = null;
 let loginWindow: BrowserWindow | null = null;
@@ -22,6 +27,7 @@ let organizationService = new OrganizationService(dbService);
 let syncService = new SyncService(dbService, organizationService);
 let apiLogger = new ApiLoggerService(dbService);
 let companyRepository = new CompanyRepository(dbService);
+let bookManagerService: BookManagerService | null = null;
 let tallyConnectivityService = new TallyConnectivityService(dbService);
 let apiHealthService = new ApiHealthService(dbService);
 let notificationService = new SystemNotificationService(dbService);
@@ -137,45 +143,16 @@ async function handleLoginSuccess(): Promise<void> {
 
   console.log('Organization UUID:', organizationUuid);
   
-  // Store organization UUID in settings
+  // Store organization UUID in settings (for backward compatibility)
   await dbService.setOrganizationUuid(organizationUuid);
 
-    // Initialize database with organization UUID
-    const localDbExists = dbService.databaseExists(organizationUuid);
-    
-    if (!localDbExists) {
-      // Try to restore from backend
-      console.log('Local database not found, attempting to restore from backend...');
-      try {
-        const restored = await dbService.restoreDatabaseFromBackend(
-          profile.biller_id || '',
-          organizationUuid
-        );
-        
-        if (restored) {
-          console.log('Database restored from backend successfully');
-          dbService.switchDatabase(organizationUuid);
-        } else {
-          console.log('Database not found in backend, creating new database');
-          dbService.initializeDatabase(organizationUuid);
-        }
-      } catch (dbError: any) {
-        console.error('Error initializing database:', dbError);
-        dbService.log('ERROR', 'Database initialization failed', { error: dbError.message });
-        // Still try to create new database
-        dbService.initializeDatabase(organizationUuid);
-      }
-    } else {
-      console.log('Local database found, using existing database');
-      dbService.initializeDatabase(organizationUuid);
-    }
-  
-    // Re-initialize services with correct database
+    // ✅ Re-initialize services first (needed to access companyRepository)
     try {
       organizationService = new OrganizationService(dbService);
       syncService = new SyncService(dbService, organizationService);
       apiLogger = new ApiLoggerService(dbService);
       companyRepository = new CompanyRepository(dbService);
+      bookManagerService = new BookManagerService(dbService, companyRepository);
       apiLogger.setupInterceptor(axios);
       
       // Re-initialize monitoring services
@@ -198,18 +175,131 @@ async function handleLoginSuccess(): Promise<void> {
       }
     }
 
-    // Check if user already has an active company
-    // Ensure companyRepository is available
-    if (!companyRepository) {
-      console.error('CompanyRepository not initialized, creating new instance');
-      companyRepository = new CompanyRepository(dbService);
+    // ✅ NEW FLOW: After login, fetch books from API and show book selector
+    console.log('Fetching books from API for biller:', profile.biller_id);
+    
+    try {
+      const booksFromApi = await fetchBooksFromApi(
+        profile.biller_id || '',
+        profile.apikey || '7061797A6F72726F74616C6C79',
+        dbService
+      );
+
+      if (booksFromApi.length > 0) {
+        console.log(`Found ${booksFromApi.length} book(s) from API, showing book selector`);
+        // Show book selector window
+        createBookSelectorWindow(profile);
+        return; // Exit early, book selector will handle connection
+      } else {
+        console.log('No books found from API, checking for local active books');
+      }
+    } catch (apiError: any) {
+      console.error('Error fetching books from API:', apiError);
+      dbService.log('ERROR', 'Failed to fetch books from API', { error: apiError.message });
+      // Continue with local books check as fallback
+    }
+
+    // ✅ FALLBACK: Check if user has active books locally (multi-book support)
+    // First, check if we have any book databases before querying
+    let activeCompaniesLocal: any[] = [];
+    try {
+      // Try to get active companies, but handle case where database might not be initialized
+      activeCompaniesLocal = companyRepository.getActiveCompanies(profile.biller_id || '');
+    } catch (dbError: any) {
+      console.log('No database initialized yet for active companies check:', dbError.message);
+      // This is okay - we'll proceed to show book selector or create new database
+      activeCompaniesLocal = [];
     }
     
-    const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
+    if (activeCompaniesLocal.length > 0) {
+      // ✅ User has active books - restore/initialize each book's database
+      console.log(`Found ${activeCompaniesLocal.length} active book(s), initializing databases...`);
+      
+      for (const book of activeCompaniesLocal) {
+        const bookDbExists = dbService.databaseExistsForBook(book.biller_id, book.id);
+        
+        if (!bookDbExists) {
+          console.log(`Book "${book.name}" database not found locally, attempting restore...`);
+          try {
+            // ✅ Set context for restore (so restoreDatabaseFromBackend knows it's for a book)
+            // This sets currentBillerId and currentCompanyId
+            dbService.switchDatabaseForBook(book.biller_id, book.id);
+            
+            // Try to restore from backend using organization_id
+            const restored = await dbService.restoreDatabaseFromBackend(
+              book.biller_id,
+              book.organization_id
+            );
+            
+            if (restored) {
+              console.log(`Book "${book.name}" database restored from backend`);
+              // restoreDatabaseFromBackend already handles book-based naming when context is set
+              // So no need to rename
+            } else {
+              console.log(`Book "${book.name}" database not found in backend, creating new`);
+              dbService.initializeDatabaseForBook(book.biller_id, book.id);
+            }
+          } catch (dbError: any) {
+            console.error(`Error initializing book "${book.name}" database:`, dbError);
+            dbService.log('ERROR', `Book database initialization failed: ${book.name}`, { error: dbError.message });
+            // Create new database for this book
+            dbService.initializeDatabaseForBook(book.biller_id, book.id);
+          }
+        } else {
+          console.log(`Book "${book.name}" database exists locally`);
+          dbService.switchDatabaseForBook(book.biller_id, book.id);
+        }
+      }
+      
+      // Switch to first active book's database
+      const firstBook = activeCompaniesLocal[0];
+      dbService.switchDatabaseForBook(firstBook.biller_id, firstBook.id);
+    } else {
+      // ✅ LEGACY: No active books - use organization UUID based database (backward compatibility)
+      console.log('No active books found, using legacy organization UUID database');
+      const localDbExists = dbService.databaseExists(organizationUuid);
+      
+      if (!localDbExists) {
+        // Try to restore from backend
+        console.log('Local database not found, attempting to restore from backend...');
+        try {
+          const restored = await dbService.restoreDatabaseFromBackend(
+            profile.biller_id || '',
+            organizationUuid
+          );
+          
+          if (restored) {
+            console.log('Database restored from backend successfully');
+            dbService.switchDatabase(organizationUuid);
+          } else {
+            console.log('Database not found in backend, creating new database');
+            dbService.initializeDatabase(organizationUuid);
+          }
+        } catch (dbError: any) {
+          console.error('Error initializing database:', dbError);
+          dbService.log('ERROR', 'Database initialization failed', { error: dbError.message });
+          // Still try to create new database
+          dbService.initializeDatabase(organizationUuid);
+        }
+      } else {
+        console.log('Local database found, using existing database');
+        dbService.initializeDatabase(organizationUuid);
+      }
+    }
+  
+    // ✅ Check for active books (multiple books can be active now)
+    let activeCompaniesFinal: any[] = [];
+    try {
+      // Now database should be initialized, so we can safely query
+      activeCompaniesFinal = companyRepository.getActiveCompanies(profile.biller_id || '');
+    } catch (dbError: any) {
+      console.error('Error getting active companies after database init:', dbError.message);
+      activeCompaniesFinal = [];
+    }
     
-    if (activeCompany) {
-      // User already has a company selected, go directly to dashboard
-      console.log('Active company found, opening dashboard:', activeCompany.name);
+    if (activeCompaniesFinal.length > 0) {
+      // ✅ User has active book(s), go directly to dashboard
+      console.log(`Found ${activeCompaniesFinal.length} active book(s), proceeding to dashboard`);
       
       // Hide login window when going to dashboard
       if (loginWindow) {
@@ -376,12 +466,19 @@ ipcMain.on('login-success', async () => {
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
 
-  // Initialize API endpoint setting if not exists
+  // ✅ Show splash screen immediately
+  const splash = createSplashWindow();
+
+  // Initialize API endpoint setting if not exists or reset to localhost for development
   const existingApiEndpoint = await dbService.getSetting('apiEndpoint');
-  if (!existingApiEndpoint) {
-    const defaultUrl = getDefaultApiUrl();
+  const defaultUrl = getDefaultApiUrl();
+  
+  if (!existingApiEndpoint || existingApiEndpoint !== defaultUrl) {
+    // Reset to default (localhost) for development
     await dbService.setSetting('apiEndpoint', defaultUrl);
-    console.log('Initialized API endpoint setting with default:', defaultUrl);
+    console.log('API endpoint set to:', defaultUrl);
+  } else {
+    console.log('API endpoint already set to:', existingApiEndpoint);
   }
 
   // Initialize auto-start setting if not exists (default to true)
@@ -393,33 +490,57 @@ app.whenReady().then(async () => {
   // Apply auto-start settings
   await applyAutoStartSettings();
 
+  // ✅ ALWAYS show dashboard (no login screen on startup)
+  // Login will only be needed when connecting a new book
   const profile = await dbService.getProfile().catch(() => null);
 
-  if (profile) {
-    console.log('Profile found → Checking for active company');
-    const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
+  // ✅ Initialize BookManagerService if profile exists
+  if (profile && !bookManagerService) {
+    bookManagerService = new BookManagerService(dbService, companyRepository);
+  }
+  
+  // ✅ Check for active books (only if profile exists)
+  let activeCompanies: any[] = [];
+  if (profile?.biller_id) {
+    activeCompanies = companyRepository.getActiveCompanies(profile.biller_id || '');
+  }
+  
+  if (activeCompanies.length > 0) {
+    console.log(`Found ${activeCompanies.length} active book(s) → Starting in background`);
     
-    if (activeCompany) {
-      console.log('Active company found → Starting in background');
-      
-      // Apply auto-start settings
-      await applyAutoStartSettings();
-      
+    // ✅ Switch to first active book's database
+    const firstActiveBook = activeCompanies[0];
+    dbService.switchDatabaseForBook(firstActiveBook.biller_id, firstActiveBook.id);
+    
+    // Apply auto-start settings
+    await applyAutoStartSettings();
+    
+    // ✅ Start background sync for all active books
+    if (profile) {
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
-      
-      // If auto-start, don't show window; otherwise show window
-      const shouldShowWindow = !isAutoStart;
-      createDashboardWindow(profile, shouldShowWindow);
-    } else {
-      console.log('No active company → Showing company selector');
-      // Don't start sync - wait for company selection
-      createCompanySelectorWindow(profile, null);
     }
+    
+    // If auto-start, don't show window; otherwise show window
+    const shouldShowWindow = !isAutoStart;
+    createDashboardWindow(profile, shouldShowWindow);
+    
+    // ✅ Close splash screen after a short delay
+    setTimeout(() => {
+      closeSplashWindow();
+    }, 500);
   } else {
-    console.log('No profile → Opening login');
-    createLoginWindow();
+    console.log('No active book → Showing dashboard with empty state');
+    // ✅ Always show dashboard (even without profile)
+    // Dashboard will show empty state if no books connected
+    const shouldShowWindow = !isAutoStart;
+    createDashboardWindow(profile, shouldShowWindow);
+    
+    // ✅ Close splash screen
+    setTimeout(() => {
+      closeSplashWindow();
+    }, 500);
   }
 });
 
@@ -648,18 +769,32 @@ function createDashboardWindow(profile: any, show: boolean = true): void {
 }
 
 ipcMain.handle('login', async (event, credentials: { email: string; password: string }) => {
-  console.log('Login attempt:', credentials.email);
+  // Normalize email to lowercase (backend expects lowercase)
+  const normalizedEmail = credentials.email.toLowerCase().trim();
+  const normalizedCredentials = {
+    email: normalizedEmail,
+    password: credentials.password
+  };
+  
+  console.log('Login attempt:', normalizedEmail);
 
   try {
     const apiUrl = await getApiUrl(dbService);
-    const { data } = await axios.post(`${apiUrl}/billers/tally/login`, credentials, {
+    console.log('Attempting login to:', `${apiUrl}/billers/tally/login`);
+    
+    const { data } = await axios.post(`${apiUrl}/billers/tally/login`, normalizedCredentials, {
       timeout: 15000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
+
+    console.log('Login response:', data);
 
     if (data.success) {
       const { token, biller_id, apikey, organization } = data;
 
-      await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
+      await dbService.saveProfile(normalizedEmail, token, biller_id, apikey, organization);
       console.log('Profile saved successfully, triggering login-success handler');
 
       setImmediate(async () => {
@@ -672,13 +807,28 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
       
       return { success: true };
     } else {
-      return { success: false, message: data.message || 'Login failed' };
+      const errorMessage = data.message || 'Login failed';
+      console.error('Login failed:', errorMessage);
+      return { success: false, message: errorMessage };
     }
   } catch (error: any) {
     console.error('Login error:', error.message);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    
+    // Check if it's a network error or API error
+    let errorMessage = 'Server not reachable';
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return {
       success: false,
-      message: error.response?.data?.message || 'Server not reachable',
+      message: errorMessage,
     };
   }
 });
@@ -1108,8 +1258,19 @@ ipcMain.handle('select-company', async (event, companyId: number) => {
       return { success: false, error: 'No profile found' };
     }
 
+    // ✅ Initialize BookManagerService if needed
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+
+    // ✅ Switch to this book's database
+    const company = companyRepository.getCompanyById(companyId);
+    if (company) {
+      dbService.switchDatabaseForBook(company.biller_id, companyId);
+    }
+
     // Set company as active (don't start sync yet - wait for Continue button)
-    companyRepository.setActiveCompany(companyId, profile.biller_id);
+    companyRepository.setActiveCompany(companyId, profile.biller_id, false); // false = allow multiple active
     
     dbService.log('INFO', 'Company selected and set as active', {
       company_id: companyId,
@@ -2478,6 +2639,159 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
         totalResults: 0
       }
     };
+  }
+});
+
+// ✅ Book Management IPC Handlers
+ipcMain.handle('get-all-books', async (event) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const profile = await dbService.getProfile();
+    if (!profile?.biller_id) {
+      return { success: false, error: 'No profile or biller_id found' };
+    }
+    const books = bookManagerService.getAllBooks(profile.biller_id);
+    return { success: true, books };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('get-active-books', async (event) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const profile = await dbService.getProfile();
+    if (!profile?.biller_id) {
+      return { success: false, error: 'No profile or biller_id found' };
+    }
+    const books = bookManagerService.getActiveBooks(profile.biller_id);
+    return { success: true, books };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('add-book', async (event, bookData: {
+  organization_id: string;
+  tally_id: string;
+  name: string;
+  tally_username: string;
+  tally_password: string;
+  gstin?: string;
+  address?: string;
+  state?: string;
+  country?: string;
+  pin?: string;
+  trn?: string;
+  book_start_from?: string;
+  auto_sync_enabled?: boolean;
+  sync_interval_minutes?: number;
+}) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const profile = await dbService.getProfile();
+    if (!profile?.biller_id) {
+      return { success: false, error: 'No profile or biller_id found' };
+    }
+    const result = await bookManagerService.addBook(profile.biller_id, bookData);
+    return result;
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('switch-book', async (event, companyId: number, makeExclusive: boolean = false) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    await bookManagerService.switchActiveBook(companyId, makeExclusive);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('sync-book', async (event, companyId: number, type: 'MANUAL' | 'BACKGROUND' = 'MANUAL') => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    await bookManagerService.syncBook(companyId, type);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('remove-book', async (event, companyId: number) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    await bookManagerService.removeBook(companyId);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('update-book-credentials', async (event, companyId: number, credentials: {
+  tally_username?: string;
+  tally_password?: string;
+}) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const company = await bookManagerService.updateBookCredentials(companyId, credentials);
+    return { success: true, company };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('get-book-sync-status', async (event, companyId: number) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const status = bookManagerService.getBookSyncStatus(companyId);
+    if (!status) {
+      return { success: false, error: 'Book not found' };
+    }
+    return { success: true, status };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('test-book-connection', async (event, companyId: number) => {
+  try {
+    if (!bookManagerService) {
+      bookManagerService = new BookManagerService(dbService, companyRepository);
+    }
+    const isConnected = await bookManagerService.testBookConnection(companyId);
+    return { success: true, isConnected };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ✅ Open book login window (for connecting new books)
+ipcMain.handle('open-book-login-window', async (event) => {
+  try {
+    createBookLoginWindow();
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error opening book login window:', error);
+    return { success: false, error: error.message || 'Failed to open login window' };
   }
 });
 

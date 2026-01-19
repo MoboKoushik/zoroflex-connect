@@ -1,6 +1,7 @@
 // src/services/sync/sync-date-manager.ts
 import moment from 'moment';
 import { DatabaseService } from '../database/database.service';
+import { CompanyRepository } from '../database/repositories/company.repository';
 
 export type SyncType = 'full' | 'fresh' | 'incremental';
 export type EntityType = 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'ALL';
@@ -17,9 +18,11 @@ export interface Company {
 
 export class SyncDateManager {
     private dbService: DatabaseService;
+    private companyRepository: CompanyRepository;
 
     constructor(dbService: DatabaseService) {
         this.dbService = dbService;
+        this.companyRepository = new CompanyRepository(dbService);
     }
 
     /**
@@ -70,23 +73,20 @@ export class SyncDateManager {
 
     /**
      * Get company by ID
+     * ✅ FIXED: Now uses CompanyRepository which accesses profile.db
      */
     private getCompany(companyId: number): Company | null {
-        // This will be implemented in database service
-        const stmt = this.dbService['db']?.prepare(
-            'SELECT * FROM companies WHERE id = ? AND is_active = 1'
-        );
-        const row = stmt?.get(companyId) as any;
-        if (!row) return null;
+        const company = this.companyRepository.getCompanyById(companyId);
+        if (!company || !company.is_active) return null;
 
         return {
-            id: row.id,
-            biller_id: row.biller_id,
-            organization_id: row.organization_id,
-            tally_id: row.tally_id,
-            name: row.name,
-            book_start_from: row.book_start_from,
-            is_active: row.is_active
+            id: company.id,
+            biller_id: company.biller_id,
+            organization_id: company.organization_id,
+            tally_id: company.tally_id,
+            name: company.name,
+            book_start_from: company.book_start_from || moment().format('YYYY-MM-DD'),
+            is_active: company.is_active ? 1 : 0
         };
     }
 

@@ -230,17 +230,20 @@ export class DatabaseService {
   private db: Database.Database | null = null;
   private dbPath: string = '';
   private currentOrganizationUuid: string | null = null;
+  
+  // ✅ NEW: Multi-database support for multiple books
+  private currentBillerId: string | null = null;
+  private currentCompanyId: number | null = null;
+  private dbConnections: Map<string, Database.Database> = new Map(); // Cache for multiple databases
 
   constructor(organizationUuid?: string | null) {
+    // ✅ Don't initialize database until login and book selection
+    // Database will be created only when a book is connected
+    // This prevents default database creation
     if (organizationUuid) {
       this.initializeDatabase(organizationUuid);
-    } else {
-      // Default database for initial setup (before login)
-      this.dbPath = path.join(app.getPath('userData'), 'tally-sync_default.db');
-      const dir = path.dirname(this.dbPath);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      this.init();
     }
+    // No else block - database will be initialized later when needed
   }
 
   /**
@@ -306,6 +309,137 @@ export class DatabaseService {
   databaseExists(organizationUuid: string): boolean {
     const dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
     return fs.existsSync(dbPath);
+  }
+
+  /**
+   * ✅ NEW: Initialize database for a specific book (biller_id + company_id)
+   */
+  initializeDatabaseForBook(billerId: string, companyId: number): void {
+    const dbKey = `${billerId}_${companyId}`;
+    
+    if (this.currentBillerId === billerId && 
+        this.currentCompanyId === companyId && 
+        this.db) {
+      return; // Already using this database
+    }
+
+    // Close current database if different
+    if (this.db && (this.currentBillerId !== billerId || this.currentCompanyId !== companyId)) {
+      this.closeDatabase();
+    }
+
+    this.currentBillerId = billerId;
+    this.currentCompanyId = companyId;
+
+    // Check if connection already exists in cache
+    if (this.dbConnections.has(dbKey)) {
+      this.db = this.dbConnections.get(dbKey)!;
+      this.dbPath = path.join(
+        app.getPath('userData'), 
+        `tally-sync_${billerId}_${companyId}.db`
+      );
+      return;
+    }
+
+    // Create or open new database
+    this.dbPath = path.join(
+      app.getPath('userData'), 
+      `tally-sync_${billerId}_${companyId}.db`
+    );
+    
+    const dir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    this.init();
+    
+    // Cache the connection
+    if (this.db) {
+      this.dbConnections.set(dbKey, this.db);
+    }
+  }
+
+  /**
+   * ✅ Switch to a different book database
+   */
+  switchDatabaseForBook(billerId: string, companyId: number): void {
+    this.initializeDatabaseForBook(billerId, companyId);
+  }
+
+  /**
+   * ✅ Get database for a specific book (without switching current connection)
+   */
+  getDatabaseForBook(billerId: string, companyId: number): Database.Database | null {
+    const dbKey = `${billerId}_${companyId}`;
+    
+    if (this.dbConnections.has(dbKey)) {
+      return this.dbConnections.get(dbKey)!;
+    }
+
+    // Create temporary connection
+    const dbPath = path.join(
+      app.getPath('userData'), 
+      `tally-sync_${billerId}_${companyId}.db`
+    );
+    
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    try {
+      const db = new Database(dbPath);
+      this.dbConnections.set(dbKey, db);
+      return db;
+    } catch (error) {
+      console.error(`Error creating database connection for ${dbKey}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * ✅ Check if database exists for a book
+   */
+  databaseExistsForBook(billerId: string, companyId: number): boolean {
+    const dbPath = path.join(
+      app.getPath('userData'), 
+      `tally-sync_${billerId}_${companyId}.db`
+    );
+    return fs.existsSync(dbPath);
+  }
+
+  /**
+   * ✅ Get current company ID
+   */
+  getCurrentCompanyId(): number | null {
+    return this.currentCompanyId;
+  }
+
+  /**
+   * ✅ Get current biller ID
+   */
+  getCurrentBillerId(): string | null {
+    return this.currentBillerId;
+  }
+
+  /**
+   * ✅ Close all database connections (for cleanup)
+   */
+  closeAllDatabases(): void {
+    // Close current connection
+    this.closeDatabase();
+
+    // Close all cached connections
+    this.dbConnections.forEach((db, key) => {
+      try {
+        db.close();
+        console.log(`Closed database connection: ${key}`);
+      } catch (error) {
+        console.error(`Error closing database ${key}:`, error);
+      }
+    });
+    this.dbConnections.clear();
   }
 
   private init(): void {
@@ -396,8 +530,9 @@ export class DatabaseService {
         error_stack TEXT,
         duration_ms INTEGER DEFAULT 0,
         retry_count INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id)
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        -- ✅ REMOVED: FOREIGN KEY (company_id) REFERENCES companies(id)
+        -- Companies table is now in profile.db, cannot reference across databases
       );
 
       CREATE TABLE IF NOT EXISTS tally_voucher_logs (
@@ -437,8 +572,9 @@ export class DatabaseService {
         duration_ms INTEGER DEFAULT 0,
         started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         completed_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id)
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        -- ✅ REMOVED: FOREIGN KEY (company_id) REFERENCES companies(id)
+        -- Companies table is now in profile.db, cannot reference across databases
       );
 
       CREATE TABLE IF NOT EXISTS app_settings (
@@ -629,7 +765,310 @@ export class DatabaseService {
         ('JOURNAL', '0'),
         ('ORGANIZATION', '0');
 
-      -- New tables for company management and enhanced sync logging
+      -- ✅ Companies table is now in profile.db (central database)
+      -- Removed from here - companies table moved to profile.db
+
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        sync_type TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        message TEXT,
+        records_count INTEGER DEFAULT 0,
+        duration_ms INTEGER,
+        error_stack TEXT,
+        start_date TEXT,
+        end_date TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        -- ✅ REMOVED: FOREIGN KEY (company_id) REFERENCES companies(id)
+        -- Companies table is now in profile.db, cannot reference across databases
+      );
+
+      CREATE TABLE IF NOT EXISTS last_sync_dates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        entity_type TEXT NOT NULL,
+        last_sync_date TEXT NOT NULL,
+        last_sync_timestamp DATETIME,
+        records_synced INTEGER DEFAULT 0,
+        UNIQUE(company_id, entity_type)
+        -- ✅ REMOVED: FOREIGN KEY (company_id) REFERENCES companies(id)
+        -- Companies table is now in profile.db, cannot reference across databases
+      );
+
+      -- ✅ Companies indexes removed (companies table is now in profile.db)
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_company_id ON sync_logs(company_id);
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_timestamp ON sync_logs(timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_sync_logs_status ON sync_logs(status);
+      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
+      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
+    `;
+
+    this.db?.exec(sql);
+    
+    // ✅ Run migrations for existing databases
+    this.runMigrations();
+    
+    console.log('Database tables initialized successfully');
+  }
+
+  /**
+   * ✅ Run database migrations to add new columns
+   */
+  private runMigrations(): void {
+    if (!this.db) return;
+
+    try {
+      // ✅ Migration: Remove foreign key constraints for companies table references
+      // Companies table moved to profile.db, so FK constraints can't work across databases
+      
+      // Check and remove foreign key constraints if they exist
+      this.db.exec(`PRAGMA foreign_keys = OFF`);
+      
+      // Get table creation SQL to check for foreign keys
+      const checkApiLogs = this.db.prepare(`
+        SELECT sql FROM sqlite_master 
+        WHERE type='table' AND name='api_logs'
+      `).get() as { sql: string } | undefined;
+      
+      if (checkApiLogs?.sql && checkApiLogs.sql.includes('FOREIGN KEY') && checkApiLogs.sql.includes('companies')) {
+        console.log('Running migration: Removing foreign key constraints from api_logs...');
+        // Recreate api_logs without foreign key
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS api_logs_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id INTEGER,
+            endpoint TEXT NOT NULL,
+            method TEXT NOT NULL,
+            request_headers TEXT,
+            request_payload TEXT,
+            response_headers TEXT,
+            response_payload TEXT,
+            status_code INTEGER,
+            status TEXT NOT NULL,
+            error_message TEXT,
+            error_stack TEXT,
+            duration_ms INTEGER DEFAULT 0,
+            retry_count INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          );
+          INSERT INTO api_logs_new SELECT * FROM api_logs;
+          DROP TABLE api_logs;
+          ALTER TABLE api_logs_new RENAME TO api_logs;
+          CREATE INDEX IF NOT EXISTS idx_api_logs_created_at ON api_logs(created_at DESC);
+          CREATE INDEX IF NOT EXISTS idx_api_logs_status ON api_logs(status);
+        `);
+      }
+      
+      // Similar for tally_sync_logs
+      const checkTallySyncLogs = this.db.prepare(`
+        SELECT sql FROM sqlite_master 
+        WHERE type='table' AND name='tally_sync_logs'
+      `).get() as { sql: string } | undefined;
+      
+      if (checkTallySyncLogs?.sql && checkTallySyncLogs.sql.includes('FOREIGN KEY') && checkTallySyncLogs.sql.includes('companies')) {
+        console.log('Running migration: Removing foreign key constraints from tally_sync_logs...');
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS tally_sync_logs_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id INTEGER,
+            sync_type TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            sync_mode TEXT NOT NULL,
+            batch_id INTEGER,
+            batch_month TEXT,
+            batch_number INTEGER,
+            alter_id TEXT,
+            from_alter_id TEXT,
+            to_alter_id TEXT,
+            request_payload TEXT,
+            response_payload TEXT,
+            records_fetched INTEGER DEFAULT 0,
+            records_stored INTEGER DEFAULT 0,
+            records_sent INTEGER DEFAULT 0,
+            records_success INTEGER DEFAULT 0,
+            records_failed INTEGER DEFAULT 0,
+            status TEXT NOT NULL,
+            error_message TEXT,
+            duration_ms INTEGER DEFAULT 0,
+            started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            completed_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          );
+          INSERT INTO tally_sync_logs_new SELECT * FROM tally_sync_logs;
+          DROP TABLE tally_sync_logs;
+          ALTER TABLE tally_sync_logs_new RENAME TO tally_sync_logs;
+          CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_company_id ON tally_sync_logs(company_id);
+          CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_entity_type ON tally_sync_logs(entity_type);
+          CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_status ON tally_sync_logs(status);
+          CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_created_at ON tally_sync_logs(created_at DESC);
+          CREATE INDEX IF NOT EXISTS idx_tally_sync_logs_batch ON tally_sync_logs(batch_id, batch_month, batch_number);
+        `);
+      }
+      
+      // Similar for sync_logs
+      const checkSyncLogs = this.db.prepare(`
+        SELECT sql FROM sqlite_master 
+        WHERE type='table' AND name='sync_logs'
+      `).get() as { sql: string } | undefined;
+      
+      if (checkSyncLogs?.sql && checkSyncLogs.sql.includes('FOREIGN KEY') && checkSyncLogs.sql.includes('companies')) {
+        console.log('Running migration: Removing foreign key constraints from sync_logs...');
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS sync_logs_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id INTEGER NOT NULL,
+            sync_type TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            message TEXT,
+            records_count INTEGER DEFAULT 0,
+            duration_ms INTEGER,
+            error_stack TEXT,
+            start_date TEXT,
+            end_date TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+          );
+          INSERT INTO sync_logs_new SELECT * FROM sync_logs;
+          DROP TABLE sync_logs;
+          ALTER TABLE sync_logs_new RENAME TO sync_logs;
+          CREATE INDEX IF NOT EXISTS idx_sync_logs_company_id ON sync_logs(company_id);
+          CREATE INDEX IF NOT EXISTS idx_sync_logs_timestamp ON sync_logs(timestamp DESC);
+          CREATE INDEX IF NOT EXISTS idx_sync_logs_status ON sync_logs(status);
+        `);
+      }
+      
+      // Similar for last_sync_dates
+      const checkLastSyncDates = this.db.prepare(`
+        SELECT sql FROM sqlite_master 
+        WHERE type='table' AND name='last_sync_dates'
+      `).get() as { sql: string } | undefined;
+      
+      if (checkLastSyncDates?.sql && checkLastSyncDates.sql.includes('FOREIGN KEY') && checkLastSyncDates.sql.includes('companies')) {
+        console.log('Running migration: Removing foreign key constraints from last_sync_dates...');
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS last_sync_dates_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id INTEGER NOT NULL,
+            entity_type TEXT NOT NULL,
+            last_sync_date TEXT NOT NULL,
+            last_sync_timestamp DATETIME,
+            records_synced INTEGER DEFAULT 0,
+            UNIQUE(company_id, entity_type)
+          );
+          INSERT INTO last_sync_dates_new SELECT * FROM last_sync_dates;
+          DROP TABLE last_sync_dates;
+          ALTER TABLE last_sync_dates_new RENAME TO last_sync_dates;
+          CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
+          CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
+        `);
+      }
+      
+      this.db.exec(`PRAGMA foreign_keys = ON`);
+      
+      console.log('Database migrations completed');
+    } catch (error: any) {
+      console.error('Migration error:', error);
+      // Re-enable foreign keys even on error
+      try {
+        this.db.exec(`PRAGMA foreign_keys = ON`);
+      } catch {}
+    }
+  }
+
+  /**
+   * ✅ Run migrations for profile.db (companies table)
+   */
+  private runProfileMigrations(): void {
+    try {
+      // Direct access to avoid recursion
+      const profilePath = path.join(app.getPath('userData'), 'profile.db');
+      if (!fs.existsSync(profilePath)) {
+        return;
+      }
+      const profileDb = new Database(profilePath);
+      
+      // Check if companies table exists and has all columns
+      const checkCols = profileDb.prepare(`
+        SELECT name FROM pragma_table_info('companies') WHERE name IN ('tally_username', 'tally_password_encrypted', 'company_unique_id', 'sync_status', 'last_synced_at', 'auto_sync_enabled', 'sync_interval_minutes', 'connection_status')
+      `);
+      const existingCols = checkCols.all() as Array<{ name: string }>;
+      const colNames = existingCols.map(c => c.name);
+
+      // Add columns if they don't exist (for existing databases)
+      if (!colNames.includes('tally_username')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN tally_username TEXT`);
+      }
+      if (!colNames.includes('tally_password_encrypted')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN tally_password_encrypted TEXT`);
+      }
+      if (!colNames.includes('company_unique_id')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN company_unique_id TEXT UNIQUE`);
+      }
+      if (!colNames.includes('last_synced_at')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN last_synced_at TEXT`);
+      }
+      if (!colNames.includes('sync_status')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN sync_status TEXT DEFAULT 'INACTIVE'`);
+      }
+      if (!colNames.includes('auto_sync_enabled')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN auto_sync_enabled INTEGER DEFAULT 1`);
+      }
+      if (!colNames.includes('sync_interval_minutes')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN sync_interval_minutes INTEGER DEFAULT 60`);
+      }
+      if (!colNames.includes('connection_status')) {
+        profileDb.exec(`ALTER TABLE companies ADD COLUMN connection_status TEXT DEFAULT 'DISCONNECTED'`);
+      }
+
+      // Create indexes if they don't exist
+      try {
+        profileDb.exec(`CREATE INDEX IF NOT EXISTS idx_companies_unique_id ON companies(company_unique_id)`);
+        profileDb.exec(`CREATE INDEX IF NOT EXISTS idx_companies_sync_status ON companies(sync_status)`);
+      } catch (e) {
+        // Index might already exist, ignore
+      }
+
+      profileDb.close();
+      console.log('Profile database migrations completed');
+    } catch (error: any) {
+      console.error('Profile migration error:', error);
+    }
+  }
+
+  // === Profile Management ===
+  /**
+   * ✅ Initialize profile database (lightweight, for storing user profile before book selection)
+   */
+  private ensureProfileDatabase(): void {
+    if (this.db && this.dbPath.endsWith('profile.db')) {
+      return; // Already using profile database
+    }
+
+    // Use separate profile database
+    const profilePath = path.join(app.getPath('userData'), 'profile.db');
+    const dir = path.dirname(profilePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    
+    // Check if database exists, if not create it
+    if (!fs.existsSync(profilePath)) {
+      const profileDb = new Database(profilePath);
+      
+      // Create tables in profile.db (central database for all billers)
+      profileDb.exec(`
+      CREATE TABLE IF NOT EXISTS profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        token TEXT NOT NULL,
+        biller_id TEXT,
+        apikey TEXT,
+        organization TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- ✅ Companies table - stores ALL connected books for ALL billers
       CREATE TABLE IF NOT EXISTS companies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         biller_id TEXT NOT NULL,
@@ -644,63 +1083,63 @@ export class DatabaseService {
         trn TEXT,
         book_start_from TEXT NOT NULL,
         is_active INTEGER DEFAULT 1,
+        tally_username TEXT,
+        tally_password_encrypted TEXT,
+        company_unique_id TEXT UNIQUE,
+        last_synced_at TEXT,
+        sync_status TEXT DEFAULT 'INACTIVE',
+        auto_sync_enabled INTEGER DEFAULT 1,
+        sync_interval_minutes INTEGER DEFAULT 60,
+        connection_status TEXT DEFAULT 'DISCONNECTED',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(biller_id, organization_id)
       );
 
-      CREATE TABLE IF NOT EXISTS sync_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        company_id INTEGER NOT NULL,
-        sync_type TEXT NOT NULL,
-        entity_type TEXT NOT NULL,
-        status TEXT NOT NULL,
-        message TEXT,
-        records_count INTEGER DEFAULT 0,
-        duration_ms INTEGER,
-        error_stack TEXT,
-        start_date TEXT,
-        end_date TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS last_sync_dates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        company_id INTEGER NOT NULL,
-        entity_type TEXT NOT NULL,
-        last_sync_date TEXT NOT NULL,
-        last_sync_timestamp DATETIME,
-        records_synced INTEGER DEFAULT 0,
-        FOREIGN KEY (company_id) REFERENCES companies(id),
-        UNIQUE(company_id, entity_type)
+      -- ✅ App settings in profile.db (global settings)
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE INDEX IF NOT EXISTS idx_companies_biller_id ON companies(biller_id);
       CREATE INDEX IF NOT EXISTS idx_companies_organization_id ON companies(organization_id);
       CREATE INDEX IF NOT EXISTS idx_companies_is_active ON companies(is_active);
-      CREATE INDEX IF NOT EXISTS idx_sync_logs_company_id ON sync_logs(company_id);
-      CREATE INDEX IF NOT EXISTS idx_sync_logs_timestamp ON sync_logs(timestamp DESC);
-      CREATE INDEX IF NOT EXISTS idx_sync_logs_status ON sync_logs(status);
-      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
-      CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
-    `;
-
-    this.db?.exec(sql);
-    console.log('Database tables initialized successfully');
+    `);
+      
+      profileDb.close();
+    }
+    
+    // ✅ Run migrations for profile.db (ensure all columns exist)
+    this.runProfileMigrations();
   }
 
-  // === Profile Management ===
+  private getProfileDatabase(): Database.Database {
+    this.ensureProfileDatabase();
+    const profilePath = path.join(app.getPath('userData'), 'profile.db');
+    return new Database(profilePath);
+  }
+
+  /**
+   * ✅ Public method to get profile database (for CompanyRepository)
+   */
+  getProfileDb(): Database.Database {
+    return this.getProfileDatabase();
+  }
+
   async saveProfile(email: string, token: string, billerId?: string, apikey?: string, org?: any): Promise<void> {
+    const profileDb = this.getProfileDatabase();
     const orgJson = org ? JSON.stringify(org) : null;
-    const stmt = this.db!.prepare(
+    const stmt = profileDb.prepare(
       `INSERT OR REPLACE INTO profiles (email, token, biller_id, apikey, organization, updated_at)
        VALUES (?, ?, ?, ?, ?, datetime('now'))`
     );
     stmt.run(email.toLowerCase(), token, billerId || null, apikey || null, orgJson);
+    profileDb.close();
 
-    // Extract and store organization UUID if available
-    if (org) {
+    // Extract and store organization UUID if available (only if main DB exists)
+    if (org && this.db) {
       const profile: UserProfile = { email, token, biller_id: billerId, apikey, organization: org };
       const orgUuid = this.extractOrganizationUuid(profile);
       if (orgUuid) {
@@ -710,26 +1149,42 @@ export class DatabaseService {
   }
 
   async getProfile(): Promise<UserProfile | null> {
-    const stmt = this.db!.prepare(`SELECT * FROM profiles LIMIT 1`);
-    const row = stmt.get() as any;
-    if (row?.organization) {
-      try { row.organization = JSON.parse(row.organization); } catch (e) { console.error('JSON parse error in organization', e); }
+    try {
+      const profileDb = this.getProfileDatabase();
+      const stmt = profileDb.prepare(`SELECT * FROM profiles LIMIT 1`);
+      const row = stmt.get() as any;
+      profileDb.close();
+      
+      if (row?.organization) {
+        try { 
+          row.organization = JSON.parse(row.organization); 
+        } catch (e) { 
+          console.error('JSON parse error in organization', e); 
+        }
+      }
+      return row || null;
+    } catch (error) {
+      console.error('Error getting profile:', error);
+      return null;
     }
-    return row || null;
   }
 
   async updateOrganization(email: string, data: any): Promise<void> {
+    const profileDb = this.getProfileDatabase();
     const json = JSON.stringify({ ...data, updated_at: new Date().toISOString() });
-    const stmt = this.db!.prepare(`UPDATE profiles SET organization = ?, updated_at = datetime('now') WHERE email = ?`);
+    const stmt = profileDb.prepare(`UPDATE profiles SET organization = ?, updated_at = datetime('now') WHERE email = ?`);
     stmt.run(json, email.toLowerCase());
+    profileDb.close();
   }
 
   async logoutAndClearProfile(): Promise<void> {
     // Only clear profile (session data), keep all sync data intact
-    this.db!.exec(`DELETE FROM profiles`);
+    const profileDb = this.getProfileDatabase();
+    profileDb.exec(`DELETE FROM profiles`);
     // Clear organization UUID from settings
-    const stmt = this.db!.prepare(`DELETE FROM app_settings WHERE key = ?`);
+    const stmt = profileDb.prepare(`DELETE FROM app_settings WHERE key = ?`);
     stmt.run('organizationUuid');
+    profileDb.close();
     this.log('INFO', 'Logged out - profile cleared, data preserved');
     // Close database connection
     this.closeDatabase();
@@ -1189,10 +1644,17 @@ export class DatabaseService {
 
   // === Logging ===
   log(level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG', msg: string, meta?: any): void {
-    const metadata = meta ? JSON.stringify(meta) : null;
-    const stmt = this.db!.prepare(`INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)`);
-    stmt.run(level, msg, metadata);
+    // ✅ Always log to console, only save to DB if database exists
     console.log(`[${new Date().toISOString()}] [${level}] ${msg}`, meta || '');
+    if (!this.db) return; // Don't try to save to DB if not initialized
+    try {
+      const metadata = meta ? JSON.stringify(meta) : null;
+      const stmt = this.db.prepare(`INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)`);
+      stmt.run(level, msg, metadata);
+    } catch (error) {
+      // Silently fail if DB not ready
+      console.error('Failed to save log to DB:', error);
+    }
   }
 
   // === Dashboard Data ===
@@ -1234,30 +1696,53 @@ export class DatabaseService {
     companyId?: number | null,
     retryCount: number = 0
   ): Promise<number> {
-    const requestHeadersJson = requestHeaders ? JSON.stringify(requestHeaders) : null;
-    const requestJson = requestPayload ? JSON.stringify(requestPayload) : null;
-    const responseHeadersJson = responseHeaders ? JSON.stringify(responseHeaders) : null;
-    const responseJson = responsePayload ? JSON.stringify(responsePayload) : null;
-    const stmt = this.db!.prepare(`
-      INSERT INTO api_logs (company_id, endpoint, method, request_headers, request_payload, response_headers, response_payload, status_code, status, error_message, error_stack, duration_ms, retry_count)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    const info = stmt.run(
-      companyId || null,
-      endpoint,
-      method.toUpperCase(),
-      requestHeadersJson,
-      requestJson,
-      responseHeadersJson,
-      responseJson,
-      statusCode,
-      status,
-      errorMessage,
-      errorStack,
-      durationMs,
-      retryCount
-    );
-    return Number(info.lastInsertRowid);
+    if (!this.db) {
+      console.error('Database not initialized, cannot log API request');
+      return 0;
+    }
+
+    try {
+      // ✅ Temporarily disable foreign key checks (companies table is in profile.db)
+      this.db.exec(`PRAGMA foreign_keys = OFF`);
+      
+      const requestHeadersJson = requestHeaders ? JSON.stringify(requestHeaders) : null;
+      const requestJson = requestPayload ? JSON.stringify(requestPayload) : null;
+      const responseHeadersJson = responseHeaders ? JSON.stringify(responseHeaders) : null;
+      const responseJson = responsePayload ? JSON.stringify(responsePayload) : null;
+      
+      const stmt = this.db.prepare(`
+        INSERT INTO api_logs (company_id, endpoint, method, request_headers, request_payload, response_headers, response_payload, status_code, status, error_message, error_stack, duration_ms, retry_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      const info = stmt.run(
+        companyId || null,
+        endpoint,
+        method.toUpperCase(),
+        requestHeadersJson,
+        requestJson,
+        responseHeadersJson,
+        responseJson,
+        statusCode,
+        status,
+        errorMessage,
+        errorStack,
+        durationMs,
+        retryCount
+      );
+      
+      // Re-enable foreign keys
+      this.db.exec(`PRAGMA foreign_keys = ON`);
+      
+      return Number(info.lastInsertRowid);
+    } catch (error: any) {
+      console.error('Failed to log API request:', error);
+      // Re-enable foreign keys even on error
+      try {
+        this.db.exec(`PRAGMA foreign_keys = ON`);
+      } catch {}
+      return 0;
+    }
   }
 
   async getApiLogs(filters?: {
@@ -1383,13 +1868,61 @@ export class DatabaseService {
 
   // === App Settings ===
   async getSetting(key: string): Promise<string | null> {
-    const stmt = this.db!.prepare(`SELECT value FROM app_settings WHERE key = ?`);
+    // ✅ Use profile database for settings if main DB not available
+    if (!this.db) {
+      try {
+        const profileDb = this.getProfileDatabase();
+        // Ensure settings table exists in profile.db
+        profileDb.exec(`
+          CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        const stmt = profileDb.prepare(`SELECT value FROM app_settings WHERE key = ?`);
+        const row = stmt.get(key) as { value: string } | undefined;
+        profileDb.close();
+        return row?.value || null;
+      } catch (error) {
+        console.error('Error getting setting from profile DB:', error);
+        return null;
+      }
+    }
+    const stmt = this.db.prepare(`SELECT value FROM app_settings WHERE key = ?`);
     const row = stmt.get(key) as { value: string } | undefined;
     return row?.value || null;
   }
 
   async setSetting(key: string, value: string): Promise<void> {
-    const stmt = this.db!.prepare(`
+    // ✅ Use profile database for settings if main DB not available
+    if (!this.db) {
+      try {
+        const profileDb = this.getProfileDatabase();
+        // Ensure settings table exists in profile.db
+        profileDb.exec(`
+          CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        const stmt = profileDb.prepare(`
+          INSERT INTO app_settings (key, value, updated_at)
+          VALUES (?, ?, datetime('now'))
+          ON CONFLICT(key) DO UPDATE SET
+            value = excluded.value,
+            updated_at = datetime('now')
+        `);
+        stmt.run(key, value);
+        profileDb.close();
+        return;
+      } catch (error) {
+        console.error('Error setting in profile DB:', error);
+        return;
+      }
+    }
+    const stmt = this.db.prepare(`
       INSERT INTO app_settings (key, value, updated_at)
       VALUES (?, ?, datetime('now'))
       ON CONFLICT(key) DO UPDATE SET
@@ -1445,7 +1978,32 @@ export class DatabaseService {
   }
 
   async getAllSettings(): Promise<Record<string, string>> {
-    const stmt = this.db!.prepare(`SELECT key, value FROM app_settings`);
+    // ✅ Use profile database for settings if main DB not available
+    if (!this.db) {
+      try {
+        const profileDb = this.getProfileDatabase();
+        // Ensure settings table exists in profile.db
+        profileDb.exec(`
+          CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        const stmt = profileDb.prepare(`SELECT key, value FROM app_settings`);
+        const rows = stmt.all() as { key: string; value: string }[];
+        profileDb.close();
+        const settings: Record<string, string> = {};
+        rows.forEach(row => {
+          settings[row.key] = row.value;
+        });
+        return settings;
+      } catch (error) {
+        console.error('Error getting all settings from profile DB:', error);
+        return {};
+      }
+    }
+    const stmt = this.db.prepare(`SELECT key, value FROM app_settings`);
     const rows = stmt.all() as { key: string; value: string }[];
     const settings: Record<string, string> = {};
     rows.forEach(row => {
@@ -2483,6 +3041,215 @@ export class DatabaseService {
     return stmt.all(companyId) as any[];
   }
 
+  /**
+   * ✅ Get analytics data (sync stats, API stats, fetch/send stats)
+   * Combines data from multiple tables for comprehensive analytics
+   */
+  async getAnalytics(): Promise<{
+    syncStats: {
+      totalSyncs: number;
+      successfulSyncs: number;
+      failedSyncs: number;
+      last7Days: Array<{ date: string; count: number; success: number; failed: number }>;
+    };
+    apiStats: {
+      totalCalls: number;
+      successfulCalls: number;
+      failedCalls: number;
+      last7Days: Array<{ date: string; count: number; success: number; failed: number }>;
+    };
+    fetchStats: {
+      totalFetched: number;
+      todayFetched: number;
+      successRate: number;
+      lastFetchTime: string | null;
+    };
+    sendStats: {
+      totalSent: number;
+      todaySent: number;
+      successRate: number;
+      failedCount: number;
+      lastSendTime: string | null;
+    };
+  }> {
+    if (!this.db) {
+      return this.getEmptyAnalytics();
+    }
+
+    try {
+      // Get sync stats from sync_history
+      const syncStatsStmt = this.db.prepare(`
+        SELECT 
+          COUNT(*) as total,
+          SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
+          SUM(CASE WHEN status IN ('FAILED', 'ERROR') THEN 1 ELSE 0 END) as failed,
+          DATE(started_at) as date
+        FROM sync_history
+        WHERE started_at >= datetime('now', '-7 days')
+        GROUP BY DATE(started_at)
+        ORDER BY date DESC
+      `);
+      const syncRows = syncStatsStmt.all() as any[];
+      
+      // Get API stats from api_logs
+      const apiStatsStmt = this.db.prepare(`
+        SELECT 
+          COUNT(*) as total,
+          SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
+          SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as failed,
+          DATE(created_at) as date
+        FROM api_logs
+        WHERE created_at >= datetime('now', '-7 days')
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+      `);
+      const apiRows = apiStatsStmt.all() as any[];
+
+      // Get fetch stats from entity_batch_log (XML fetch)
+      const fetchStatsStmt = this.db.prepare(`
+        SELECT 
+          COALESCE(SUM(tally_records_fetched), 0) as total_fetched,
+          COUNT(CASE WHEN tally_fetch_status = 'SUCCESS' THEN 1 END) as success_count,
+          COUNT(CASE WHEN tally_fetch_status = 'FAILED' THEN 1 END) as failed_count,
+          MAX(tally_fetch_completed_at) as last_fetch_time,
+          COALESCE(SUM(CASE WHEN DATE(tally_fetch_completed_at) = DATE('now') THEN tally_records_fetched ELSE 0 END), 0) as today_fetched
+        FROM entity_batch_log
+        WHERE tally_fetch_completed_at IS NOT NULL
+      `);
+      const fetchStats = fetchStatsStmt.get() as any;
+
+      // Get send stats from entity_batch_log (API send)
+      const sendStatsStmt = this.db.prepare(`
+        SELECT 
+          COALESCE(SUM(api_records_sent), 0) as total_sent,
+          COALESCE(SUM(api_records_success), 0) as total_success,
+          COALESCE(SUM(api_records_failed), 0) as total_failed,
+          MAX(api_push_completed_at) as last_send_time,
+          COALESCE(SUM(CASE WHEN DATE(api_push_completed_at) = DATE('now') THEN api_records_sent ELSE 0 END), 0) as today_sent
+        FROM entity_batch_log
+        WHERE api_push_completed_at IS NOT NULL
+      `);
+      const sendStats = sendStatsStmt.get() as any;
+
+      // Build last 7 days arrays
+      const last7DaysSync = this.buildLast7Days(syncRows);
+      const last7DaysApi = this.buildLast7Days(apiRows);
+
+      const totalFetchCount = (fetchStats?.total_fetched || 0) as number;
+      const fetchSuccessCount = (fetchStats?.success_count || 0) as number;
+      const fetchFailedCount = (fetchStats?.failed_count || 0) as number;
+      const fetchSuccessRate = (fetchSuccessCount + fetchFailedCount) > 0 
+        ? (fetchSuccessCount / (fetchSuccessCount + fetchFailedCount)) * 100 
+        : 0;
+
+      const totalSendCount = (sendStats?.total_sent || 0) as number;
+      const sendSuccessCount = (sendStats?.total_success || 0) as number;
+      const sendFailedCount = (sendStats?.total_failed || 0) as number;
+      const sendSuccessRate = totalSendCount > 0 
+        ? (sendSuccessCount / totalSendCount) * 100 
+        : 0;
+
+      return {
+        syncStats: {
+          totalSyncs: last7DaysSync.reduce((sum, day) => sum + day.count, 0),
+          successfulSyncs: last7DaysSync.reduce((sum, day) => sum + day.success, 0),
+          failedSyncs: last7DaysSync.reduce((sum, day) => sum + day.failed, 0),
+          last7Days: last7DaysSync
+        },
+        apiStats: {
+          totalCalls: last7DaysApi.reduce((sum, day) => sum + day.count, 0),
+          successfulCalls: last7DaysApi.reduce((sum, day) => sum + day.success, 0),
+          failedCalls: last7DaysApi.reduce((sum, day) => sum + day.failed, 0),
+          last7Days: last7DaysApi
+        },
+        fetchStats: {
+          totalFetched: totalFetchCount,
+          todayFetched: (fetchStats?.today_fetched || 0) as number,
+          successRate: fetchSuccessRate,
+          lastFetchTime: fetchStats?.last_fetch_time || null
+        },
+        sendStats: {
+          totalSent: totalSendCount,
+          todaySent: (sendStats?.today_sent || 0) as number,
+          successRate: sendSuccessRate,
+          failedCount: sendFailedCount,
+          lastSendTime: sendStats?.last_send_time || null
+        }
+      };
+    } catch (error: any) {
+      console.error('Error getting analytics:', error);
+      return this.getEmptyAnalytics();
+    }
+  }
+
+  /**
+   * ✅ Helper: Build last 7 days array with data
+   */
+  private buildLast7Days(rows: any[]): Array<{ date: string; count: number; success: number; failed: number }> {
+    const result: Array<{ date: string; count: number; success: number; failed: number }> = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const row = rows.find(r => r.date === dateStr);
+      result.push({
+        date: dateStr,
+        count: row?.total || 0,
+        success: row?.success || 0,
+        failed: row?.failed || 0
+      });
+    }
+    
+    return result;
+  }
+
+  /**
+   * ✅ Helper: Return empty analytics structure
+   */
+  private getEmptyAnalytics() {
+    const empty7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toISOString().split('T')[0],
+        count: 0,
+        success: 0,
+        failed: 0
+      };
+    });
+
+    return {
+      syncStats: {
+        totalSyncs: 0,
+        successfulSyncs: 0,
+        failedSyncs: 0,
+        last7Days: empty7Days
+      },
+      apiStats: {
+        totalCalls: 0,
+        successfulCalls: 0,
+        failedCalls: 0,
+        last7Days: empty7Days
+      },
+      fetchStats: {
+        totalFetched: 0,
+        todayFetched: 0,
+        successRate: 0,
+        lastFetchTime: null
+      },
+      sendStats: {
+        totalSent: 0,
+        todaySent: 0,
+        successRate: 0,
+        failedCount: 0,
+        lastSendTime: null
+      }
+    };
+  }
+
   // === Database Dump and Restore ===
 
   /**
@@ -2582,8 +3349,20 @@ export class DatabaseService {
         // Close current database
         this.closeDatabase();
 
-        // Write downloaded database to file
-        const dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
+        // ✅ Check if we're restoring for a book (biller_id + company_id) or legacy (organizationUuid)
+        const currentCompanyId = this.getCurrentCompanyId();
+        const currentBillerId = this.getCurrentBillerId();
+        
+        let dbPath: string;
+        
+        if (currentCompanyId && currentBillerId) {
+          // ✅ Book-based naming: tally-sync_{biller_id}_{company_id}.db
+          dbPath = path.join(app.getPath('userData'), `tally-sync_${currentBillerId}_${currentCompanyId}.db`);
+        } else {
+          // ✅ Legacy naming: tally-sync_{organizationUuid}.db
+          dbPath = path.join(app.getPath('userData'), `tally-sync_${organizationUuid}.db`);
+        }
+        
         const dir = path.dirname(dbPath);
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir, { recursive: true });
@@ -2592,12 +3371,18 @@ export class DatabaseService {
         fs.writeFileSync(dbPath, Buffer.from(response.data));
 
         // Initialize with the restored database
-        this.initializeDatabase(organizationUuid);
+        if (currentCompanyId && currentBillerId) {
+          this.initializeDatabaseForBook(currentBillerId, currentCompanyId);
+        } else {
+          this.initializeDatabase(organizationUuid);
+        }
 
         this.log('INFO', 'Database restored from backend successfully', {
           billerId,
           organizationUuid,
-          size: response.data.byteLength
+          companyId: currentCompanyId || null,
+          size: response.data.byteLength,
+          dbPath
         });
         return true;
       }
@@ -2620,6 +3405,56 @@ export class DatabaseService {
       });
       return false;
     }
+  }
+
+  /**
+   * ✅ Dump database for a specific book (using companyId)
+   */
+  async dumpBookDatabaseToBackend(billerId: string, companyId: number): Promise<boolean> {
+    try {
+      // Get company info from current database (we need organization_id)
+      // First, ensure we're using the default/profile database to access companies table
+      const currentCompanyId = this.currentCompanyId;
+      const currentBillerId = this.currentBillerId;
+      
+      // Get company info - we need to query from the profile database
+      // For now, we'll use organization_id from the current database path pattern
+      // or we can pass organization_id as parameter
+      
+      // Use the current database path to get organization_id
+      // But better approach: pass organization_id as parameter or get from CompanyRepository
+      
+      // For now, use the existing method - the caller should pass organization_id
+      // This is a helper that assumes we're already on the correct book's database
+      const dbPath = this.dbPath;
+      if (!dbPath || !fs.existsSync(dbPath)) {
+        this.log('ERROR', 'Database file does not exist for dump', { dbPath });
+        return false;
+      }
+
+      // Extract organization_id from current database connection or use a default query
+      // We'll need to query the companies table to get organization_id
+      // For simplicity, let's use the existing dumpDatabaseToBackend but ensure we're on the right DB
+      
+      return false; // Placeholder - will be implemented properly
+    } catch (error: any) {
+      this.log('ERROR', 'Failed to dump book database to backend', { error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * ✅ Restore database for a specific book (using companyId)
+   */
+  async restoreBookDatabaseFromBackend(billerId: string, companyId: number, organizationId: string): Promise<boolean> {
+    // Restore using organizationId (which maps to the book's organization_id)
+    // Then switch to the book's database
+    const restored = await this.restoreDatabaseFromBackend(billerId, organizationId);
+    if (restored) {
+      // After restore, switch to book-specific database
+      this.switchDatabaseForBook(billerId, companyId);
+    }
+    return restored;
   }
 
   /**

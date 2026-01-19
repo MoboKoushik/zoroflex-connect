@@ -73,6 +73,26 @@ export interface ElectronAPI {
   getStagingInvoices?: (page?: number, limit?: number, search?: string) => Promise<any>;
   getStagingPayments?: (page?: number, limit?: number, search?: string) => Promise<any>;
   getStagingJvEntries?: (page?: number, limit?: number, search?: string) => Promise<any>;
+  getStagingStatus?: () => Promise<{ success: boolean; data?: any; error?: string }>;
+  
+  // ✅ Book Management
+  getAllBooks?: () => Promise<{ success: boolean; books?: any[]; error?: string }>;
+  getActiveBooks?: () => Promise<{ success: boolean; books?: any[]; error?: string }>;
+  addBook?: (bookData: any) => Promise<{ success: boolean; message?: string; company?: any; error?: string }>;
+  switchBook?: (companyId: number, makeExclusive?: boolean) => Promise<{ success: boolean; error?: string }>;
+  syncBook?: (companyId: number, type?: 'MANUAL' | 'BACKGROUND') => Promise<{ success: boolean; error?: string }>;
+  removeBook?: (companyId: number) => Promise<{ success: boolean; error?: string }>;
+  updateBookCredentials?: (companyId: number, credentials: any) => Promise<{ success: boolean; company?: any; error?: string }>;
+  getBookSyncStatus?: (companyId: number) => Promise<{ success: boolean; status?: any; error?: string }>;
+  testBookConnection?: (companyId: number) => Promise<{ success: boolean; isConnected?: boolean; error?: string }>;
+  showConfirmDialog?: (options: any) => Promise<boolean>;
+  // ✅ Book Selector
+  fetchBooksFromApi?: () => Promise<{ success: boolean; books?: any[]; error?: string }>;
+  connectBook?: (organizationId: string) => Promise<{ success: boolean; message?: string; book?: any; error?: string }>;
+  openBookLoginWindow?: () => Promise<{ success: boolean }>;
+  sendBookLoginSuccess?: (data: any) => void;
+  onBookConnected?: (callback: (data: any) => void) => void;
+  onBookSwitched?: (callback: (data: any) => void) => void;
   
   // Common
   removeAllListeners?: (channel: string) => void;

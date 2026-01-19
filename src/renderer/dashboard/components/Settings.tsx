@@ -8,7 +8,7 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({ company }) => {
   const [settings, setSettings] = useState({
     soundEnabled: true,
-    theme: 'dark',
+    theme: 'system', // ✅ Default to system mode
     syncDuration: 300, // 5 minutes in seconds
     backgroundSyncEnabled: true,
     apiEndpoint: '',
@@ -27,7 +27,20 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+    
+    // ✅ Listen for system theme changes when using system mode
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = () => {
+      if (settings.theme === 'system') {
+        applyTheme('system');
+      }
+    };
+    mediaQuery.addEventListener('change', handleThemeChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
+  }, [settings.theme]);
 
   const loadSettings = async () => {
     try {
@@ -49,7 +62,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
         autoStartEnabled = allSettings.autoStart !== 'false';
       }
       
-      const loadedTheme = allSettings.theme || 'dark';
+      const loadedTheme = allSettings.theme || 'system'; // ✅ Default to system mode
       setSettings({
         soundEnabled: allSettings.soundEnabled !== 'false',
         theme: loadedTheme,
@@ -103,7 +116,15 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
 
   const applyTheme = (theme: string) => {
     const root = document.documentElement;
-    if (theme === 'light') {
+    
+    // ✅ Detect system preference if theme is 'system'
+    let effectiveTheme = theme;
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      effectiveTheme = prefersDark ? 'dark' : 'light';
+    }
+    
+    if (effectiveTheme === 'light') {
       root.style.setProperty('--bg-primary', '#ffffff');
       root.style.setProperty('--bg-secondary', '#f3f3f3');
       root.style.setProperty('--bg-tertiary', '#e8e8e8');
@@ -344,6 +365,26 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               Theme
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  setSettings(prev => ({ ...prev, theme: 'system' }));
+                  saveSetting('theme', 'system');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  background: settings.theme === 'system' ? '#007acc' : 'var(--bg-tertiary)',
+                  color: settings.theme === 'system' ? '#ffffff' : 'var(--text-primary)',
+                  border: `1px solid ${settings.theme === 'system' ? '#007acc' : 'var(--border-color)'}`,
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  transition: 'all 0.2s'
+                }}
+              >
+                ⚙️ System
+              </button>
               <button
                 onClick={() => {
                   setSettings(prev => ({ ...prev, theme: 'dark' }));

@@ -19,6 +19,19 @@ interface AnalyticsData {
     invoices: { total: number; processed: number; pending: number; failed: number };
     payments: { total: number; processed: number; pending: number; failed: number };
   };
+  fetchStats?: {
+    totalFetched: number;
+    todayFetched: number;
+    successRate: number;
+    lastFetchTime: string | null;
+  };
+  sendStats?: {
+    totalSent: number;
+    todaySent: number;
+    successRate: number;
+    failedCount: number;
+    lastSendTime: string | null;
+  };
 }
 
 interface AnalyticsProps {
@@ -65,6 +78,21 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
     customers: { total: 0, processed: 0, pending: 0, failed: 0 },
     invoices: { total: 0, processed: 0, pending: 0, failed: 0 },
     payments: { total: 0, processed: 0, pending: 0, failed: 0 }
+  };
+
+  const fetchStats = data.fetchStats || {
+    totalFetched: 0,
+    todayFetched: 0,
+    successRate: 0,
+    lastFetchTime: null
+  };
+
+  const sendStats = data.sendStats || {
+    totalSent: 0,
+    todaySent: 0,
+    successRate: 0,
+    failedCount: 0,
+    lastSendTime: null
   };
 
   // Ensure last7Days arrays have 7 days of data
@@ -248,22 +276,92 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
         </div>
         
         <div className="card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Customers</div>
-          <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {processingStats.customers.total}
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>XML Fetched</div>
+          <div style={{ fontSize: '24px', fontWeight: 600, color: '#2196f3' }}>
+            {fetchStats.totalFetched.toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {processingStats.customers.processed} processed
+            {fetchStats.todayFetched} today • {fetchStats.successRate.toFixed(1)}% success
           </div>
         </div>
         
         <div className="card">
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Invoices</div>
-          <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {processingStats.invoices.total}
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>API Sent</div>
+          <div style={{ fontSize: '24px', fontWeight: 600, color: '#4caf50' }}>
+            {sendStats.totalSent.toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {processingStats.invoices.processed} processed
+            {sendStats.todaySent} today • {sendStats.successRate.toFixed(1)}% success
+          </div>
+        </div>
+      </div>
+
+      {/* XML Fetch vs API Send Overview */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+        <div className="card" style={{ padding: '20px' }}>
+          <h3 style={{ fontSize: '16px', marginBottom: '16px', color: 'var(--text-primary)' }}>
+            📥 XML Fetch from Tally
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Fetched</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {fetchStats.totalFetched.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Today</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: '#2196f3' }}>
+                {fetchStats.todayFetched.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Success Rate</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: fetchStats.successRate >= 95 ? '#4caf50' : '#ff9800' }}>
+                {fetchStats.successRate.toFixed(1)}%
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Last Fetch</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
+                {fetchStats.lastFetchTime 
+                  ? new Date(fetchStats.lastFetchTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                  : 'Never'
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: '20px' }}>
+          <h3 style={{ fontSize: '16px', marginBottom: '16px', color: 'var(--text-primary)' }}>
+            📤 API Send to Backend
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Sent</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {sendStats.totalSent.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Today</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: '#4caf50' }}>
+                {sendStats.todaySent.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Success Rate</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: sendStats.successRate >= 95 ? '#4caf50' : '#ff9800' }}>
+                {sendStats.successRate.toFixed(1)}%
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Failed</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: sendStats.failedCount > 0 ? '#f44336' : '#4caf50' }}>
+                {sendStats.failedCount.toLocaleString()}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -287,9 +385,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ data, loading }) => {
         </div>
       </div>
 
-      {/* Processing Stats */}
+      {/* Processing Stats (Staging) */}
       <div className="card">
-        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-primary)' }}>Data Processing Status</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>🔄 Staging Processing Status</h3>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+            Auto-refreshing from backend...
+          </div>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
           <ProcessingChart 
             data={processingStats.customers} 

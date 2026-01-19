@@ -25,7 +25,7 @@ export class SyncService {
     this.companyRepository = new CompanyRepository(dbService);
   }
 
-  private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND'): Promise<void> {
+  private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND', companyId?: number): Promise<void> {
     if (this.isRunning) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
@@ -34,6 +34,41 @@ export class SyncService {
 
     try {
       this.dbService.log('INFO', `${type} sync initiated`);
+
+      // ✅ NEW: If companyId is provided, switch to that book's database
+      let activeCompany;
+      if (companyId) {
+        activeCompany = this.companyRepository.getCompanyById(companyId);
+        if (!activeCompany) {
+          throw new Error(`Company with ID ${companyId} not found`);
+        }
+        
+        // Switch to this book's database
+        this.dbService.switchDatabaseForBook(activeCompany.biller_id, companyId);
+        this.dbService.log('INFO', `Switched to book database: ${activeCompany.name} (ID: ${companyId})`);
+      } else {
+        // Get active company (legacy behavior)
+        activeCompany = this.companyRepository.getActiveCompany(profile.biller_id || '');
+      }
+
+      if (!activeCompany) {
+        if (type === 'MANUAL') {
+          throw new Error('No active company selected. Please select a company first.');
+        } else {
+          // For background sync, just log and return silently
+          this.dbService.log('INFO', 'Background sync skipped: No active company selected');
+          return;
+        }
+      }
+
+      // ✅ Ensure we're using the correct book's database
+      if (!companyId) {
+        // Switch to active company's database if not already switched
+        const currentCompanyId = this.dbService.getCurrentCompanyId();
+        if (currentCompanyId !== activeCompany.id) {
+          this.dbService.switchDatabaseForBook(activeCompany.biller_id, activeCompany.id);
+        }
+      }
 
       // 1. Fetch current company from Tally
       const companyData = await fetchCurrentCompany(this.dbService);
@@ -57,18 +92,6 @@ export class SyncService {
       if (type === 'MANUAL' || !prof?.organization?.synced_at) {
         this.dbService.log('INFO', 'Syncing organization data');
         await this.organizationService.syncOrganization(profile, companyData);
-      }
-
-      // 4. Get active company
-      const activeCompany = this.companyRepository.getActiveCompany(profile.biller_id || '');
-      if (!activeCompany) {
-        if (type === 'MANUAL') {
-          throw new Error('No active company selected. Please select a company first.');
-        } else {
-          // For background sync, just log and return silently
-          this.dbService.log('INFO', 'Background sync skipped: No active company selected');
-          return;
-        }
       }
 
       // 5. Determine date range using SyncDateManager
@@ -235,9 +258,18 @@ export class SyncService {
         const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
         if (allComplete) {
           this.dbService.log('INFO', 'All entities first sync complete, dumping database to backend');
-          const currentOrgUuid = this.dbService.getCurrentOrganizationUuid();
-          if (currentOrgUuid && profile.biller_id) {
-            await this.dbService.dumpDatabaseToBackend(profile.biller_id, currentOrgUuid);
+          
+          // ✅ Use book-specific database dump if companyId is available
+          const currentCompanyId = this.dbService.getCurrentCompanyId();
+          if (currentCompanyId && activeCompany && profile.biller_id) {
+            // For book-based databases, use organization_id as identifier
+            await this.dbService.dumpDatabaseToBackend(profile.biller_id, activeCompany.organization_id);
+          } else {
+            // Legacy: Use organization UUID
+            const currentOrgUuid = this.dbService.getCurrentOrganizationUuid();
+            if (currentOrgUuid && profile.biller_id) {
+              await this.dbService.dumpDatabaseToBackend(profile.biller_id, currentOrgUuid);
+            }
           }
         }
       }

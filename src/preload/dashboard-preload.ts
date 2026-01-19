@@ -104,4 +104,42 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Analytics
   getAnalytics: () => ipcRenderer.invoke('get-analytics'),
+  getStagingStatus: () => ipcRenderer.invoke('get-staging-status'),
+  
+  // ✅ Login (for connect book modal)
+  login: (credentials: { email: string; password: string }) => ipcRenderer.invoke('login', credentials),
+  
+  // ✅ Fetch books from API (for connect book modal)
+  fetchBooksFromApi: () => ipcRenderer.invoke('fetch-books-from-api'),
+  
+  // ✅ Connect book (for connect book modal)
+  connectBook: (organizationId: string) => ipcRenderer.invoke('connect-book', organizationId),
+  
+  // ✅ Open book login window
+  openBookLoginWindow: () => ipcRenderer.invoke('open-book-login-window'),
+  
+  // ✅ Listen for book connected event
+  onBookConnected: (callback: (data: any) => void) => {
+    ipcRenderer.removeAllListeners('book-connected');
+    ipcRenderer.on('book-connected', (event, data) => callback(data));
+    return () => ipcRenderer.removeListener('book-connected', callback);
+  },
+  
+  // ✅ Listen for book switched event
+  onBookSwitched: (callback: (data: any) => void) => {
+    ipcRenderer.removeAllListeners('book-switched');
+    ipcRenderer.on('book-switched', (event, data) => callback(data));
+    return () => ipcRenderer.removeListener('book-switched', callback);
+  },
+  
+  // ✅ Book Management methods
+  getAllBooks: () => ipcRenderer.invoke('get-all-books'),
+  getActiveBooks: () => ipcRenderer.invoke('get-active-books'),
+  addBook: (bookData: any) => ipcRenderer.invoke('add-book', bookData),
+  switchBook: (companyId: number, makeExclusive?: boolean) => ipcRenderer.invoke('switch-book', companyId, makeExclusive),
+  syncBook: (companyId: number, type?: 'MANUAL' | 'BACKGROUND') => ipcRenderer.invoke('sync-book', companyId, type),
+  removeBook: (companyId: number) => ipcRenderer.invoke('remove-book', companyId),
+  updateBookCredentials: (companyId: number, credentials: any) => ipcRenderer.invoke('update-book-credentials', companyId, credentials),
+  getBookSyncStatus: (companyId: number) => ipcRenderer.invoke('get-book-sync-status', companyId),
+  testBookConnection: (companyId: number) => ipcRenderer.invoke('test-book-connection', companyId),
 });
