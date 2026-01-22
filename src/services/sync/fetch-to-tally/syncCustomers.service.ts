@@ -158,19 +158,37 @@ export async function syncCustomers(
 
             const customerId = getReportText(customer, 'CUSTOMER_ID');
             const name = getReportText(customer, 'NAME');
-            const currentBalanceAt = getReportText(customer, 'CURRENT_BALANCE_AT');
+            // const currentBalanceAt = getReportText(customer, 'CURRENT_BALANCE_AT');
 
             const xmlBillerId = getReportText(customer, 'BILLER_ID');
             const billerId = xmlBillerId || profile?.biller_id || '';
 
-            let formattedBalanceAt = '';
-            if (currentBalanceAt) {
-              formattedBalanceAt = formatDate(currentBalanceAt);
-              if (!formattedBalanceAt) {
-                formattedBalanceAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const invoiceDetails: Array<{ invoice_number: string; invoice_date: string; amount: number }> = [];
+
+            const invoiceNodes = customer.INVOICE_DETAILS || [];
+            const invoices = Array.isArray(invoiceNodes) ? invoiceNodes : [invoiceNodes];
+
+            for (const inv of invoices) {
+              if (!inv || typeof inv !== 'object') {
+                continue;
               }
-            } else {
-              formattedBalanceAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+              const invoiceNumber = getReportText(inv, 'INVOICE_NUMBER') || '';
+              if (!invoiceNumber.trim()) {
+                continue;
+              }
+
+              const dateRaw = getReportText(inv, 'INVOICE_DATE') || '';
+              let invoiceDate = formatDate(dateRaw);
+
+              const amountRaw = getReportText(inv, 'AMOUNT') || '0';
+              const amount = parseFloat(amountRaw.replace(/,/g, '')) || 0;
+
+              invoiceDetails.push({
+                invoice_number: invoiceNumber,
+                invoice_date: invoiceDate,
+                amount: amount
+              });
             }
 
             const apiCustomer = {
@@ -191,16 +209,16 @@ export async function syncCustomers(
               bill_by_bill: getReportText(customer, 'BILL_BY_BILL') || 'Yes',
               biller_id: billerId,
               current_balance: parseFloat(getReportText(customer, 'CURRENT_BALANCE') || '0'),
-              current_balance_at: formattedBalanceAt,
+              current_balance_at: getReportText(customer, 'CURRENT_BALANCE_AT'),
               opening_balance: parseFloat(getReportText(customer, 'OPENING_BALANCE') || '0'),
-              invoice_details: []
+              invoice_details: invoiceDetails
             };
 
             customersForApi.push(apiCustomer);
           }
 
           newMaxAlterId = String(maxAlterId);
-          
+
           // Log warning if ALTER_ID not found in any customer
           if (!alterIdFound && customers.length > 0) {
             db.log('WARN', `ALTER_ID not found in Tally response for any customer. This may cause issues with incremental sync.`);
@@ -257,7 +275,7 @@ export async function syncCustomers(
     } else {
       // INCREMENTAL SYNC: Using ALTER_ID only
       const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
-      
+
       // If max alter id is 0 or empty, it means first sync didn't properly store alter ids
       // In this case, we should not do incremental sync - it would fetch all data
       if (!lastAlterId || lastAlterId === '0') {
@@ -265,7 +283,7 @@ export async function syncCustomers(
         await db.logSyncEnd(runId, 'FAILED', 0, 0, '0', 'Cannot do incremental sync: max alter id is 0. Please run first sync again.');
         return;
       }
-      
+
       db.log('INFO', 'Starting incremental customer sync', { from_alter_id: lastAlterId });
 
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
@@ -374,7 +392,7 @@ export async function syncCustomers(
     }
 
     const status = failedCount === 0 ? 'SUCCESS' : (successCount > 0 ? 'PARTIAL' : 'FAILED');
-    
+
     // Update max alter id if we have records synced
     // For first sync, we MUST update max alter id even if it's 0 (to mark first sync as attempted)
     // For incremental sync, only update if we have a valid alter id

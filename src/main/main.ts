@@ -26,26 +26,25 @@ let tallyConnectivityService = new TallyConnectivityService(dbService);
 let apiHealthService = new ApiHealthService(dbService);
 let notificationService = new SystemNotificationService(dbService);
 
-// Setup API logging interceptor
 apiLogger.setupInterceptor(axios);
 
-// Helper function to apply auto-start settings
+
 async function applyAutoStartSettings(): Promise<void> {
   try {
     const autoStartSetting = await dbService.getSetting('autoStart');
     const autoStartEnabled = autoStartSetting !== 'false'; // Default to true if not set
-    
-    app.setLoginItemSettings({ 
+
+    app.setLoginItemSettings({
       openAtLogin: autoStartEnabled,
       openAsHidden: autoStartEnabled, // Start minimized in background
       args: autoStartEnabled ? ['--hidden'] : [] // Pass hidden flag if enabled
     });
-    
+
     console.log(`Auto-start ${autoStartEnabled ? 'enabled' : 'disabled'}`);
   } catch (error: any) {
     console.error('Error applying auto-start settings:', error);
     // Default to enabled on error
-    app.setLoginItemSettings({ 
+    app.setLoginItemSettings({
       openAtLogin: true,
       openAsHidden: true,
       args: ['--hidden']
@@ -53,10 +52,10 @@ async function applyAutoStartSettings(): Promise<void> {
   }
 }
 
-// Check if app was started with --hidden flag (auto-start)
+
 const isAutoStart = process.argv.includes('--hidden');
 
-// Add error handlers to prevent app crashes
+
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   try {
@@ -77,72 +76,60 @@ process.on('unhandledRejection', (reason, promise) => {
   // Don't quit - let the app continue running
 });
 
-/**
- * Format Tally connection errors into user-friendly messages
- */
+
 function formatTallyError(error: any): string {
   const errorMessage = error?.message || String(error || 'Unknown error');
   const errorCode = error?.code || error?.errno;
-  
+
   // Check for connection errors
   if (errorCode === 'ECONNREFUSED' || errorMessage.includes('ECONNREFUSED')) {
     return 'Tally is not running or not accessible on port 9000. Please ensure Tally Prime is running and try again.';
   }
-  
+
   if (errorCode === 'ETIMEDOUT' || errorMessage.includes('timeout')) {
     return 'Connection to Tally timed out. Please ensure Tally Prime is running and try again.';
   }
-  
+
   if (errorCode === 'ECONNRESET' || errorMessage.includes('ECONNRESET')) {
     return 'Connection to Tally was reset. Please ensure Tally Prime is running and try again.';
   }
-  
+
   if (errorMessage.includes('ZeroFinnCmp')) {
     return 'ZeroFinnCmp report not found in Tally. Please ensure the report is installed in Tally Prime.';
   }
-  
+
   if (errorMessage.includes('Unknown Request')) {
     return 'Tally returned an error. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
   }
-  
+
   // Generic error message
   return `Failed to fetch companies from Tally: ${errorMessage}. Please ensure Tally Prime is running on port 9000.`;
 }
 
-// Handle login success - can be called directly or via IPC event
+
 async function handleLoginSuccess(): Promise<void> {
   console.log('handleLoginSuccess called → Initializing organization database');
-  
+
   try {
-    // Don't close/hide login window yet - company selector will be shown
-    // Login window will be handled when company is selected
 
     const profile = await dbService.getProfile();
-  if (!profile) {
-    console.error('Profile missing after login!');
-    createLoginWindow();
-    return;
-  }
+    if (!profile) {
+      console.error('Profile missing after login!');
+      createLoginWindow();
+      return;
+    }
+    const organizationUuid = dbService.extractOrganizationUuid(profile);
 
-  console.log('Profile loaded after login:', profile.email);
+    if (!organizationUuid) {
+      console.error('No organization UUID found in profile');
+      createLoginWindow();
+      return;
+    }
 
-  // Extract organization UUID from profile using helper method
-  const organizationUuid = dbService.extractOrganizationUuid(profile);
+    await dbService.setOrganizationUuid(organizationUuid);
 
-  if (!organizationUuid) {
-    console.error('No organization UUID found in profile');
-    createLoginWindow();
-    return;
-  }
-
-  console.log('Organization UUID:', organizationUuid);
-  
-  // Store organization UUID in settings
-  await dbService.setOrganizationUuid(organizationUuid);
-
-    // Initialize database with organization UUID
     const localDbExists = dbService.databaseExists(organizationUuid);
-    
+
     if (!localDbExists) {
       // Try to restore from backend
       console.log('Local database not found, attempting to restore from backend...');
@@ -151,7 +138,7 @@ async function handleLoginSuccess(): Promise<void> {
           profile.biller_id || '',
           organizationUuid
         );
-        
+
         if (restored) {
           console.log('Database restored from backend successfully');
           dbService.switchDatabase(organizationUuid);
@@ -169,22 +156,21 @@ async function handleLoginSuccess(): Promise<void> {
       console.log('Local database found, using existing database');
       dbService.initializeDatabase(organizationUuid);
     }
-  
-    // Re-initialize services with correct database
+
     try {
       organizationService = new OrganizationService(dbService);
       syncService = new SyncService(dbService, organizationService);
       apiLogger = new ApiLoggerService(dbService);
       companyRepository = new CompanyRepository(dbService);
       apiLogger.setupInterceptor(axios);
-      
+
       // Re-initialize monitoring services
       tallyConnectivityService.stopMonitoring();
       apiHealthService.stopMonitoring();
       tallyConnectivityService = new TallyConnectivityService(dbService);
       apiHealthService = new ApiHealthService(dbService);
       notificationService = new SystemNotificationService(dbService);
-      
+
       // Start connectivity monitoring
       startConnectivityMonitoring().catch(err => {
         console.error('Error starting connectivity monitoring:', err);
@@ -198,33 +184,31 @@ async function handleLoginSuccess(): Promise<void> {
       }
     }
 
-    // Check if user already has an active company
-    // Ensure companyRepository is available
     if (!companyRepository) {
       console.error('CompanyRepository not initialized, creating new instance');
       companyRepository = new CompanyRepository(dbService);
     }
-    
+
     const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
-    
+
     if (activeCompany) {
       // User already has a company selected, go directly to dashboard
       console.log('Active company found, opening dashboard:', activeCompany.name);
-      
+
       // Hide login window when going to dashboard
       if (loginWindow) {
         loginWindow.hide();
         loginWindow = null;
       }
-      
+
       if (tray) {
         tray.destroy();
         tray = null;
       }
-      
+
       // Apply auto-start settings
       await applyAutoStartSettings();
-      
+
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
@@ -233,105 +217,105 @@ async function handleLoginSuccess(): Promise<void> {
       // No active company - fetch from Tally and check for matches
       console.log('No active company, fetching companies from Tally...');
       try {
-      // Fetch companies from Tally
-      const companies = await fetchCompanies(dbService);
-      
-      if (companies.length === 0) {
-        console.log('No companies found in Tally');
-        const errorMsg = 'No companies were found in Tally. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
-        createCompanySelectorWindow(profile, null, errorMsg);
-        return;
-      }
+        // Fetch companies from Tally
+        const companies = await fetchCompanies(dbService);
 
-      // Save ALL companies to database
-      console.log(`Saving ${companies.length} companies to database...`);
-      for (const companyData of companies) {
-        await companyRepository.upsertCompany(companyData);
-      }
+        if (companies.length === 0) {
+          console.log('No companies found in Tally');
+          const errorMsg = 'No companies were found in Tally. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
+          createCompanySelectorWindow(profile, null, errorMsg);
+          return;
+        }
 
-      // Check if biller_id matches
-      const billerId = profile.biller_id || '';
-      let warningMessage: string | null = null;
-      const matchingBillerCompanies = companies.filter(c => c.biller_id === billerId);
-      
-      if (billerId && matchingBillerCompanies.length === 0) {
-        warningMessage = `Your account's biller_id does not match any companies in Tally. You cannot proceed until a matching company is available.`;
-        console.warn('Biller ID mismatch:', { profileBillerId: billerId, companiesFromTally: companies.map(c => c.biller_id) });
-      }
-      
-      // Get all companies from database (for display, but only matching ones will be selectable)
-      const savedCompanies = companyRepository.getAllCompanies();
-      
-      // Extract organization_id from profile.organization.response.organization_id
-      let profileOrgId = '';
-      if (profile?.organization?.response?.organization_id) {
-        profileOrgId = String(profile.organization.response.organization_id).trim();
-      }
-      
-      // Extract name from profile.organization.response.name or profile.organization.organization_data.name
-      let profileOrgName = '';
-      if (profile?.organization?.response?.name) {
-        profileOrgName = String(profile.organization.response.name).trim();
-      } else if (profile?.organization?.organization_data) {
-        // Handle organization_data as object or JSON string
-        let orgData = profile.organization.organization_data;
-        if (typeof orgData === 'string') {
-          try {
-            orgData = JSON.parse(orgData);
-          } catch (e) {
-            console.warn('Failed to parse organization_data as JSON:', e);
+        // Save ALL companies to database
+        console.log(`Saving ${companies.length} companies to database...`);
+        for (const companyData of companies) {
+          await companyRepository.upsertCompany(companyData);
+        }
+
+        // Check if biller_id matches
+        const billerId = profile.biller_id || '';
+        let warningMessage: string | null = null;
+        const matchingBillerCompanies = companies.filter(c => c.biller_id === billerId);
+
+        if (billerId && matchingBillerCompanies.length === 0) {
+          warningMessage = `Your account's biller_id does not match any companies in Tally. You cannot proceed until a matching company is available.`;
+          console.warn('Biller ID mismatch:', { profileBillerId: billerId, companiesFromTally: companies.map(c => c.biller_id) });
+        }
+
+        // Get all companies from database (for display, but only matching ones will be selectable)
+        const savedCompanies = companyRepository.getAllCompanies();
+
+        // Extract organization_id from profile.organization.response.organization_id
+        let profileOrgId = '';
+        if (profile?.organization?.response?.organization_id) {
+          profileOrgId = String(profile.organization.response.organization_id).trim();
+        }
+
+        // Extract name from profile.organization.response.name or profile.organization.organization_data.name
+        let profileOrgName = '';
+        if (profile?.organization?.response?.name) {
+          profileOrgName = String(profile.organization.response.name).trim();
+        } else if (profile?.organization?.organization_data) {
+          // Handle organization_data as object or JSON string
+          let orgData = profile.organization.organization_data;
+          if (typeof orgData === 'string') {
+            try {
+              orgData = JSON.parse(orgData);
+            } catch (e) {
+              console.warn('Failed to parse organization_data as JSON:', e);
+            }
+          }
+          if (orgData?.name) {
+            profileOrgName = String(orgData.name).trim();
           }
         }
-        if (orgData?.name) {
-          profileOrgName = String(orgData.name).trim();
-        }
-      }
 
-      console.log('Organization matching data:', {
-        organization_id: profileOrgId || '(not available)',
-        name: profileOrgName || '(not available)'
-      });
-
-      let matchedCompany = null;
-      
-      // Match by organization_id first (exact match)
-      if (profileOrgId) {
-        matchedCompany = savedCompanies.find(c => {
-          if (!c.organization_id) return false;
-          return c.organization_id.trim() === profileOrgId;
+        console.log('Organization matching data:', {
+          organization_id: profileOrgId || '(not available)',
+          name: profileOrgName || '(not available)'
         });
-        
-        if (matchedCompany) {
-          console.log('Match found by organization_id:', matchedCompany.name);
-        }
-      }
 
-      // If no match by organization_id, try by name (case-insensitive)
-      if (!matchedCompany && profileOrgName) {
-        matchedCompany = savedCompanies.find(c => {
-          if (!c.name) return false;
-          return c.name.trim().toLowerCase() === profileOrgName.toLowerCase();
-        });
-        
-        if (matchedCompany) {
-          console.log('Match found by name:', matchedCompany.name);
-        }
-      }
+        let matchedCompany = null;
 
-      // Show company selector with auto-select info if match found
-      // Don't auto-select in DB yet - let user confirm with Continue button
-      console.log(`Found ${savedCompanies.length} companies, showing selector`);
-      if (matchedCompany && matchedCompany.biller_id === billerId) {
-        console.log('Matching company found, will auto-select in UI:', {
-          id: matchedCompany.id,
-          name: matchedCompany.name,
-          organization_id: matchedCompany.organization_id
-        });
-        createCompanySelectorWindow(profile, matchedCompany.id, null, warningMessage);
-      } else {
-        console.log('No matching company found, showing all companies for selection');
-        createCompanySelectorWindow(profile, null, null, warningMessage);
-      }
+        // Match by organization_id first (exact match)
+        if (profileOrgId) {
+          matchedCompany = savedCompanies.find(c => {
+            if (!c.organization_id) return false;
+            return c.organization_id.trim() === profileOrgId;
+          });
+
+          if (matchedCompany) {
+            console.log('Match found by organization_id:', matchedCompany.name);
+          }
+        }
+
+        // If no match by organization_id, try by name (case-insensitive)
+        if (!matchedCompany && profileOrgName) {
+          matchedCompany = savedCompanies.find(c => {
+            if (!c.name) return false;
+            return c.name.trim().toLowerCase() === profileOrgName.toLowerCase();
+          });
+
+          if (matchedCompany) {
+            console.log('Match found by name:', matchedCompany.name);
+          }
+        }
+
+        // Show company selector with auto-select info if match found
+        // Don't auto-select in DB yet - let user confirm with Continue button
+        console.log(`Found ${savedCompanies.length} companies, showing selector`);
+        if (matchedCompany && matchedCompany.biller_id === billerId) {
+          console.log('Matching company found, will auto-select in UI:', {
+            id: matchedCompany.id,
+            name: matchedCompany.name,
+            organization_id: matchedCompany.organization_id
+          });
+          createCompanySelectorWindow(profile, matchedCompany.id, null, warningMessage);
+        } else {
+          console.log('No matching company found, showing all companies for selection');
+          createCompanySelectorWindow(profile, null, null, warningMessage);
+        }
       } catch (error: any) {
         console.error('Error fetching companies:', error);
         dbService.log('ERROR', 'Failed to fetch companies from Tally', {
@@ -348,26 +332,23 @@ async function handleLoginSuccess(): Promise<void> {
       error: error.message,
       stack: error.stack
     });
-    
-    // Try to get profile and show company selector even on error
+
     try {
       const profile = await dbService.getProfile();
       if (profile) {
         console.log('Showing company selector despite error');
         createCompanySelectorWindow(profile, null);
       } else {
-        // Show login window again on critical error if no profile
         createLoginWindow();
       }
     } catch (fallbackError: any) {
       console.error('Fallback error:', fallbackError);
-      // Show login window again on critical error
       createLoginWindow();
     }
   }
 }
 
-// Listen for login-success event from renderer (if needed)
+
 ipcMain.on('login-success', async () => {
   console.log('login-success IPC event received');
   await handleLoginSuccess();
@@ -389,7 +370,7 @@ app.whenReady().then(async () => {
   if (autoStartSetting === null) {
     await dbService.setSetting('autoStart', 'true');
   }
-  
+
   // Apply auto-start settings
   await applyAutoStartSettings();
 
@@ -398,24 +379,26 @@ app.whenReady().then(async () => {
   if (profile) {
     console.log('Profile found → Checking for active company');
     const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
-    
+    console.log('ok', 3)
     if (activeCompany) {
       console.log('Active company found → Starting in background');
-      
+      console.log('ok', 4)
       // Apply auto-start settings
       await applyAutoStartSettings();
-      
+      console.log('ok', 5)
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
-      
+      console.log('ok', 6)
       // If auto-start, don't show window; otherwise show window
       const shouldShowWindow = !isAutoStart;
       createDashboardWindow(profile, shouldShowWindow);
+      console.log('ok', 7)
     } else {
       console.log('No active company → Showing company selector');
       // Don't start sync - wait for company selection
       createCompanySelectorWindow(profile, null);
+      console.log('ok', 8)
     }
   } else {
     console.log('No profile → Opening login');
@@ -471,7 +454,7 @@ function createLoginWindow(): void {
 // Create Company Selector Window
 function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number | null = null, initialError: string | null = null, warning: string | null = null): void {
   console.log('createCompanySelectorWindow called', { profile: profile?.email, autoSelectedCompanyId, initialError });
-  
+
   if (companySelectorWindow) {
     console.log('Company selector window already exists, focusing');
     companySelectorWindow.focus();
@@ -518,12 +501,12 @@ function createCompanySelectorWindow(profile: any, autoSelectedCompanyId: number
     companySelectorWindow?.show();
     companySelectorWindow?.center();
   });
-  
+
   companySelectorWindow.on('closed', () => {
     console.log('Company selector window closed');
     companySelectorWindow = null;
   });
-  
+
   companySelectorWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     console.error('Company selector window failed to load:', errorCode, errorDescription);
   });
@@ -662,14 +645,8 @@ ipcMain.handle('login', async (event, credentials: { email: string; password: st
       await dbService.saveProfile(credentials.email, token, biller_id, apikey, organization);
       console.log('Profile saved successfully, triggering login-success handler');
 
-      setImmediate(async () => {
-        try {
-          await handleLoginSuccess();
-        } catch (err) {
-          console.error('Error in handleLoginSuccess:', err);
-        }
-      });
-      
+      await handleLoginSuccess();
+
       return { success: true };
     } else {
       return { success: false, message: data.message || 'Login failed' };
@@ -926,11 +903,11 @@ ipcMain.handle('get-analytics', async () => {
     try {
       const apiUrl = await getApiUrl(dbService);
       const apiKey = profile.apikey || '7061797A6F72726F74616C6C79';
-      
+
       // Get staging stats from backend
       const statsRes = await axios.get(`${apiUrl}/billers/tally/staging-stats`, {
         params: { biller_id: profile.biller_id },
-        headers: { 
+        headers: {
           'API-KEY': apiKey,
           'X-Biller-Id': profile.biller_id
         },
@@ -1010,15 +987,15 @@ ipcMain.handle('get-auto-start', async () => {
 
 ipcMain.handle('set-auto-start', async (event, enabled: boolean) => {
   try {
-    app.setLoginItemSettings({ 
+    app.setLoginItemSettings({
       openAtLogin: enabled,
       openAsHidden: enabled, // Start minimized in background
       args: enabled ? ['--hidden'] : [] // Pass hidden flag if enabled
     });
-    
+
     // Also save to database for persistence
     await dbService.setSetting('autoStart', String(enabled));
-    
+
     console.log(`Auto-start ${enabled ? 'enabled' : 'disabled'}`);
     return { success: true };
   } catch (error: any) {
@@ -1068,25 +1045,25 @@ ipcMain.handle('fetch-companies', async (event) => {
 
     // Get all saved companies
     const savedCompanies = companyRepository.getAllCompanies();
-    
+
     // Check if biller_id matches and filter selectable companies
     const billerId = profile.biller_id || '';
     let warning: string | null = null;
     const matchingCompanies = savedCompanies.filter(c => c.biller_id === billerId);
-    
+
     if (billerId && matchingCompanies.length === 0 && savedCompanies.length > 0) {
       warning = `Your account's biller_id does not match any companies in Tally. You cannot proceed until a matching company is available.`;
     }
-    
+
     // Return all companies (for display) but mark which ones are selectable
-    return { 
-      success: true, 
+    return {
+      success: true,
       companies: savedCompanies.map(c => ({
         ...c,
         isSelectable: c.biller_id === billerId
-      })), 
+      })),
       warning,
-      billerId 
+      billerId
     };
   } catch (error: any) {
     console.error('Error fetching companies:', error);
@@ -1110,7 +1087,7 @@ ipcMain.handle('select-company', async (event, companyId: number) => {
 
     // Set company as active (don't start sync yet - wait for Continue button)
     companyRepository.setActiveCompany(companyId, profile.biller_id);
-    
+
     dbService.log('INFO', 'Company selected and set as active', {
       company_id: companyId,
       company_name: companyRepository.getCompanyById(companyId)?.name || 'Unknown'
@@ -1230,7 +1207,7 @@ ipcMain.handle('continue-to-dashboard', async () => {
     try {
       const apiUrl = await getApiUrl(dbService);
       const apiKey = profile.apikey || '7061797A6F72726F74616C6C79';
-      
+
       await axios.post(
         `${apiUrl}/billers/tally/set-organization`,
         {
@@ -1276,14 +1253,14 @@ ipcMain.handle('continue-to-dashboard', async () => {
     }
     // Apply auto-start settings
     await applyAutoStartSettings();
-    
+
     createTrayAndStartSync(profile, syncService, dbService).catch(err => {
       console.error('Error creating tray and starting sync:', err);
     });
-    
+
     // Open dashboard window
     createDashboardWindow(profile);
-    
+
     // Close company selector window
     if (companySelectorWindow && !companySelectorWindow.isDestroyed()) {
       companySelectorWindow.close();
@@ -1504,11 +1481,11 @@ async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncServi
 
   // Update tray tooltip with status
   updateTrayTooltip();
-  
+
   // Subscribe to status changes for tray updates
   tallyConnectivityService.onStatusChange(() => updateTrayTooltip());
   apiHealthService.onStatusChange(() => updateTrayTooltip());
-  
+
   // Start background sync (check settings first)
   const backgroundSyncEnabled = await dbSvc.getSetting('backgroundSyncEnabled');
   if (backgroundSyncEnabled !== 'false') {
@@ -1516,7 +1493,7 @@ async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncServi
   } else {
     console.log('Background sync is disabled in settings');
   }
-  
+
   // Start connectivity monitoring if not already started
   const tallyStatus = tallyConnectivityService.getStatus();
   if (!tallyStatus.lastCheckTime) {
@@ -1524,7 +1501,7 @@ async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncServi
       console.error('Error starting connectivity monitoring:', err);
     });
   }
-  
+
   console.log('Tray created + Background sync started');
 }
 
@@ -1573,7 +1550,7 @@ async function startConnectivityMonitoring(): Promise<void> {
 
   // Start Tally monitoring
   tallyConnectivityService.startMonitoring(tallyInterval);
-  
+
   // Subscribe to Tally status changes for notifications
   let wasTallyOnline = false;
   tallyConnectivityService.onStatusChange((status) => {
@@ -1588,7 +1565,7 @@ async function startConnectivityMonitoring(): Promise<void> {
 
   // Start API monitoring
   apiHealthService.startMonitoring(apiInterval);
-  
+
   // Subscribe to API status changes for notifications
   let wasApiOnline = false;
   apiHealthService.onStatusChange((status) => {
@@ -1610,10 +1587,10 @@ function updateTrayTooltip(): void {
 
   const tallyStatus = tallyConnectivityService.getStatus();
   const apiStatus = apiHealthService.getStatus();
-  
+
   const tallyText = tallyStatus.isOnline ? 'Online' : 'Offline';
   const apiText = apiStatus.isOnline ? 'Online' : 'Offline';
-  
+
   const tooltip = `Zorrofin Connect\nTally: ${tallyText}\nAPI: ${apiText}`;
   tray.setToolTip(tooltip);
 }
@@ -1622,33 +1599,33 @@ function updateTrayTooltip(): void {
 ipcMain.handle('get-tally-status', async () => {
   try {
     const status = tallyConnectivityService.getStatus();
-    
+
     // If status hasn't been checked recently (within last 5 seconds), perform immediate check
     const now = new Date();
     // Handle both Date object and null properly
-    const lastCheck = status?.lastCheckTime instanceof Date 
-      ? status.lastCheckTime 
+    const lastCheck = status?.lastCheckTime instanceof Date
+      ? status.lastCheckTime
       : (status?.lastCheckTime ? new Date(status.lastCheckTime) : null);
-    
+
     const shouldCheck = !lastCheck || (now.getTime() - lastCheck.getTime()) > 5000;
-    
+
     if (shouldCheck) {
       // Perform immediate check
       console.log('Performing immediate Tally connectivity check...');
       await tallyConnectivityService.checkConnectivity();
     }
-    
+
     // Get updated status after check
     const updatedStatus = tallyConnectivityService.getStatus();
-    
+
     // Ensure status always has required fields
     return {
       isOnline: updatedStatus?.isOnline ?? false,
-      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date 
-        ? updatedStatus.lastCheckTime.toISOString() 
+      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date
+        ? updatedStatus.lastCheckTime.toISOString()
         : (updatedStatus?.lastCheckTime ? new Date(updatedStatus.lastCheckTime).toISOString() : null),
-      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date 
-        ? updatedStatus.lastSuccessTime.toISOString() 
+      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date
+        ? updatedStatus.lastSuccessTime.toISOString()
         : (updatedStatus?.lastSuccessTime ? new Date(updatedStatus.lastSuccessTime).toISOString() : null),
       errorMessage: updatedStatus?.errorMessage ?? null,
       port: updatedStatus?.port ?? 9000
@@ -1668,40 +1645,40 @@ ipcMain.handle('get-tally-status', async () => {
 ipcMain.handle('get-api-status', async () => {
   try {
     const status = apiHealthService.getStatus();
-    
+
     // If status hasn't been checked recently (within last 5 seconds), perform immediate check
     const now = new Date();
     // Handle both Date object and null properly
-    const lastCheck = status?.lastCheckTime instanceof Date 
-      ? status.lastCheckTime 
+    const lastCheck = status?.lastCheckTime instanceof Date
+      ? status.lastCheckTime
       : (status?.lastCheckTime ? new Date(status.lastCheckTime) : null);
-    
+
     const shouldCheck = !lastCheck || (now.getTime() - lastCheck.getTime()) > 5000;
-    
+
     if (shouldCheck) {
       // Perform immediate check
       console.log('Performing immediate API health check...');
       await apiHealthService.checkHealth();
     }
-    
+
     // Get updated status after check
     const updatedStatus = apiHealthService.getStatus();
-    
+
     console.log('API status response:', {
       isOnline: updatedStatus?.isOnline,
       lastCheckTime: updatedStatus?.lastCheckTime,
       responseTime: updatedStatus?.responseTime,
       errorMessage: updatedStatus?.errorMessage
     });
-    
+
     // Ensure status always has required fields
     return {
       isOnline: updatedStatus?.isOnline ?? false,
-      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date 
-        ? updatedStatus.lastCheckTime.toISOString() 
+      lastCheckTime: updatedStatus?.lastCheckTime instanceof Date
+        ? updatedStatus.lastCheckTime.toISOString()
         : (updatedStatus?.lastCheckTime ? new Date(updatedStatus.lastCheckTime).toISOString() : null),
-      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date 
-        ? updatedStatus.lastSuccessTime.toISOString() 
+      lastSuccessTime: updatedStatus?.lastSuccessTime instanceof Date
+        ? updatedStatus.lastSuccessTime.toISOString()
         : (updatedStatus?.lastSuccessTime ? new Date(updatedStatus.lastSuccessTime).toISOString() : null),
       errorMessage: updatedStatus?.errorMessage ?? null,
       responseTime: updatedStatus?.responseTime ?? null
@@ -1722,7 +1699,7 @@ ipcMain.handle('get-sync-status', async () => {
   // Get last sync info from database
   const lastSync = await dbService.getLastSync();
   const isRunning = syncService.isRunningSync();
-  
+
   return {
     isRunning,
     lastSyncTime: lastSync?.last_successful_sync || null,
@@ -1746,13 +1723,13 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging customers: Missing profile, biller_id, or API key', { 
-        hasProfile: !!profile, 
-        hasBillerId: !!profile?.biller_id, 
-        hasApiKey: !!profile?.apikey 
+      console.error('Staging customers: Missing profile, biller_id, or API key', {
+        hasProfile: !!profile,
+        hasBillerId: !!profile?.biller_id,
+        hasApiKey: !!profile?.apikey
       });
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'No profile, biller_id, or API key found. Please login again.',
         details: [],
         paginate_data: {
@@ -1766,7 +1743,7 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging customers:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
-    
+
     if (!apiUrl) {
       console.error('Staging customers: API URL is empty');
       return {
@@ -1781,7 +1758,7 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
         }
       };
     }
-    
+
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-customers`, {
       params: {
         search: search || '',
@@ -1798,9 +1775,9 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
     });
 
     console.log('response==>', response)
-    
-    console.log('Staging customers response:', { 
-      status: response.status, 
+
+    console.log('Staging customers response:', {
+      status: response.status,
       dataKeys: Object.keys(response.data || {}),
       hasStatus: 'status' in (response.data || {}),
       statusValue: response.data?.status,
@@ -1876,8 +1853,8 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
     // If we get here, response format is unexpected
     const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
     console.error('Staging customers invalid response format:', { data: response.data });
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: errorMsg,
       details: [],
       paginate_data: {
@@ -1889,7 +1866,7 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
     };
   } catch (error: any) {
     let errorMessage = 'Failed to fetch staging customers';
-    
+
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
     } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
@@ -1904,14 +1881,14 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
       } else if (status >= 500) {
         errorMessage = 'Server error. Please try again later.';
       } else {
-        errorMessage = error.response?.data?.message || 
-                      error.response?.data?.error || 
-                      `Request failed with status ${status}`;
+        errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          `Request failed with status ${status}`;
       }
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     console.error('Error fetching staging customers:', {
       message: error.message,
       errorMessage,
@@ -1921,7 +1898,7 @@ ipcMain.handle('get-staging-customers', async (event, page?: number, limit?: num
       statusText: error.response?.statusText,
       url: error.config?.url
     });
-    
+
     return {
       success: false,
       error: errorMessage,
@@ -1940,13 +1917,13 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging invoices: Missing profile, biller_id, or API key', { 
-        hasProfile: !!profile, 
-        hasBillerId: !!profile?.biller_id, 
-        hasApiKey: !!profile?.apikey 
+      console.error('Staging invoices: Missing profile, biller_id, or API key', {
+        hasProfile: !!profile,
+        hasBillerId: !!profile?.biller_id,
+        hasApiKey: !!profile?.apikey
       });
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'No profile, biller_id, or API key found. Please login again.',
         details: [],
         paginate_data: {
@@ -1960,7 +1937,7 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging invoices:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
-    
+
     if (!apiUrl) {
       console.error('Staging invoices: API URL is empty');
       return {
@@ -1975,7 +1952,7 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
         }
       };
     }
-    
+
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-invoices`, {
       params: {
         search: search || '',
@@ -1990,9 +1967,9 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
       timeout: 15000,
       validateStatus: (status) => status < 500 // Accept 4xx as valid responses
     });
-    
-    console.log('Staging invoices response:', { 
-      status: response.status, 
+
+    console.log('Staging invoices response:', {
+      status: response.status,
       dataKeys: Object.keys(response.data || {}),
       hasStatus: 'status' in (response.data || {}),
       statusValue: response.data?.status
@@ -2065,8 +2042,8 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
     // If we get here, response format is unexpected
     const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
     console.error('Staging invoices invalid response format:', { data: response.data });
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: errorMsg,
       details: [],
       paginate_data: {
@@ -2078,7 +2055,7 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
     };
   } catch (error: any) {
     let errorMessage = 'Failed to fetch staging invoices';
-    
+
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
     } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
@@ -2093,14 +2070,14 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
       } else if (status >= 500) {
         errorMessage = 'Server error. Please try again later.';
       } else {
-        errorMessage = error.response?.data?.message || 
-                      error.response?.data?.error || 
-                      `Request failed with status ${status}`;
+        errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          `Request failed with status ${status}`;
       }
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     console.error('Error fetching staging invoices:', {
       message: error.message,
       errorMessage,
@@ -2110,7 +2087,7 @@ ipcMain.handle('get-staging-invoices', async (event, page?: number, limit?: numb
       statusText: error.response?.statusText,
       url: error.config?.url
     });
-    
+
     return {
       success: false,
       error: errorMessage,
@@ -2129,13 +2106,13 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging JV entries: Missing profile, biller_id, or API key', { 
-        hasProfile: !!profile, 
-        hasBillerId: !!profile?.biller_id, 
-        hasApiKey: !!profile?.apikey 
+      console.error('Staging JV entries: Missing profile, biller_id, or API key', {
+        hasProfile: !!profile,
+        hasBillerId: !!profile?.biller_id,
+        hasApiKey: !!profile?.apikey
       });
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'No profile, biller_id, or API key found. Please login again.',
         details: [],
         paginate_data: {
@@ -2149,7 +2126,7 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging JV entries:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
-    
+
     if (!apiUrl) {
       console.error('Staging JV entries: API URL is empty');
       return {
@@ -2164,7 +2141,7 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
         }
       };
     }
-    
+
     const response = await axios.get(`${apiUrl}/ledgers/tally/jv-entries`, {
       params: {
         search: search || '',
@@ -2179,9 +2156,9 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
       timeout: 15000,
       validateStatus: (status) => status < 500 // Accept 4xx as valid responses
     });
-    
-    console.log('Staging JV entries response:', { 
-      status: response.status, 
+
+    console.log('Staging JV entries response:', {
+      status: response.status,
       dataKeys: Object.keys(response.data || {}),
       hasStatus: 'status' in (response.data || {}),
       statusValue: response.data?.status
@@ -2236,7 +2213,7 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
           };
         }
       }
-      
+
       // If response.data is an array or object with details, return it
       if (Array.isArray(response.data)) {
         return {
@@ -2250,7 +2227,7 @@ ipcMain.handle('get-staging-jv-entries', async (event, page?: number, limit?: nu
           }
         };
       }
-      
+
       if (response.data.details) {
         return {
           success: true,
@@ -2296,13 +2273,13 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
   try {
     const profile = await dbService.getProfile();
     if (!profile || !profile.biller_id || !profile.apikey) {
-      console.error('Staging payments: Missing profile, biller_id, or API key', { 
-        hasProfile: !!profile, 
-        hasBillerId: !!profile?.biller_id, 
-        hasApiKey: !!profile?.apikey 
+      console.error('Staging payments: Missing profile, biller_id, or API key', {
+        hasProfile: !!profile,
+        hasBillerId: !!profile?.biller_id,
+        hasApiKey: !!profile?.apikey
       });
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'No profile, biller_id, or API key found. Please login again.',
         details: [],
         paginate_data: {
@@ -2316,7 +2293,7 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
 
     const apiUrl = await getApiUrl(dbService);
     console.log('Fetching staging payments:', { apiUrl, page, limit, search, biller_id: profile.biller_id });
-    
+
     if (!apiUrl) {
       console.error('Staging payments: API URL is empty');
       return {
@@ -2331,7 +2308,7 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
         }
       };
     }
-    
+
     const response = await axios.get(`${apiUrl}/billers/tally/tally-pending-payments-app`, {
       params: {
         search: search || '',
@@ -2346,9 +2323,9 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       timeout: 15000,
       validateStatus: (status) => status < 500 // Accept 4xx as valid responses
     });
-    
-    console.log('Staging payments response:', { 
-      status: response.status, 
+
+    console.log('Staging payments response:', {
+      status: response.status,
       dataKeys: Object.keys(response.data || {}),
       hasStatus: 'status' in (response.data || {}),
       statusValue: response.data?.status
@@ -2421,8 +2398,8 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
     // If we get here, response format is unexpected
     const errorMsg = response.data?.message || response.data?.error || 'Invalid response format';
     console.error('Staging payments invalid response format:', { data: response.data });
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: errorMsg,
       details: [],
       paginate_data: {
@@ -2434,7 +2411,7 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
     };
   } catch (error: any) {
     let errorMessage = 'Failed to fetch staging payments';
-    
+
     if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       errorMessage = 'Cannot connect to API server. Please check if the server is running and the API URL is correct.';
     } else if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
@@ -2449,14 +2426,14 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       } else if (status >= 500) {
         errorMessage = 'Server error. Please try again later.';
       } else {
-        errorMessage = error.response?.data?.message || 
-                      error.response?.data?.error || 
-                      `Request failed with status ${status}`;
+        errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          `Request failed with status ${status}`;
       }
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     console.error('Error fetching staging payments:', {
       message: error.message,
       errorMessage,
@@ -2466,7 +2443,7 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       statusText: error.response?.statusText,
       url: error.config?.url
     });
-    
+
     return {
       success: false,
       error: errorMessage,

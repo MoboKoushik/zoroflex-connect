@@ -170,10 +170,13 @@ export async function fetchVouchersFromReportByDateRange(
 /**
  * Fetches vouchers using ZeroFinnReceipt report with ALTER_ID only (for incremental sync)
  * @param fromAlterId Starting ALTER_ID (exclusive)
+ * @param cullection Starting 
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
  */
 export async function fetchVouchersFromReportByAlterId(
-  fromAlterId: string,): Promise<any> {
+  fromAlterId: string, cullection: string): Promise<any> {
+    console.log('fromAlterId==>', fromAlterId)
+    console.log('cullection==>', cullection)
   const xmlRequest = `
 <ENVELOPE>
   <HEADER>
@@ -182,7 +185,7 @@ export async function fetchVouchersFromReportByAlterId(
   <BODY>
     <EXPORTDATA>
       <REQUESTDESC>
-        <REPORTNAME>ZeroFinnReceipt</REPORTNAME>
+        <REPORTNAME>${cullection}</REPORTNAME>
         <STATICVARIABLES>
           <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
         </STATICVARIABLES>
@@ -195,7 +198,7 @@ export async function fetchVouchersFromReportByAlterId(
   return withRetry(async () => {
     const response = await axios.post(TALLY_URL, xmlRequest, {
       headers: { 'Content-Type': 'text/plain' },
-      timeout: 120000,
+      timeout: 360000,
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       httpAgent: new http.Agent({
@@ -509,6 +512,20 @@ export function getReportText(obj: any, key: string): string {
     return String(value[0] || '').trim();
   }
   return String(value || '').trim();
+}
+
+/**
+ * Helper to extract array from XML elements (e.g., LEDGER_ENTRIES, INVENTORY, BILL_DETAILS)
+ * Returns the array of child elements for the given key
+ */
+export function getReportArray(obj: any, key: string): any[] {
+  if (!obj || !obj[key]) return [];
+  const value = obj[key];
+  if (Array.isArray(value)) {
+    return value;
+  }
+  // If it's a single object, wrap it in an array
+  return [value];
 }
 
 /**

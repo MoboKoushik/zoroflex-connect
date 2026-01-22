@@ -200,13 +200,44 @@ export async function syncPayments(
           for (const receipt of receipts) {
             const alterId = parseInt(getReportText(receipt, 'ALTER_ID') || '0', 10);
             if (alterId > monthMaxAlterId) monthMaxAlterId = alterId;
-            let bill_details = receipt?.BILL_DETAILS?.map((v: any) => {
-              return {
-                bill_id: getReportText(v, 'BILL_ID'),
-                bill_amount: getReportText(v, 'BILL_AMOUNT')
-              }
-            }) || []
 
+            // Get LEDGER_ENTRIES array
+            const ledgerEntriesRaw = Array.isArray(receipt?.LEDGER_ENTRIES)
+              ? receipt.LEDGER_ENTRIES
+              : (receipt?.LEDGER_ENTRIES ? [receipt.LEDGER_ENTRIES] : []);
+
+            // Collect all bill_details for receipt level (from all ledger entries)
+            let bill_details: any[] = [];
+
+            // Process all ledger entries with lowercase inner fields including nested bill_details
+            const ledger_entries = ledgerEntriesRaw.map((entry: any) => {
+              // Get bill_details for this ledger entry
+              const billDetailsRaw = Array.isArray(entry?.BILL_DETAILS)
+                ? entry.BILL_DETAILS
+                : (entry?.BILL_DETAILS ? [entry.BILL_DETAILS] : []);
+
+              const entryBillDetails = billDetailsRaw.map((v: any) => ({
+                bill_id: getReportText(v, 'BILL_ID'),
+                bill_amount: getReportText(v, 'BILL_AMOUNT'),
+                is_debit: getReportText(v, 'IS_DEBIT') === 'Yes'
+              }));
+
+              // Add to receipt level bill_details
+              bill_details = bill_details.concat(entryBillDetails);
+
+              return {
+                customer_id: getReportText(entry, 'CUSTOMER_ID'),
+                ledgername: getReportText(entry, 'LEDGERNAME'),
+                parent: getReportText(entry, 'PARENT'),
+                ledgergroup: getReportText(entry, 'LEDGERGROUP'),
+                amount: getReportText(entry, 'AMOUNT'),
+                conversation_rate: getReportText(entry, 'CONVERSATION_RATE'),
+                currencysymbol: getReportText(entry, 'CURRENCYSYMBOL'),
+                currency: getReportText(entry, 'CURRENCY'),
+                is_debit: getReportText(entry, 'IS_DEBIT') === 'Yes',
+                bill_details: entryBillDetails
+              };
+            });
 
             const paymentData = {
               receipt_id: getReportText(receipt, 'RECEIPT_ID'),
@@ -217,6 +248,7 @@ export async function syncPayments(
               receipt_amount: getReportText(receipt, 'RECEIPT_AMOUNT'),
               transaction_type: getReportText(receipt, 'TRANSACTION_TYPE'),
               biller_id: profile?.biller_id || '',
+              ledger_entries: ledger_entries,
               bill_details: bill_details
             };
 
@@ -271,7 +303,7 @@ export async function syncPayments(
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
 
       try {
-        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId);
+        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId, 'ZeroFinnReceipt');
         const receipts = extractReceiptsFromReport(parsed);
 
         if (receipts.length === 0) {
@@ -285,22 +317,56 @@ export async function syncPayments(
           for (const receipt of receipts) {
             const alterId = parseInt(getReportText(receipt, 'ALTER_ID') || '0', 10);
             if (alterId > maxAlterId) maxAlterId = alterId;
-            let bill_details = receipt?.BILL_DETAILS?.map((v: any) => {
-              return {
+
+            // Get LEDGER_ENTRIES array
+            const ledgerEntriesRaw = Array.isArray(receipt?.LEDGER_ENTRIES)
+              ? receipt.LEDGER_ENTRIES
+              : (receipt?.LEDGER_ENTRIES ? [receipt.LEDGER_ENTRIES] : []);
+
+            // Collect all bill_details for receipt level (from all ledger entries)
+            let bill_details: any[] = [];
+
+            // Process all ledger entries with lowercase inner fields including nested bill_details
+            const ledger_entries = ledgerEntriesRaw.map((entry: any) => {
+              // Get bill_details for this ledger entry
+              const billDetailsRaw = Array.isArray(entry?.BILL_DETAILS)
+                ? entry.BILL_DETAILS
+                : (entry?.BILL_DETAILS ? [entry.BILL_DETAILS] : []);
+
+              const entryBillDetails = billDetailsRaw.map((v: any) => ({
                 bill_id: getReportText(v, 'BILL_ID'),
-                bill_amount: getReportText(v, 'BILL_AMOUNT')
-              }
-            }) || []
+                bill_amount: getReportText(v, 'BILL_AMOUNT'),
+                is_debit: getReportText(v, 'IS_DEBIT') === 'Yes'
+              }));
+
+              // Add to receipt level bill_details
+              bill_details = bill_details.concat(entryBillDetails);
+
+              return {
+                customer_id: getReportText(entry, 'CUSTOMER_ID'),
+                ledgername: getReportText(entry, 'LEDGERNAME'),
+                parent: getReportText(entry, 'PARENT'),
+                ledgergroup: getReportText(entry, 'LEDGERGROUP'),
+                amount: getReportText(entry, 'AMOUNT'),
+                conversation_rate: getReportText(entry, 'CONVERSATION_RATE'),
+                currencysymbol: getReportText(entry, 'CURRENCYSYMBOL'),
+                currency: getReportText(entry, 'CURRENCY'),
+                is_debit: getReportText(entry, 'IS_DEBIT') === 'Yes',
+                bill_details: entryBillDetails
+              };
+            });
 
             const paymentData = {
               receipt_id: getReportText(receipt, 'RECEIPT_ID'),
               receipt_number: getReportText(receipt, 'RECEIPT_NUMBER'),
               customer_id: getReportText(receipt, 'CUSTOMER_ID'),
+              customer_name: getReportText(receipt, 'CUSTOMER_NAME'),
               receipt_date: formatDate(getReportText(receipt, 'RECEIPT_DATE')),
-              amount: parseFloat(getReportText(receipt, 'RECEIPT_AMOUNT') || '0'),
+              receipt_amount: getReportText(receipt, 'RECEIPT_AMOUNT'),
               transaction_type: getReportText(receipt, 'TRANSACTION_TYPE'),
               biller_id: profile?.biller_id || '',
-              bill_details
+              ledger_entries: ledger_entries,
+              bill_details: bill_details
             };
 
             paymentsForApi.push(paymentData);
@@ -311,8 +377,9 @@ export async function syncPayments(
 
           for (let i = 0; i < paymentsForApi.length; i += API_BATCH_SIZE) {
             const chunk = paymentsForApi.slice(i, i + API_BATCH_SIZE);
+            const payload = { "receipt": chunk };
             try {
-              await axios.post(PAYMENT_API, chunk, {
+              await axios.post(PAYMENT_API, payload, {
                 headers: {
                   'API-KEY': API_KEY,
                   'Content-Type': 'application/json'

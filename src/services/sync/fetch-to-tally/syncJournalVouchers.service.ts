@@ -234,7 +234,7 @@ export async function syncJournalVouchers(
             const alterId = parseInt(getReportText(jvEntry, 'ALTER_ID') || '0', 10);
             if (alterId > monthMaxAlterId) monthMaxAlterId = alterId;
 
-            const guid = getReportText(jvEntry, 'GUID');
+            const master_id = getReportText(jvEntry, 'MASTER_ID');
             const voucherNumber = getReportText(jvEntry, 'VOUCHER_NUMBER');
             const refNumber = getReportText(jvEntry, 'REF_NUMBER') || '';
             const dateStr = getReportText(jvEntry, 'DATE');
@@ -247,36 +247,30 @@ export async function syncJournalVouchers(
             const formattedLedgerEntries: any[] = [];
 
             for (const ledgerEntry of ledgerEntriesArray) {
-              const customerId = getReportText(ledgerEntry, 'CUSTOMER_ID') || '';
-              const ledgerName = getReportText(ledgerEntry, 'LEDGERNAME') || '';
-              const amount = parseFloat(getReportText(ledgerEntry, 'AMOUNT') || '0');
-              const conversationRate = parseFloat(getReportText(ledgerEntry, 'CONVERSATION_RATE') || '1');
-              const currency = getReportText(ledgerEntry, 'CURRENCY') || 'INR';
-              const isDebit = getReportText(ledgerEntry, 'IS_DEBIT') === 'Yes';
-
               // Extract invoice details if present
               const invoiceDetailsArray = extractInvoiceDetails(ledgerEntry);
               const formattedInvoiceDetails: any[] = [];
 
               for (const invoiceDetail of invoiceDetailsArray) {
-                const invoiceNumber = getReportText(invoiceDetail, 'INVOICE_NUMBER') || '';
-                const invoiceDateStr = getReportText(invoiceDetail, 'INVOICE_DATE') || '';
-                const invoiceAmount = parseFloat(getReportText(invoiceDetail, 'AMOUNT') || '0');
-
                 formattedInvoiceDetails.push({
-                  invoice_number: invoiceNumber,
-                  invoice_date: formatDate(invoiceDateStr),
-                  amount: invoiceAmount
+                  invoice_number: getReportText(invoiceDetail, 'INVOICE_NUMBER') || '',
+                  invoice_date: formatDate(getReportText(invoiceDetail, 'INVOICE_DATE') || ''),
+                  amount: parseFloat(getReportText(invoiceDetail, 'AMOUNT') || '0')
                 });
               }
 
+              // All fields from XML with lowercase keys
               const formattedLedgerEntry: any = {
-                customer_id: customerId,
-                conversation_rate: conversationRate,
-                company_name: ledgerName,
-                is_debit: isDebit,
-                amount: amount,
-                currency: currency
+                customer_id: getReportText(ledgerEntry, 'CUSTOMER_ID') || '',
+                ledgername: getReportText(ledgerEntry, 'LEDGERNAME') || '',
+                parent: getReportText(ledgerEntry, 'PARENT') || '',
+                ledgergroup: getReportText(ledgerEntry, 'LEDGERGROUP') || '',
+                amount: parseFloat(getReportText(ledgerEntry, 'AMOUNT') || '0'),
+                conversion_rate: parseFloat(getReportText(ledgerEntry, 'CONVERSATION_RATE') || '1'),
+                currencysymbol: getReportText(ledgerEntry, 'CURRENCYSYMBOL') || '',
+                currency: getReportText(ledgerEntry, 'CURRENCY') || 'INR',
+                is_debit: getReportText(ledgerEntry, 'IS_DEBIT') === 'Yes',
+                company_name: getReportText(ledgerEntry, 'LEDGERNAME') || ''
               };
 
               // Only add invoice_details if present
@@ -289,7 +283,7 @@ export async function syncJournalVouchers(
 
             const jvData = {
               entry_type: entryType,
-              transation_id: guid,
+              transation_id: master_id,
               biller_id: profile?.biller_id || '',
               voucher_number: voucherNumber,
               ref_number: refNumber,
@@ -367,7 +361,7 @@ export async function syncJournalVouchers(
             const alterId = parseInt(getReportText(jvEntry, 'ALTER_ID') || '0', 10);
             if (alterId > maxAlterId) maxAlterId = alterId;
 
-            const guid = getReportText(jvEntry, 'GUID');
+            const master_id = getReportText(jvEntry, 'MASTER_ID');
             const voucherNumber = getReportText(jvEntry, 'VOUCHER_NUMBER');
             const refNumber = getReportText(jvEntry, 'REF_NUMBER') || '';
             const dateStr = getReportText(jvEntry, 'DATE');
@@ -380,36 +374,30 @@ export async function syncJournalVouchers(
             const formattedLedgerEntries: any[] = [];
 
             for (const ledgerEntry of ledgerEntriesArray) {
-              const customerId = getReportText(ledgerEntry, 'CUSTOMER_ID') || '';
-              const ledgerName = getReportText(ledgerEntry, 'LEDGERNAME') || '';
-              const amount = parseFloat(getReportText(ledgerEntry, 'AMOUNT') || '0');
-              const conversationRate = parseFloat(getReportText(ledgerEntry, 'CONVERSATION_RATE') || '1');
-              const currency = getReportText(ledgerEntry, 'CURRENCY') || 'INR';
-              const isDebit = getReportText(ledgerEntry, 'IS_DEBIT') === 'Yes';
-
               // Extract invoice details if present
               const invoiceDetailsArray = extractInvoiceDetails(ledgerEntry);
               const formattedInvoiceDetails: any[] = [];
 
               for (const invoiceDetail of invoiceDetailsArray) {
-                const invoiceNumber = getReportText(invoiceDetail, 'INVOICE_NUMBER') || '';
-                const invoiceDateStr = getReportText(invoiceDetail, 'INVOICE_DATE') || '';
-                const invoiceAmount = parseFloat(getReportText(invoiceDetail, 'AMOUNT') || '0');
-
                 formattedInvoiceDetails.push({
-                  invoice_number: invoiceNumber,
-                  invoice_date: formatDate(invoiceDateStr),
-                  amount: invoiceAmount
+                  invoice_number: getReportText(invoiceDetail, 'INVOICE_NUMBER') || '',
+                  invoice_date: formatDate(getReportText(invoiceDetail, 'INVOICE_DATE') || ''),
+                  amount: parseFloat(getReportText(invoiceDetail, 'AMOUNT') || '0')
                 });
               }
 
+              // All fields from XML with lowercase keys
               const formattedLedgerEntry: any = {
-                customer_id: customerId,
-                conversation_rate: conversationRate,
-                company_name: ledgerName,
-                is_debit: isDebit,
-                amount: amount,
-                currency: currency
+                customer_id: getReportText(ledgerEntry, 'CUSTOMER_ID') || '',
+                ledgername: getReportText(ledgerEntry, 'LEDGERNAME') || '',
+                parent: getReportText(ledgerEntry, 'PARENT') || '',
+                ledgergroup: getReportText(ledgerEntry, 'LEDGERGROUP') || '',
+                amount: parseFloat(getReportText(ledgerEntry, 'AMOUNT') || '0'),
+                conversation_rate: parseFloat(getReportText(ledgerEntry, 'CONVERSATION_RATE') || '1'),
+                currencysymbol: getReportText(ledgerEntry, 'CURRENCYSYMBOL') || '',
+                currency: getReportText(ledgerEntry, 'CURRENCY') || 'INR',
+                is_debit: getReportText(ledgerEntry, 'IS_DEBIT') === 'Yes',
+                company_name: getReportText(ledgerEntry, 'LEDGERNAME') || ''
               };
 
               // Only add invoice_details if present
@@ -422,7 +410,7 @@ export async function syncJournalVouchers(
 
             const jvData = {
               entry_type: entryType,
-              transation_id: guid,
+              transation_id: master_id,
               biller_id: profile?.biller_id || '',
               voucher_number: voucherNumber,
               ref_number: refNumber,

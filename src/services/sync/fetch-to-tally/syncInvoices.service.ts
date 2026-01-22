@@ -6,7 +6,8 @@ import {
   fetchVouchersFromReportByDateRange,
   fetchVouchersFromReportByAlterId,
   extractInvoicesFromReport,
-  getReportText
+  getReportText,
+  getReportArray
 } from '../../tally/batch-fetcher';
 
 const ENTITY_TYPE = 'INVOICE';
@@ -115,6 +116,116 @@ function formatDate(dateStr: string): string {
 
   // Return as is if no pattern matches (might already be in correct format)
   return dateStr;
+}
+
+/**
+ * Extract bill details from invoice (all fields lowercase)
+ */
+function extractBillDetails(invoice: any): Array<{
+  bill_id: string;
+  bill_type: string;
+  bill_creditperiod: string;
+  bill_amount: string;
+}> {
+  const billDetails = getReportArray(invoice, 'BILL_DETAILS');
+  if (!billDetails || billDetails.length === 0) return [];
+
+  return billDetails.map((bill: any) => ({
+    bill_id: getReportText(bill, 'BILL_ID') || '',
+    bill_type: getReportText(bill, 'BILL_TYPE') || '',
+    bill_creditperiod: getReportText(bill, 'BILL_CREDITPERIOD') || '',
+    bill_amount: getReportText(bill, 'BILL_AMOUNT') || '0'
+  }));
+}
+
+/**
+ * Extract ledger entries for API (all fields from Tally, lowercase keys)
+ */
+function extractLedgerEntries(invoice: any): Array<{
+  customer_id: string;
+  ledgername: string;
+  parent: string;
+  ledgergroup: string;
+  amount: string;
+  conversation_rate: string;
+  currencysymbol: string;
+  currency: string;
+  is_debit: string;
+}> {
+  const ledgerEntries = getReportArray(invoice, 'LEDGER_ENTRIES');
+  if (!ledgerEntries || ledgerEntries.length === 0) return [];
+
+  return ledgerEntries.map((entry: any) => ({
+    customer_id: getReportText(entry, 'CUSTOMER_ID') || '',
+    ledgername: getReportText(entry, 'LEDGERNAME') || '',
+    parent: getReportText(entry, 'PARENT') || '',
+    ledgergroup: getReportText(entry, 'LEDGERGROUP') || '',
+    amount: getReportText(entry, 'AMOUNT') || '0',
+    conversation_rate: getReportText(entry, 'CONVERSATION_RATE') || '1',
+    currencysymbol: getReportText(entry, 'CURRENCYSYMBOL') || '',
+    currency: getReportText(entry, 'CURRENCY') || '',
+    is_debit: getReportText(entry, 'IS_DEBIT') || ''
+  }));
+}
+
+/**
+ * Extract inventory details with batch allocation (all fields from Tally, lowercase keys)
+ */
+function extractInventoryDetails(invoice: any): Array<{
+  stockitem_name: string;
+  quantity: string;
+  actualquantity: string;
+  altquantity: string;
+  rate: string;
+  uom: string;
+  alterbativeunit: string;
+  amount: string;
+  gst_perc: string;
+  discount: string;
+  batch_allocation: Array<{
+    godown_name: string;
+    batch_name: string;
+    mfgdate: string;
+    quantity: string;
+    actualquantity: string;
+    duedate: string;
+    order_number: string;
+    tracking_number: string;
+  }>;
+}> {
+  const inventoryItems = getReportArray(invoice, 'INVENTORY');
+  if (!inventoryItems || inventoryItems.length === 0) return [];
+
+  return inventoryItems.map((item: any) => {
+    // Extract batch allocations
+    const batchAllocations = getReportArray(item, 'BATCH_ALLOCATION');
+    const batchAllocationList = batchAllocations
+      ? batchAllocations.map((batch: any) => ({
+          godown_name: getReportText(batch, 'GODOWN_NAME') || '',
+          batch_name: getReportText(batch, 'BATCH_NAME') || '',
+          mfgdate: getReportText(batch, 'MFGDATE') || '',
+          quantity: getReportText(batch, 'QUANTITY') || '0',
+          actualquantity: getReportText(batch, 'ACTUALQUANTITY') || '0',
+          duedate: getReportText(batch, 'DUEDATE') || '',
+          order_number: getReportText(batch, 'ORDER_NUMBER') || '',
+          tracking_number: getReportText(batch, 'TRACKING_NUMBER') || ''
+        }))
+      : [];
+
+    return {
+      stockitem_name: getReportText(item, 'STOCKITEM_NAME') || '',
+      quantity: getReportText(item, 'QUANTITY') || '0',
+      actualquantity: getReportText(item, 'ACTUALQUANTITY') || '0',
+      altquantity: getReportText(item, 'ALTQUANTITY') || '',
+      rate: getReportText(item, 'RATE') || '0',
+      uom: getReportText(item, 'UOM') || '',
+      alterbativeunit: getReportText(item, 'ALTERBATIVEUNIT') || '',
+      amount: getReportText(item, 'AMOUNT') || '0',
+      gst_perc: getReportText(item, 'GST_PERC') || '0',
+      discount: getReportText(item, 'DISCOUNT') || '0',
+      batch_allocation: batchAllocationList
+    };
+  });
 }
 
 /**
@@ -239,13 +350,15 @@ export async function syncInvoices(
             const formattedIssueDate = formatDate(issueDateStr);
             const formattedDueDate = calculateDueDate(issueDateStr, dueDateStr);
 
-            const invoiceData = {
+            const hasInventory = getReportText(invoice, 'INVENTORY_ENTRIES') === 'Yes';
+
+            const invoiceData: any = {
               invoice_id: getReportText(invoice, 'INVOICE_ID'),
               invoice_number: getReportText(invoice, 'INVOICE_NUMBER'),
               voucher_type: getReportText(invoice, 'VOUCHER_TYPE'),
               issue_date: formattedIssueDate,
               due_date: formattedDueDate,
-              customer_id: getReportText(invoice, 'CUSTOMER_ID'),
+              customer_id: getReportText(invoice, 'CUSTOMER_ID') === "0" ? '' : getReportText(invoice, 'CUSTOMER_ID'),
               status: getReportText(invoice, 'STATUS'),
               type: getReportText(invoice, 'TYPE'),
               total: parseFloat(getReportText(invoice, 'TOTAL') || '0'),
@@ -255,6 +368,7 @@ export async function syncInvoices(
               state: getReportText(invoice, 'STATE'),
               country: getReportText(invoice, 'COUNTRY'),
               company_name: getReportText(invoice, 'COMPANY_NAME'),
+              // E-way bill details
               Ewaybill_Num: getReportText(invoice, 'EWAYBILL_NUM'),
               Date: formatDate(getReportText(invoice, 'DATE')),
               DispatchFrom: getReportText(invoice, 'DISPATCHFROM'),
@@ -263,17 +377,28 @@ export async function syncInvoices(
               TransporatId: getReportText(invoice, 'TRANSPORATID'),
               Mode: getReportText(invoice, 'MODE'),
               LadingNo: getReportText(invoice, 'LADINGNO'),
-              LadingDate: getReportText(invoice, 'LADINGDATE'),
+              LadingDate: formatDate(getReportText(invoice, 'LADINGDATE')),
               Vehicle_number: getReportText(invoice, 'VEHICLE_NUMBER'),
               Vehicle_type: getReportText(invoice, 'VEHICLE_TYPE'),
+              // E-Invoicing details
               Acknowledge_No: getReportText(invoice, 'ACKNOWLEDGE_NO'),
-              Ack_Date: getReportText(invoice, 'ACK_DATE'),
+              Ack_Date: formatDate(getReportText(invoice, 'ACK_DATE')),
               IRN: getReportText(invoice, 'IRN'),
               BilltoPlace: getReportText(invoice, 'BILLTOPLACE'),
               ShiptoPlace: getReportText(invoice, 'SHIPTOPLACE'),
-              Inventory_Entries: getReportText(invoice, 'INVENTORY_ENTRIES') === 'Yes',
+              // Bill details
+              bill_details: extractBillDetails(invoice),
+              // Ledger entries (all entries from Tally)
+              Ledger_Entries: extractLedgerEntries(invoice),
+              // Inventory related
+              Inventory_Entries: hasInventory,
               Delivery_note_no: getReportText(invoice, 'DELIVERY_NOTE_NO')
             };
+
+            // Add inventory details if applicable
+            if (hasInventory) {
+              invoiceData.Inventory_Details = extractInventoryDetails(invoice);
+            }
 
             invoicesForApi.push(invoiceData);
           }
@@ -328,7 +453,7 @@ export async function syncInvoices(
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
 
       try {
-        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId);
+        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId, 'ZeroFinnSales');
         const invoices = extractInvoicesFromReport(parsed);
 
         if (invoices.length === 0) {
@@ -348,7 +473,9 @@ export async function syncInvoices(
             const formattedIssueDate = formatDate(issueDateStr);
             const formattedDueDate = calculateDueDate(issueDateStr, dueDateStr);
 
-            const invoiceData = {
+            const hasInventory = getReportText(invoice, 'INVENTORY_ENTRIES') === 'Yes';
+
+            const invoiceData: any = {
               invoice_id: getReportText(invoice, 'INVOICE_ID'),
               invoice_number: getReportText(invoice, 'INVOICE_NUMBER'),
               voucher_type: getReportText(invoice, 'VOUCHER_TYPE'),
@@ -364,6 +491,7 @@ export async function syncInvoices(
               state: getReportText(invoice, 'STATE'),
               country: getReportText(invoice, 'COUNTRY'),
               company_name: getReportText(invoice, 'COMPANY_NAME'),
+              // E-way bill details
               Ewaybill_Num: getReportText(invoice, 'EWAYBILL_NUM'),
               Date: formatDate(getReportText(invoice, 'DATE')),
               DispatchFrom: getReportText(invoice, 'DISPATCHFROM'),
@@ -372,17 +500,28 @@ export async function syncInvoices(
               TransporatId: getReportText(invoice, 'TRANSPORATID'),
               Mode: getReportText(invoice, 'MODE'),
               LadingNo: getReportText(invoice, 'LADINGNO'),
-              LadingDate: getReportText(invoice, 'LADINGDATE'),
+              LadingDate: formatDate(getReportText(invoice, 'LADINGDATE')),
               Vehicle_number: getReportText(invoice, 'VEHICLE_NUMBER'),
               Vehicle_type: getReportText(invoice, 'VEHICLE_TYPE'),
+              // E-Invoicing details
               Acknowledge_No: getReportText(invoice, 'ACKNOWLEDGE_NO'),
-              Ack_Date: getReportText(invoice, 'ACK_DATE'),
+              Ack_Date: formatDate(getReportText(invoice, 'ACK_DATE')),
               IRN: getReportText(invoice, 'IRN'),
               BilltoPlace: getReportText(invoice, 'BILLTOPLACE'),
               ShiptoPlace: getReportText(invoice, 'SHIPTOPLACE'),
-              Inventory_Entries: getReportText(invoice, 'INVENTORY_ENTRIES') === 'Yes',
-              Delivery_note_no: getReportText(invoice, 'DELIVERY_NOTE_NO')
+              // Bill details
+              bill_details: extractBillDetails(invoice),
+              // Ledger entries (all entries from Tally)
+              Ledger_Entries: extractLedgerEntries(invoice),
+              // Inventory related
+              Inventory_Entries: hasInventory,
+              delivery_note_no: getReportText(invoice, 'DELIVERY_NOTE_NO')
             };
+
+            // Add inventory details if applicable
+            if (hasInventory) {
+              invoiceData.Inventory_Details = extractInventoryDetails(invoice);
+            }
 
             invoicesForApi.push(invoiceData);
           }
@@ -392,8 +531,9 @@ export async function syncInvoices(
 
           for (let i = 0; i < invoicesForApi.length; i += API_BATCH_SIZE) {
             const chunk = invoicesForApi.slice(i, i + API_BATCH_SIZE);
+            const payload = { "invoice": chunk };
             try {
-              await axios.post(INVOICE_API, chunk, {
+              await axios.post(INVOICE_API, payload, {
                 headers: {
                   'API-KEY': API_KEY,
                   'Content-Type': 'application/json'
@@ -419,6 +559,7 @@ export async function syncInvoices(
           );
         }
       } catch (error: any) {
+        console.log('error==>', error)
         await db.updateSyncBatchStatus(batchId, 'API_FAILED', 0, 0, 0, error.message);
       }
     }

@@ -133,7 +133,7 @@ export class SyncService {
         const invoiceIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('INVOICE');
         const invoiceIncompleteMonths = await this.dbService.getIncompleteMonths('INVOICE');
         
-        // Only run first sync if it's not complete AND has incomplete months
+        // // Only run first sync if it's not complete AND has incomplete months
         if (!invoiceIsFirstSyncComplete && invoiceIncompleteMonths.length > 0) {
           this.dbService.log('INFO', `INVOICE has incomplete months: ${invoiceIncompleteMonths.join(', ')}, resuming first sync`);
           const invoiceFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
