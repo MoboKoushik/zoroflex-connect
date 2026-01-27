@@ -94,12 +94,12 @@ function formatTallyError(error: any): string {
     return 'Connection to Tally was reset. Please ensure Tally Prime is running and try again.';
   }
 
-  if (errorMessage.includes('ZeroFinnCmp')) {
-    return 'ZeroFinnCmp report not found in Tally. Please ensure the report is installed in Tally Prime.';
+  if (errorMessage.includes('ZorrofinCmp')) {
+    return 'ZorrofinCmp report not found in Tally. Please ensure the report is installed in Tally Prime.';
   }
 
   if (errorMessage.includes('Unknown Request')) {
-    return 'Tally returned an error. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
+    return 'Tally returned an error. Please ensure Tally Prime is running and the ZorrofinCmp report is available.';
   }
 
   // Generic error message
@@ -222,7 +222,7 @@ async function handleLoginSuccess(): Promise<void> {
 
         if (companies.length === 0) {
           console.log('No companies found in Tally');
-          const errorMsg = 'No companies were found in Tally. Please ensure Tally Prime is running and the ZeroFinnCmp report is available.';
+          const errorMsg = 'No companies were found in Tally. Please ensure Tally Prime is running and the ZorrofinCmp report is available.';
           createCompanySelectorWindow(profile, null, errorMsg);
           return;
         }

@@ -71,14 +71,14 @@ function formatTallyDate(tallyDate: string): string {
 }
 
 /**
- * Fetch all companies (BILLER entries) from Tally using ZeroFinnCmp report
+ * Fetch all companies (BILLER entries) from Tally using ZorrofinCmp report
  */
 export async function fetchCompanies(dbService?: DatabaseService): Promise<CompanyData[]> {
     const db = dbService || new DatabaseService();
     try {
-        db.log('INFO', 'Fetching companies from Tally using ZeroFinnCmp report');
+        db.log('INFO', 'Fetching companies from Tally using ZorrofinCmp report');
 
-        // Fetch organization data using ZeroFinnCmp report
+        // Fetch organization data using ZorrofinCmp report
         const parsed = await fetchOrganizationFromReport();
         console.log('fetchCompanies - Parsed response received, extracting billers...');
         

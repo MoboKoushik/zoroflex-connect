@@ -12,9 +12,9 @@ export async function fetchCurrentCompany(dbService?: DatabaseService): Promise<
     const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
 
     try {
-        db.log('INFO', 'Fetching current company from Tally using ZeroFinnCmp report');
+        db.log('INFO', 'Fetching current company from Tally using ZorrofinCmp report');
 
-        // Fetch organization data using ZeroFinnCmp report
+        // Fetch organization data using ZorrofinCmp report
         const parsed = await fetchOrganizationFromReport();
         const billers = extractBillersFromReport(parsed);
 

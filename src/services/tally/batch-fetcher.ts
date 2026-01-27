@@ -103,7 +103,7 @@ async function withRetry<T>(
 
 
 /**
- * Fetches vouchers using ZeroFinnReceipt report with date range (for first sync only)
+ * Fetches vouchers using ZorrofinReceipt report with date range (for first sync only)
  * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
  * @param toDate Date range end (YYYYMMDD format, e.g., "20260331")
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
@@ -114,22 +114,21 @@ export async function fetchVouchersFromReportByDateRange(
   cullection: string
 ): Promise<any> {
   const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <TALLYREQUEST>Export Data</TALLYREQUEST>
-  </HEADER>
-  <BODY>
-    <EXPORTDATA>
-      <REQUESTDESC>
-        <REPORTNAME>${cullection}</REPORTNAME>
-        <STATICVARIABLES>
-          <SVFROMDATE>${fromDate}</SVFROMDATE>
-          <SVTODATE>${toDate}</SVTODATE>
-        </STATICVARIABLES>
-      </REQUESTDESC>
-      <REQUESTDATA/>
-    </EXPORTDATA>
-  </BODY>
+  <ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>${cullection}</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVFROMDATE>${fromDate}</SVFROMDATE>
+                    <SVTODATE>${toDate}</SVTODATE>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
@@ -153,7 +152,7 @@ export async function fetchVouchersFromReportByDateRange(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinReceipt report exists in Tally.`);
       }
     }
 
@@ -163,36 +162,33 @@ export async function fetchVouchersFromReportByDateRange(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch vouchers from ZeroFinnReceipt report (date range) failed: ${error.message}`);
+    throw new Error(`Fetch vouchers from ZorrofinReceipt report (date range) failed: ${error.message}`);
   });
 }
 
 /**
- * Fetches vouchers using ZeroFinnReceipt report with ALTER_ID only (for incremental sync)
+ * Fetches vouchers using ZorrofinReceipt report with ALTER_ID only (for incremental sync)
  * @param fromAlterId Starting ALTER_ID (exclusive)
  * @param cullection Starting 
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
  */
 export async function fetchVouchersFromReportByAlterId(
   fromAlterId: string, cullection: string): Promise<any> {
-    console.log('fromAlterId==>', fromAlterId)
-    console.log('cullection==>', cullection)
   const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <TALLYREQUEST>Export Data</TALLYREQUEST>
-  </HEADER>
-  <BODY>
-    <EXPORTDATA>
-      <REQUESTDESC>
-        <REPORTNAME>${cullection}</REPORTNAME>
-        <STATICVARIABLES>
-          <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
-        </STATICVARIABLES>
-      </REQUESTDESC>
-      <REQUESTDATA/>
-    </EXPORTDATA>
-  </BODY>
+  <ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>${cullection}</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
@@ -216,7 +212,7 @@ export async function fetchVouchersFromReportByAlterId(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnReceipt report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinReceipt report exists in Tally.`);
       }
     }
 
@@ -226,26 +222,26 @@ export async function fetchVouchersFromReportByAlterId(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch vouchers from ZeroFinnReceipt report (ALTER_ID) failed: ${error.message}`);
+    throw new Error(`Fetch vouchers from ZorrofinReceipt report (ALTER_ID) failed: ${error.message}`);
   });
 }
 
 /**
- * Extracts INVOICE array from ZeroFinnReceipt report response
+ * Extracts INVOICE array from ZorrofinReceipt report response
  */
 export function extractInvoicesFromReport(parsed: any): any[] {
   return parsed.VOUCHERS?.INVOICE || [];
 }
 
 /**
- * Extracts RECEIPT array from ZeroFinnReceipt report response
+ * Extracts RECEIPT array from ZorrofinReceipt report response
  */
 export function extractReceiptsFromReport(parsed: any): any[] {
   return parsed.VOUCHERS?.RECEIPT || [];
 }
 
 /**
- * Fetches customers using ZeroFinnCust report with date range (for first sync only)
+ * Fetches customers using ZorrofinCust report with date range (for first sync only)
  * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
  * @param toDate Date range end (YYYYMMDD format, e.g., "20260330")
  * @returns Parsed XML response with CUSTOMER array
@@ -255,18 +251,17 @@ export async function fetchCustomersFromReportByDateRange(
   toDate: string
 ): Promise<any> {
   const xmlRequest = `
-<ENVELOPE>
+  <ENVELOPE>
     <HEADER>
         <TALLYREQUEST>Export Data</TALLYREQUEST>
     </HEADER>
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>ZeroFinnCust</REPORTNAME>
+                <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
-                    <SVZEROFINNALTERID>0</SVZEROFINNALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -294,7 +289,7 @@ export async function fetchCustomersFromReportByDateRange(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCust report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinCust report exists in Tally.`);
       }
     }
 
@@ -304,12 +299,12 @@ export async function fetchCustomersFromReportByDateRange(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch customers from ZeroFinnCust report (date range) failed: ${error.message}`);
+    throw new Error(`Fetch customers from ZorrofinCust report (date range) failed: ${error.message}`);
   });
 }
 
 /**
- * Fetches customers using ZeroFinnCust report with ALTER_ID only (for incremental sync)
+ * Fetches customers using ZorrofinCust report with ALTER_ID only (for incremental sync)
  * @param fromAlterId Starting ALTER_ID (exclusive)
  * @returns Parsed XML response with CUSTOMER array
  */
@@ -317,16 +312,16 @@ export async function fetchCustomersFromReportByAlterId(
   fromAlterId: string
 ): Promise<any> {
   const xmlRequest = `
-<ENVELOPE>
+  <ENVELOPE>
     <HEADER>
         <TALLYREQUEST>Export Data</TALLYREQUEST>
     </HEADER>
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>ZeroFinnCust</REPORTNAME>
+                <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
-                    <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
+                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -354,7 +349,7 @@ export async function fetchCustomersFromReportByAlterId(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCust report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinCust report exists in Tally.`);
       }
     }
 
@@ -364,12 +359,12 @@ export async function fetchCustomersFromReportByAlterId(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch customers from ZeroFinnCust report (ALTER_ID) failed: ${error.message}`);
+    throw new Error(`Fetch customers from ZorrofinCust report (ALTER_ID) failed: ${error.message}`);
   });
 }
 
 /**
- * Extracts CUSTOMER array from ZeroFinnCust report response
+ * Extracts CUSTOMER array from ZorrofinCust report response
  */
 export function extractCustomersFromReport(parsed: any): any[] {
   // Response structure: ENVELOPE.CUSTOMER (array) or ENVELOPE.BODY[0].CUSTOMER
@@ -387,7 +382,7 @@ export function extractCustomersFromReport(parsed: any): any[] {
 }
 
 /**
- * Fetches organization using ZeroFinnCmp report
+ * Fetches organization using ZorrofinCmp report
  * @returns Parsed XML response with BILLER array
  */
 export async function fetchOrganizationFromReport(): Promise<any> {
@@ -399,10 +394,7 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>ZeroFinnCmp</REPORTNAME>
-                <STATICVARIABLES>
-                    <SVZEROFINNALTERID>0</SVZEROFINNALTERID>
-                </STATICVARIABLES>
+                <REPORTNAME>ZorrofinCmp</REPORTNAME>
             </REQUESTDESC>
         </EXPORTDATA>
     </BODY>
@@ -424,10 +416,10 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     });
 
     // Log raw response for debugging (first 500 chars)
-    const rawResponsePreview = typeof response.data === 'string' 
-      ? response.data.substring(0, 500) 
+    const rawResponsePreview = typeof response.data === 'string'
+      ? response.data.substring(0, 500)
       : JSON.stringify(response.data).substring(0, 500);
-    console.log('Tally ZeroFinnCmp response preview:', rawResponsePreview);
+    console.log('Tally ZorrofinCmp response preview:', rawResponsePreview);
 
     const parsed = await parseStringPromise(response.data, {
       explicitArray: true,
@@ -448,7 +440,7 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnCmp report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinCmp report exists in Tally.`);
       }
     }
 
@@ -458,12 +450,12 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch organization from ZeroFinnCmp report failed: ${error.message}`);
+    throw new Error(`Fetch organization from ZorrofinCmp report failed: ${error.message}`);
   });
 }
 
 /**
- * Extracts BILLER array from ZeroFinnCmp report response
+ * Extracts BILLER array from ZorrofinCmp report response
  */
 export function extractBillersFromReport(parsed: any): any[] {
   console.log('extractBillersFromReport - Parsed structure:', {
@@ -477,32 +469,32 @@ export function extractBillersFromReport(parsed: any): any[] {
 
   // Response structure: ENVELOPE.BILLER (array) or ENVELOPE.BODY[0].BILLER
   if (parsed?.ENVELOPE?.BILLER) {
-    const billers = Array.isArray(parsed.ENVELOPE.BILLER) 
-      ? parsed.ENVELOPE.BILLER 
+    const billers = Array.isArray(parsed.ENVELOPE.BILLER)
+      ? parsed.ENVELOPE.BILLER
       : [parsed.ENVELOPE.BILLER];
     console.log(`extractBillersFromReport - Found ${billers.length} billers in ENVELOPE.BILLER`);
     return billers;
   }
-  
+
   if (parsed?.ENVELOPE?.BODY?.[0]?.BILLER) {
     const billers = parsed.ENVELOPE.BODY[0].BILLER;
     const billerArray = Array.isArray(billers) ? billers : [billers];
     console.log(`extractBillersFromReport - Found ${billerArray.length} billers in ENVELOPE.BODY[0].BILLER`);
     return billerArray;
   }
-  
+
   if (parsed?.BILLER) {
     const billers = Array.isArray(parsed.BILLER) ? parsed.BILLER : [parsed.BILLER];
     console.log(`extractBillersFromReport - Found ${billers.length} billers in BILLER`);
     return billers;
   }
-  
+
   console.warn('extractBillersFromReport - No BILLER found in response. Full parsed structure:', JSON.stringify(parsed, null, 2).substring(0, 1000));
   return [];
 }
 
 /**
- * Helper to extract text from ZeroFinnReceipt report XML elements
+ * Helper to extract text from ZorrofinReceipt report XML elements
  * Report format uses simple text nodes, not the complex TDL format
  */
 export function getReportText(obj: any, key: string): string {
@@ -529,7 +521,7 @@ export function getReportArray(obj: any, key: string): any[] {
 }
 
 /**
- * Fetches Journal Vouchers using ZeroFinnJV report with date range (for first sync only)
+ * Fetches Journal Vouchers using ZorrofinJV report with date range (for first sync only)
  * @param fromDate Date range start (YYYYMMDD format, e.g., "20230401")
  * @param toDate Date range end (YYYYMMDD format, e.g., "20260330")
  * @returns Parsed XML response with JV_ENTRY array
@@ -546,7 +538,7 @@ export async function fetchJournalVouchersFromReportByDateRange(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>ZeroFinnJV</REPORTNAME>
+                <REPORTNAME>ZorrofinJV</REPORTNAME>
                 <STATICVARIABLES>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
@@ -581,7 +573,7 @@ export async function fetchJournalVouchersFromReportByDateRange(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnJV report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinJV report exists in Tally.`);
       }
     }
 
@@ -591,12 +583,12 @@ export async function fetchJournalVouchersFromReportByDateRange(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch Journal Vouchers from ZeroFinnJV report (date range) failed: ${error.message}`);
+    throw new Error(`Fetch Journal Vouchers from ZorrofinJV report (date range) failed: ${error.message}`);
   });
 }
 
 /**
- * Fetches Journal Vouchers using ZeroFinnJV report with ALTER_ID only (for incremental sync)
+ * Fetches Journal Vouchers using ZorrofinJV report with ALTER_ID only (for incremental sync)
  * @param fromAlterId Starting ALTER_ID (exclusive)
  * @returns Parsed XML response with JV_ENTRY array
  */
@@ -611,9 +603,9 @@ export async function fetchJournalVouchersFromReportByAlterId(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>ZeroFinnJV</REPORTNAME>
+                <REPORTNAME>ZorrofinJV</REPORTNAME>
                 <STATICVARIABLES>
-                    <SVZEROFINNALTERID>${fromAlterId}</SVZEROFINNALTERID>
+                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -645,7 +637,7 @@ export async function fetchJournalVouchersFromReportByAlterId(
     if (parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE) {
       const errorMsg = parsed.RESPONSE || parsed.ENVELOPE?.BODY?.[0]?.RESPONSE?.[0];
       if (errorMsg && typeof errorMsg === 'string' && errorMsg.includes('Unknown Request')) {
-        throw new Error(`Tally error: ${errorMsg}. Check if ZeroFinnJV report exists in Tally.`);
+        throw new Error(`Tally error: ${errorMsg}. Check if ZorrofinJV report exists in Tally.`);
       }
     }
 
@@ -655,18 +647,18 @@ export async function fetchJournalVouchersFromReportByAlterId(
     if (error.message && error.message.includes('Tally error')) {
       throw error;
     }
-    throw new Error(`Fetch Journal Vouchers from ZeroFinnJV report (ALTER_ID) failed: ${error.message}`);
+    throw new Error(`Fetch Journal Vouchers from ZorrofinJV report (ALTER_ID) failed: ${error.message}`);
   });
 }
 
 /**
- * Extracts JV_ENTRY array from ZeroFinnJV report response
+ * Extracts JV_ENTRY array from ZorrofinJV report response
  */
 export function extractJournalVouchersFromReport(parsed: any): any[] {
   // Response structure: ENVELOPE.JV_ENTRY (array) or direct JV_ENTRY
   if (parsed.ENVELOPE?.JV_ENTRY) {
-    return Array.isArray(parsed.ENVELOPE.JV_ENTRY) 
-      ? parsed.ENVELOPE.JV_ENTRY 
+    return Array.isArray(parsed.ENVELOPE.JV_ENTRY)
+      ? parsed.ENVELOPE.JV_ENTRY
       : [parsed.ENVELOPE.JV_ENTRY];
   }
   if (parsed.ENVELOPE?.BODY?.[0]?.JV_ENTRY) {

@@ -106,7 +106,7 @@ export async function syncCustomers(
 
     db.log('INFO', 'Customer sync started', {
       sync_mode: syncMode,
-      report: 'ZeroFinnCust',
+      report: 'ZorrofinCust',
       date_range: dateRangeFrom && dateRangeTo ? `${dateRangeFrom} to ${dateRangeTo}` : 'none'
     });
 
@@ -301,7 +301,7 @@ export async function syncCustomers(
           let maxAlterId = parseInt(lastAlterId || '0', 10);
 
           for (const customer of customers) {
-            // Try to get ALTER_ID if available (may not be in ZeroFinnCust report response)
+            // Try to get ALTER_ID if available (may not be in ZorrofinCust report response)
             const alterIdStr = getReportText(customer, 'ALTER_ID') || getReportText(customer, 'ALTERID') || '0';
             const alterId = parseInt(alterIdStr, 10);
             if (alterId > maxAlterId) maxAlterId = alterId;
@@ -403,7 +403,7 @@ export async function syncCustomers(
       if (newMaxAlterId !== '0') {
         db.log('INFO', `Updated max alter id for ${ENTITY_TYPE} after first sync: ${newMaxAlterId}`);
       } else {
-        db.log('WARN', `Max alter id is 0 after first sync. ALTER_ID may not be available in Tally ZeroFinnCust report.`);
+        db.log('WARN', `Max alter id is 0 after first sync. ALTER_ID may not be available in Tally ZorrofinCust report.`);
         db.log('WARN', `This will prevent incremental sync. Please check if ALTER_ID field is available in Tally response.`);
       }
     } else {

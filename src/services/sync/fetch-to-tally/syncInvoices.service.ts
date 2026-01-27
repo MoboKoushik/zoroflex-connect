@@ -278,7 +278,7 @@ export async function syncInvoices(
 
     db.log('INFO', 'Invoice sync started', {
       sync_mode: syncMode,
-      report: 'ZeroFinnSales',
+      report: 'ZorrofinSales',
       date_range: dateRangeFrom && dateRangeTo ? `${dateRangeFrom} to ${dateRangeTo}` : 'none'
     });
 
@@ -328,7 +328,7 @@ export async function syncInvoices(
         );
 
         try {
-          const parsed = await fetchVouchersFromReportByDateRange(tallyFromDate, tallyToDate, 'ZeroFinnSales');
+          const parsed = await fetchVouchersFromReportByDateRange(tallyFromDate, tallyToDate, 'ZorrofinSales');
           const invoices = extractInvoicesFromReport(parsed);
 
           if (invoices.length === 0) {
@@ -453,7 +453,7 @@ export async function syncInvoices(
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
 
       try {
-        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId, 'ZeroFinnSales');
+        const parsed = await fetchVouchersFromReportByAlterId(lastAlterId, 'ZorrofinSales');
         const invoices = extractInvoicesFromReport(parsed);
 
         if (invoices.length === 0) {

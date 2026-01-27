@@ -167,7 +167,7 @@ export async function syncJournalVouchers(
 
     db.log('INFO', 'Journal Voucher sync started', {
       sync_mode: syncMode,
-      report: 'ZeroFinnJV',
+      report: 'ZorrofinJV',
       date_range: dateRangeFrom && dateRangeTo ? `${dateRangeFrom} to ${dateRangeTo}` : 'none'
     });
 

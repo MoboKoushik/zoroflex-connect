@@ -288,7 +288,7 @@ export const CompanySelector: React.FC = () => {
       }}>
         <div style={{ fontSize: '18px', marginBottom: '10px' }}>No Companies Found</div>
         <div style={{ fontSize: '14px', color: '#999', marginBottom: '20px' }}>
-          No companies were found in Tally. Please ensure Tally is running and the ZeroFinnCmp report is available.
+          No companies were found in Tally. Please ensure Tally is running and the ZorrofinCmp report is available.
         </div>
         <button
           onClick={loadCompanies}

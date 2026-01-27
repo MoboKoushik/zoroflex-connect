@@ -24,7 +24,7 @@ export class OrganizationService {
         throw new Error('No valid company data retrieved from Tally');
       }
 
-      // Extract BILLER data (new format from ZeroFinnCmp report)
+      // Extract BILLER data (new format from ZorrofinReceipt report)
       const billerData = currentCompany.BILLER_DATA || currentCompany;
       
       const name = (billerData.NAME || currentCompany.NAME || '').trim();
