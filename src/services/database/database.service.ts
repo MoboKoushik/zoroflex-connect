@@ -310,6 +310,10 @@ export class DatabaseService {
 
   private init(): void {
     this.db = new Database(this.dbPath);
+
+    // Enable foreign key enforcement
+    this.db.pragma('foreign_keys = ON');
+
     console.log('SQLite Connected →', this.dbPath);
     this.createTables();
   }
@@ -1073,13 +1077,11 @@ export class DatabaseService {
    * Get sync mode for entity
    */
   async getEntitySyncMode(entity: string): Promise<'first_sync' | 'incremental'> {
-    console.log('entity===>', entity)
     const stmt = this.db!.prepare(`
       SELECT sync_mode FROM entity_sync_status WHERE entity = ?
     `);
     const row = stmt.get(entity.toUpperCase()) as { sync_mode: string } | undefined;
-    console.log('row==>', row)
-    return 'first_sync';
+    return (row?.sync_mode as 'first_sync' | 'incremental') || 'first_sync';
   }
 
   /**

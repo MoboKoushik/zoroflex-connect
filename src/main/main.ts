@@ -777,6 +777,37 @@ ipcMain.handle('force-fresh-sync', async (event) => {
   }
 });
 
+// Entity-specific sync handler
+ipcMain.handle('sync-entity', async (event, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL') => {
+  try {
+    const profile = await dbService.getProfile();
+    if (!profile) {
+      return { success: false, error: 'No profile found' };
+    }
+
+    const dashboardWin = dashboardWindow;
+    if (dashboardWin && !dashboardWin.isDestroyed()) {
+      dashboardWin.webContents.send('sync-started', { entityType });
+    }
+
+    await syncService.syncEntity(profile, entityType);
+
+    if (dashboardWin && !dashboardWin.isDestroyed()) {
+      dashboardWin.webContents.send('sync-completed', { entityType });
+    }
+
+    await notificationService.notifySyncSuccess();
+    return { success: true };
+  } catch (error: any) {
+    const dashboardWin = dashboardWindow;
+    if (dashboardWin && !dashboardWin.isDestroyed()) {
+      dashboardWin.webContents.send('sync-completed', { entityType, error: error.message });
+    }
+    await notificationService.notifySyncFailed(error.message || 'Sync failed');
+    return { success: false, error: error.message || 'Sync failed' };
+  }
+});
+
 // New IPC for logout from dashboard
 ipcMain.handle('logout', async () => {
   syncService.stop();

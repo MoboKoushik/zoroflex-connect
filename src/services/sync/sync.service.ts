@@ -8,6 +8,8 @@ import { syncJournalVouchers } from './fetch-to-tally/syncJournalVouchers.servic
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { SyncDateManager, SyncType, EntityType } from './sync-date-manager';
 import { CompanyRepository } from '../database/repositories/company.repository';
+import { setTallyUrl } from '../tally/batch-fetcher';
+import { getTallyUrl } from '../config/tally-url-helper';
 
 
 export class SyncService {
@@ -25,6 +27,15 @@ export class SyncService {
     this.companyRepository = new CompanyRepository(dbService);
   }
 
+  /**
+   * Initialize Tally URL from settings before sync operations
+   */
+  private async initializeTallyUrl(): Promise<void> {
+    const tallyUrl = await getTallyUrl(this.dbService);
+    setTallyUrl(tallyUrl);
+    this.dbService.log('INFO', `Tally URL set to: ${tallyUrl}`);
+  }
+
   private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND'): Promise<void> {
     if (this.isRunning) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
@@ -33,6 +44,9 @@ export class SyncService {
     this.isRunning = true;
 
     try {
+      // Initialize Tally URL from settings
+      await this.initializeTallyUrl();
+
       this.dbService.log('INFO', `${type} sync initiated`);
 
       // 1. Fetch current company from Tally
@@ -256,7 +270,7 @@ export class SyncService {
   // Manual sync - smart sync (per-entity status check করে)
   async manualSync(profile: UserProfile): Promise<void> {
     this.dbService.log('INFO', 'Manual sync requested - performing smart sync (per-entity status check)');
-    
+
     if (this.isRunning) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
@@ -264,6 +278,9 @@ export class SyncService {
     this.isRunning = true;
 
     try {
+      // Initialize Tally URL from settings
+      await this.initializeTallyUrl();
+
       this.dbService.log('INFO', 'MANUAL sync initiated');
 
       // 1. Fetch current company from Tally
@@ -458,7 +475,7 @@ export class SyncService {
   // Force full fresh sync - সব entity-র জন্য fresh sync
   async forceFullFreshSync(profile: UserProfile): Promise<void> {
     this.dbService.log('INFO', 'Force full fresh sync requested - performing fresh sync for all entities');
-    
+
     if (this.isRunning) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
@@ -466,6 +483,9 @@ export class SyncService {
     this.isRunning = true;
 
     try {
+      // Initialize Tally URL from settings
+      await this.initializeTallyUrl();
+
       this.dbService.log('INFO', 'FORCE FULL FRESH sync initiated');
 
       // 1. Fetch current company from Tally
@@ -589,5 +609,115 @@ export class SyncService {
 
   isRunningSync(): boolean {
     return this.isRunning;
+  }
+
+  /**
+   * Sync specific entity only (Customer, Invoice, Payment, or Journal)
+   */
+  async syncEntity(profile: UserProfile, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL'): Promise<void> {
+    if (this.isRunning) {
+      this.dbService.log('WARN', 'Sync already in progress; skipping this run');
+      return;
+    }
+    this.isRunning = true;
+
+    try {
+      // Initialize Tally URL from settings
+      await this.initializeTallyUrl();
+
+      this.dbService.log('INFO', `Entity-specific sync initiated for: ${entityType}`);
+
+      // 1. Fetch current company from Tally
+      const companyData = await fetchCurrentCompany(this.dbService);
+      if (!companyData) {
+        throw new Error('Please select your company in Tally Prime software');
+      }
+
+      // 2. Get active company
+      const activeCompany = this.companyRepository.getActiveCompany(profile.biller_id || '');
+      if (!activeCompany) {
+        throw new Error('No active company selected. Please select a company first.');
+      }
+
+      const toDate = this.syncDateManager.getSyncEndDate();
+
+      // 3. Check entity first sync status and sync accordingly
+      const isFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted(entityType);
+
+      if (entityType === 'CUSTOMER') {
+        if (isFirstSyncComplete) {
+          this.dbService.log('INFO', 'CUSTOMER: Running incremental sync');
+          await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
+        } else {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
+          this.dbService.log('INFO', 'CUSTOMER: Running first sync');
+          await syncCustomers(profile, 'first', fromDate, toDate, this.dbService);
+
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteSyncBatches('CUSTOMER');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('CUSTOMER');
+            this.dbService.log('INFO', 'CUSTOMER first sync completed, marked as complete');
+          }
+        }
+      } else if (entityType === 'INVOICE') {
+        if (isFirstSyncComplete) {
+          this.dbService.log('INFO', 'INVOICE: Running incremental sync');
+          await syncInvoices(profile, 'incremental', undefined, undefined, this.dbService);
+        } else {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
+          this.dbService.log('INFO', 'INVOICE: Running first sync');
+          await syncInvoices(profile, 'first', fromDate, toDate, this.dbService);
+
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('INVOICE');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('INVOICE');
+            this.dbService.log('INFO', 'INVOICE first sync completed, marked as complete');
+          }
+        }
+      } else if (entityType === 'PAYMENT') {
+        if (isFirstSyncComplete) {
+          this.dbService.log('INFO', 'PAYMENT: Running incremental sync');
+          await syncPayments(profile, 'incremental', undefined, undefined, this.dbService);
+        } else {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'PAYMENT', 'fresh');
+          this.dbService.log('INFO', 'PAYMENT: Running first sync');
+          await syncPayments(profile, 'first', fromDate, toDate, this.dbService);
+
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('PAYMENT');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('PAYMENT');
+            this.dbService.log('INFO', 'PAYMENT first sync completed, marked as complete');
+          }
+        }
+      } else if (entityType === 'JOURNAL') {
+        if (isFirstSyncComplete) {
+          this.dbService.log('INFO', 'JOURNAL: Running incremental sync');
+          await syncJournalVouchers(profile, 'incremental', undefined, undefined, this.dbService);
+        } else {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+          this.dbService.log('INFO', 'JOURNAL: Running first sync');
+          await syncJournalVouchers(profile, 'first', fromDate, toDate, this.dbService);
+
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('JOURNAL');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('JOURNAL');
+            this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+          }
+        }
+      }
+
+      await this.dbService.updateLastSuccessfulSync();
+      this.dbService.log('INFO', `Entity-specific sync completed for: ${entityType}`);
+
+    } catch (error: any) {
+      this.dbService.log('ERROR', `Entity-specific sync failed for ${entityType}`, { error: error?.message || error });
+      throw error;
+    } finally {
+      this.isRunning = false;
+    }
   }
 }

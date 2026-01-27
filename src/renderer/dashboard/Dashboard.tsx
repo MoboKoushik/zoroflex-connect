@@ -105,7 +105,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSyncStart = (type: "full" | "smart") => {
+  const handleSyncStart = (type:'full' | 'smart' | 'entity') => {
     setIsSyncing(true);
     const syncTypeLabel = type === "full" ? "full fresh" : "smart";
     setSyncStatus(`Starting ${syncTypeLabel} sync...`);

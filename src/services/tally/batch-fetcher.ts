@@ -2,9 +2,25 @@
 
 import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
-import fs from 'fs';
 import http from 'http';
-const TALLY_URL = 'http://localhost:9000';
+import { getDefaultTallyUrl } from '../config/tally-url-helper';
+
+// Dynamic Tally URL - can be set via setTallyUrl()
+let TALLY_URL = getDefaultTallyUrl();
+
+/**
+ * Set the Tally URL dynamically (call this before sync operations)
+ */
+export function setTallyUrl(url: string): void {
+  TALLY_URL = url;
+}
+
+/**
+ * Get current Tally URL
+ */
+export function getCurrentTallyUrl(): string {
+  return TALLY_URL;
+}
 
 /**
  * Retry configuration for Tally API calls
@@ -111,7 +127,7 @@ async function withRetry<T>(
 export async function fetchVouchersFromReportByDateRange(
   fromDate: string,
   toDate: string,
-  cullection: string
+  collection: string
 ): Promise<any> {
   const xmlRequest = `
   <ENVELOPE>
@@ -121,7 +137,7 @@ export async function fetchVouchersFromReportByDateRange(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>${cullection}</REPORTNAME>
+                <REPORTNAME>${collection}</REPORTNAME>
                 <STATICVARIABLES>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
@@ -169,11 +185,11 @@ export async function fetchVouchersFromReportByDateRange(
 /**
  * Fetches vouchers using ZorrofinReceipt report with ALTER_ID only (for incremental sync)
  * @param fromAlterId Starting ALTER_ID (exclusive)
- * @param cullection Starting 
+ * @param collection Starting 
  * @returns Parsed XML response with VOUCHERS containing INVOICE and RECEIPT arrays
  */
 export async function fetchVouchersFromReportByAlterId(
-  fromAlterId: string, cullection: string): Promise<any> {
+  fromAlterId: string, collection: string): Promise<any> {
   const xmlRequest = `
   <ENVELOPE>
     <HEADER>
@@ -182,7 +198,7 @@ export async function fetchVouchersFromReportByAlterId(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>${cullection}</REPORTNAME>
+                <REPORTNAME>${collection}</REPORTNAME>
                 <STATICVARIABLES>
                     <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
@@ -415,25 +431,10 @@ export async function fetchOrganizationFromReport(): Promise<any> {
       validateStatus: () => true
     });
 
-    // Log raw response for debugging (first 500 chars)
-    const rawResponsePreview = typeof response.data === 'string'
-      ? response.data.substring(0, 500)
-      : JSON.stringify(response.data).substring(0, 500);
-    console.log('Tally ZorrofinCmp response preview:', rawResponsePreview);
-
     const parsed = await parseStringPromise(response.data, {
       explicitArray: true,
       mergeAttrs: false,
       explicitRoot: false
-    });
-
-    // Log parsed structure for debugging
-    console.log('Parsed response structure:', {
-      hasEnvelope: !!parsed.ENVELOPE,
-      envelopeKeys: parsed.ENVELOPE ? Object.keys(parsed.ENVELOPE) : [],
-      hasBiller: !!parsed.ENVELOPE?.BILLER,
-      billerType: Array.isArray(parsed.ENVELOPE?.BILLER) ? 'array' : typeof parsed.ENVELOPE?.BILLER,
-      billerLength: Array.isArray(parsed.ENVELOPE?.BILLER) ? parsed.ENVELOPE.BILLER.length : 'not array'
     });
 
     // Check for Tally error response
@@ -458,38 +459,25 @@ export async function fetchOrganizationFromReport(): Promise<any> {
  * Extracts BILLER array from ZorrofinCmp report response
  */
 export function extractBillersFromReport(parsed: any): any[] {
-  console.log('extractBillersFromReport - Parsed structure:', {
-    hasEnvelope: !!parsed?.ENVELOPE,
-    envelopeKeys: parsed?.ENVELOPE ? Object.keys(parsed.ENVELOPE) : [],
-    hasBiller: !!parsed?.ENVELOPE?.BILLER,
-    billerType: Array.isArray(parsed?.ENVELOPE?.BILLER) ? 'array' : typeof parsed?.ENVELOPE?.BILLER,
-    hasBody: !!parsed?.ENVELOPE?.BODY,
-    hasDirectBiller: !!parsed?.BILLER
-  });
-
   // Response structure: ENVELOPE.BILLER (array) or ENVELOPE.BODY[0].BILLER
   if (parsed?.ENVELOPE?.BILLER) {
     const billers = Array.isArray(parsed.ENVELOPE.BILLER)
       ? parsed.ENVELOPE.BILLER
       : [parsed.ENVELOPE.BILLER];
-    console.log(`extractBillersFromReport - Found ${billers.length} billers in ENVELOPE.BILLER`);
     return billers;
   }
 
   if (parsed?.ENVELOPE?.BODY?.[0]?.BILLER) {
     const billers = parsed.ENVELOPE.BODY[0].BILLER;
     const billerArray = Array.isArray(billers) ? billers : [billers];
-    console.log(`extractBillersFromReport - Found ${billerArray.length} billers in ENVELOPE.BODY[0].BILLER`);
     return billerArray;
   }
 
   if (parsed?.BILLER) {
     const billers = Array.isArray(parsed.BILLER) ? parsed.BILLER : [parsed.BILLER];
-    console.log(`extractBillersFromReport - Found ${billers.length} billers in BILLER`);
     return billers;
   }
 
-  console.warn('extractBillersFromReport - No BILLER found in response. Full parsed structure:', JSON.stringify(parsed, null, 2).substring(0, 1000));
   return [];
 }
 

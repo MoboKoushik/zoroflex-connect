@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { DatabaseService, UserProfile } from '../../database/database.service';
 import { getApiUrl } from '../../config/api-url-helper';
+import { getApiKey } from '../../config/api-key-helper';
 import {
   fetchCustomersFromReportByDateRange,
   fetchCustomersFromReportByAlterId,
@@ -10,7 +11,6 @@ import {
 } from '../../tally/batch-fetcher';
 
 const ENTITY_TYPE = 'CUSTOMER';
-const API_KEY = '7061797A6F72726F74616C6C79';
 const API_BATCH_SIZE = 100; // Max 100 records per API call
 const BATCH_DELAY_MS = 1000;
 
@@ -102,7 +102,12 @@ export async function syncCustomers(
 
   try {
     const baseUrl = await getApiUrl(db);
+    const apiKey = await getApiKey(db);
     const CUSTOMER_API = `${baseUrl}/customer/tally/create`;
+
+    if (!apiKey) {
+      throw new Error('API key not found. Please login again.');
+    }
 
     db.log('INFO', 'Customer sync started', {
       sync_mode: syncMode,
@@ -237,7 +242,7 @@ export async function syncCustomers(
             try {
               await axios.post(CUSTOMER_API, payload, {
                 headers: {
-                  'API-KEY': API_KEY,
+                  'API-KEY': apiKey,
                   'Content-Type': 'application/json'
                 },
                 timeout: 30000
@@ -360,7 +365,7 @@ export async function syncCustomers(
             try {
               await axios.post(CUSTOMER_API, payload, {
                 headers: {
-                  'API-KEY': API_KEY,
+                  'API-KEY': apiKey,
                   'Content-Type': 'application/json'
                 },
                 timeout: 30000

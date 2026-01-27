@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   forceFullFreshSync: () => ipcRenderer.invoke('force-full-fresh-sync'),
   forceFullSync: () => ipcRenderer.invoke('force-full-sync'), // Keep for backward compatibility
   forceFreshSync: () => ipcRenderer.invoke('force-fresh-sync'), // Keep for backward compatibility
+  syncEntity: (entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL') => ipcRenderer.invoke('sync-entity', entityType),
   restartBackgroundSync: () => ipcRenderer.invoke('restart-background-sync'),
   logout: () => ipcRenderer.invoke('logout'),
   
@@ -29,6 +30,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('sync-completed');
     ipcRenderer.on('sync-completed', callback);
     return () => ipcRenderer.removeListener('sync-completed', callback);
+  },
+  removeSyncCompletedListener: (callback: any) => {
+    ipcRenderer.removeListener('sync-completed', callback);
   },
   getProfile: () => ipcRenderer.invoke('get-profile'),
   getSyncHistory: () => ipcRenderer.invoke('get-sync-history'),
