@@ -11,7 +11,7 @@ interface SyncResult {
   error?: string;
 }
 
-type EntityType = 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL';
+type EntityType = 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'DEBITNOTE';
 
 export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncComplete }) => {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -122,6 +122,7 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncC
     { type: 'INVOICE', label: 'Invoice', color: '#10b981' },
     { type: 'PAYMENT', label: 'Payment', color: '#f59e0b' },
     { type: 'JOURNAL', label: 'Journal', color: '#8b5cf6' },
+    { type: 'DEBITNOTE', label: 'Debit Note', color: '#ec4899' },
   ];
 
   return (
@@ -202,7 +203,7 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncC
         <h3 style={{ fontSize: '14px', marginBottom: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
           Entity-Specific Sync
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
           {entityButtons.map(({ type, label, color }) => (
             <button
               key={type}

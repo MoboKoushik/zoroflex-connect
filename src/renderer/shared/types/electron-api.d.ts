@@ -43,7 +43,7 @@ export interface ElectronAPI {
   forceFreshSync?: () => Promise<{ success: boolean; error?: string }>;
   forceFullFreshSync?: () => Promise<{ success: boolean; error?: string }>;
   manualSync?: () => Promise<{ success: boolean; error?: string }>;
-  syncEntity?: (entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL') => Promise<{ success: boolean; error?: string }>;
+  syncEntity?: (entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'DEBITNOTE') => Promise<{ success: boolean; error?: string }>;
   restartBackgroundSync?: () => Promise<{ success: boolean; error?: string }>;
   removeSyncCompletedListener?: (callback: any) => void;
   

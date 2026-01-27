@@ -5,6 +5,7 @@ import { syncCustomers } from './fetch-to-tally/syncCustomers.service';
 import { syncInvoices } from './fetch-to-tally/syncInvoices.service';
 import { syncPayments } from './fetch-to-tally/syncPayments.service';
 import { syncJournalVouchers } from './fetch-to-tally/syncJournalVouchers.service';
+import { syncDebitNotes } from './fetch-to-tally/syncDebitNotes.service';
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { SyncDateManager, SyncType, EntityType } from './sync-date-manager';
 import { CompanyRepository } from '../database/repositories/company.repository';
@@ -245,6 +246,40 @@ export class SyncService {
           await syncJournalVouchers(profile, 'incremental', undefined, undefined, this.dbService);
         }
 
+        // Debit Note sync
+        const debitNoteIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('DEBITNOTE');
+        const debitNoteIncompleteMonths = await this.dbService.getIncompleteMonths('DEBITNOTE');
+        
+        // Only run first sync if it's not complete AND has incomplete months
+        if (!debitNoteIsFirstSyncComplete && debitNoteIncompleteMonths.length > 0) {
+          this.dbService.log('INFO', `DEBITNOTE has incomplete months: ${debitNoteIncompleteMonths.join(', ')}, resuming first sync`);
+          const debitNoteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
+          await syncDebitNotes(profile, 'first', debitNoteFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('DEBITNOTE');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('DEBITNOTE');
+            this.dbService.log('INFO', 'DEBITNOTE first sync completed, marked as complete');
+          }
+        } else if (!debitNoteIsFirstSyncComplete) {
+          // First sync needed
+          this.dbService.log('INFO', 'DEBITNOTE first sync needed, running first sync');
+          const debitNoteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
+          await syncDebitNotes(profile, 'first', debitNoteFromDate, toDate, this.dbService);
+          
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('DEBITNOTE');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('DEBITNOTE');
+            this.dbService.log('INFO', 'DEBITNOTE first sync completed, marked as complete');
+          }
+        } else {
+          // First sync complete, run incremental sync
+          this.dbService.log('INFO', 'DEBITNOTE first sync complete, running incremental sync');
+          await syncDebitNotes(profile, 'incremental', undefined, undefined, this.dbService);
+        }
+
         // Check if all entities have completed first sync - if yes, dump database to backend
         const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
         if (allComplete) {
@@ -451,6 +486,40 @@ export class SyncService {
         await syncJournalVouchers(profile, 'incremental', undefined, undefined, this.dbService);
       }
 
+      // Debit Note sync
+      const debitNoteIsFirstSyncComplete = await this.dbService.isEntityFirstSyncCompleted('DEBITNOTE');
+      const debitNoteIncompleteMonths = await this.dbService.getIncompleteMonths('DEBITNOTE');
+      
+      // Only run first sync if it's not complete AND has incomplete months
+      if (!debitNoteIsFirstSyncComplete && debitNoteIncompleteMonths.length > 0) {
+        this.dbService.log('INFO', `DEBITNOTE has incomplete months: ${debitNoteIncompleteMonths.join(', ')}, resuming first sync`);
+        const debitNoteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
+        await syncDebitNotes(profile, 'first', debitNoteFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('DEBITNOTE');
+        if (stillIncomplete.length === 0) {
+          await this.dbService.completeEntityFirstSync('DEBITNOTE');
+          this.dbService.log('INFO', 'DEBITNOTE first sync completed, marked as complete');
+        }
+      } else if (!debitNoteIsFirstSyncComplete) {
+        // First sync needed
+        this.dbService.log('INFO', 'DEBITNOTE first sync needed, running first sync');
+        const debitNoteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
+        await syncDebitNotes(profile, 'first', debitNoteFromDate, toDate, this.dbService);
+        
+        // Check if first sync is now complete
+        const stillIncomplete = await this.dbService.getIncompleteMonths('DEBITNOTE');
+        if (stillIncomplete.length === 0) {
+          await this.dbService.completeEntityFirstSync('DEBITNOTE');
+          this.dbService.log('INFO', 'DEBITNOTE first sync completed, marked as complete');
+        }
+      } else {
+        // First sync complete, run incremental sync
+        this.dbService.log('INFO', 'DEBITNOTE first sync complete, running incremental sync');
+        await syncDebitNotes(profile, 'incremental', undefined, undefined, this.dbService);
+      }
+
       // Check if all entities have completed first sync
       const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
       if (allComplete) {
@@ -612,9 +681,9 @@ export class SyncService {
   }
 
   /**
-   * Sync specific entity only (Customer, Invoice, Payment, or Journal)
+   * Sync specific entity only (Customer, Invoice, Payment, Journal, or DebitNote)
    */
-  async syncEntity(profile: UserProfile, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL'): Promise<void> {
+  async syncEntity(profile: UserProfile, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'DEBITNOTE'): Promise<void> {
     if (this.isRunning) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
@@ -706,6 +775,22 @@ export class SyncService {
           if (stillIncomplete.length === 0) {
             await this.dbService.completeEntityFirstSync('JOURNAL');
             this.dbService.log('INFO', 'JOURNAL first sync completed, marked as complete');
+          }
+        }
+      } else if (entityType === 'DEBITNOTE') {
+        if (isFirstSyncComplete) {
+          this.dbService.log('INFO', 'DEBITNOTE: Running incremental sync');
+          await syncDebitNotes(profile, 'incremental', undefined, undefined, this.dbService);
+        } else {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
+          this.dbService.log('INFO', 'DEBITNOTE: Running first sync');
+          await syncDebitNotes(profile, 'first', fromDate, toDate, this.dbService);
+
+          // Check if first sync is now complete
+          const stillIncomplete = await this.dbService.getIncompleteMonths('DEBITNOTE');
+          if (stillIncomplete.length === 0) {
+            await this.dbService.completeEntityFirstSync('DEBITNOTE');
+            this.dbService.log('INFO', 'DEBITNOTE first sync completed, marked as complete');
           }
         }
       }

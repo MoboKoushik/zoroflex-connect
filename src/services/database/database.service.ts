@@ -626,6 +626,7 @@ export class DatabaseService {
       INSERT OR IGNORE INTO sync_settings (id, from_date, to_date) VALUES (1, '', '');
 
       INSERT OR IGNORE INTO entity_sync_status (entity, last_max_alter_id) VALUES
+        ('DEBITNOTE', '0'),
         ('CUSTOMER', '0'),
         ('INVOICE', '0'),
         ('PAYMENT', '0'),
@@ -2218,6 +2219,7 @@ export class DatabaseService {
     invoiceCount: number;
     receiptCount: number;
     jvCount: number;
+    debitNoteCount: number;
     lastSyncTime: string | null;
   }> {
     const customerStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM customers`);
@@ -2245,6 +2247,19 @@ export class DatabaseService {
     const jvResult = jvStmt.get() as { entity_count: number } | undefined;
     const jvCount = jvResult?.entity_count || 0;
 
+    // Debit Note count from sync_history (since debit notes are not stored in vouchers table)
+    const debitNoteStmt = this.db!.prepare(`
+      SELECT entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'DEBITNOTE' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+      ORDER BY completed_at DESC 
+      LIMIT 1
+    `);
+    const debitNoteResult = debitNoteStmt.get() as { entity_count: number } | undefined;
+    const debitNoteCount = debitNoteResult?.entity_count || 0;
+
     const lastSyncStmt = this.db!.prepare(`SELECT MAX(completed_at) as last_sync FROM sync_history WHERE status = 'SUCCESS'`);
     const lastSync = (lastSyncStmt.get() as { last_sync: string | null }).last_sync;
 
@@ -2254,6 +2269,7 @@ export class DatabaseService {
       invoiceCount,
       receiptCount,
       jvCount,
+      debitNoteCount,
       lastSyncTime: lastSync
     };
   }
@@ -2745,6 +2761,13 @@ export class DatabaseService {
       previousSyncCount: number;
       totalCount: number;
     };
+    debitNote: {
+      lastSyncTime: string | null;
+      lastSyncCount: number;
+      previousSyncTime: string | null;
+      previousSyncCount: number;
+      totalCount: number;
+    };
   }> {
     // Get last 2 successful syncs for each entity - include PARTIAL status
     const ledgerStmt = this.db!.prepare(`
@@ -2841,6 +2864,22 @@ export class DatabaseService {
     // Get total count: Use the last successful sync count (JV entries are not stored locally)
     let journalTotal = journalSyncs[0]?.entity_count || 0;
 
+    // Get last 2 successful syncs for DEBITNOTE entity
+    const debitNoteStmt = this.db!.prepare(`
+      SELECT completed_at, entity_count 
+      FROM sync_history 
+      WHERE entity_type = 'DEBITNOTE' 
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+        AND entity_count > 0
+      ORDER BY completed_at DESC 
+      LIMIT 2
+    `);
+    const debitNoteSyncs = debitNoteStmt.all() as Array<{ completed_at: string; entity_count: number }>;
+
+    // Get total count: Use the last successful sync count (Debit notes are not stored locally)
+    let debitNoteTotal = debitNoteSyncs[0]?.entity_count || 0;
+
     return {
       ledger: {
         lastSyncTime: ledgerSyncs[0]?.completed_at || null,
@@ -2869,6 +2908,13 @@ export class DatabaseService {
         previousSyncTime: journalSyncs[1]?.completed_at || null,
         previousSyncCount: journalSyncs[1]?.entity_count || 0,
         totalCount: journalTotal,
+      },
+      debitNote: {
+        lastSyncTime: debitNoteSyncs[0]?.completed_at || null,
+        lastSyncCount: debitNoteSyncs[0]?.entity_count || 0,
+        previousSyncTime: debitNoteSyncs[1]?.completed_at || null,
+        previousSyncCount: debitNoteSyncs[1]?.entity_count || 0,
+        totalCount: debitNoteTotal,
       },
     };
   }

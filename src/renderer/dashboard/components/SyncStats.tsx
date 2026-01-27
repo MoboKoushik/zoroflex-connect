@@ -17,6 +17,7 @@ interface SyncStatsProps {
   invoices: number;
   payments: number;
   journalVouchers: number;
+  debitNotes: number;
 }
 
 export const SyncStats: React.FC<SyncStatsProps> = ({
@@ -24,6 +25,7 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
   invoices,
   payments,
   journalVouchers,
+  debitNotes,
 }) => {
   const [syncInfo, setSyncInfo] = useState<EntitySyncInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
     loadSyncInfo();
     const interval = setInterval(loadSyncInfo, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
-  }, [customers, invoices, payments, journalVouchers]);
+  }, [customers, invoices, payments, journalVouchers, debitNotes]);
 
   const loadSyncInfo = async () => {
     try {
@@ -78,6 +80,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
             previousSyncTime: null,
             previousSyncCount: 0,
             totalCount: journalVouchers,
+          },
+          {
+            label: "Debit Note",
+            icon: "📋",
+            color: "#ec4899",
+            lastSyncTime: null,
+            lastSyncCount: 0,
+            previousSyncTime: null,
+            previousSyncCount: 0,
+            totalCount: debitNotes,
           },
         ]);
         setLoading(false);
@@ -131,6 +143,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
             previousSyncCount: info.journal?.previousSyncCount || 0,
             totalCount: info.journal?.totalCount || journalVouchers, // Use from API, fallback to props
           },
+          {
+            label: "Debit Note",
+            icon: "📋",
+            color: "#ec4899",
+            lastSyncTime: info.debitNote?.lastSyncTime || null,
+            lastSyncCount: info.debitNote?.lastSyncCount || 0,
+            previousSyncTime: info.debitNote?.previousSyncTime || null,
+            previousSyncCount: info.debitNote?.previousSyncCount || 0,
+            totalCount: info.debitNote?.totalCount || debitNotes, // Use from API, fallback to props
+          },
         ]);
       }
       setLoading(false);
@@ -177,6 +199,16 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
           previousSyncTime: null,
           previousSyncCount: 0,
           totalCount: journalVouchers,
+        },
+        {
+          label: "Debit Note",
+          icon: "📋",
+          color: "#ec4899",
+          lastSyncTime: null,
+          lastSyncCount: 0,
+          previousSyncTime: null,
+          previousSyncCount: 0,
+          totalCount: debitNotes,
         },
       ]);
       setLoading(false);
@@ -264,11 +296,11 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(5, 1fr)",
           gap: "16px",
         }}
       >
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
             className="card"
@@ -293,7 +325,7 @@ export const SyncStats: React.FC<SyncStatsProps> = ({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: "repeat(5, 1fr)",
         gap: "16px",
       }}
     >

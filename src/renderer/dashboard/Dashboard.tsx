@@ -28,6 +28,7 @@ export const Dashboard: React.FC = () => {
     invoices: 0,
     payments: 0,
     journalVouchers: 0,
+    debitNotes: 0,
   });
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -93,6 +94,7 @@ export const Dashboard: React.FC = () => {
           invoices: statsData.invoiceCount || 0,
           payments: statsData.receiptCount || 0,
           journalVouchers: statsData.jvCount || 0,
+          debitNotes: statsData.debitNoteCount || 0,
         });
       }
       if (logsData) setLogs(logsData);
@@ -180,6 +182,7 @@ export const Dashboard: React.FC = () => {
                   invoices={stats.invoices}
                   payments={stats.payments}
                   journalVouchers={stats.journalVouchers}
+                  debitNotes={stats.debitNotes}
                 />
 
                 <RecentLogs logs={logs} />

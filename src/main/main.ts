@@ -778,7 +778,7 @@ ipcMain.handle('force-fresh-sync', async (event) => {
 });
 
 // Entity-specific sync handler
-ipcMain.handle('sync-entity', async (event, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL') => {
+ipcMain.handle('sync-entity', async (event, entityType: 'CUSTOMER' | 'INVOICE' | 'PAYMENT' | 'JOURNAL' | 'DEBITNOTE') => {
   try {
     const profile = await dbService.getProfile();
     if (!profile) {
