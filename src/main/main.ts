@@ -379,26 +379,20 @@ app.whenReady().then(async () => {
   if (profile) {
     console.log('Profile found → Checking for active company');
     const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
-    console.log('ok', 3)
     if (activeCompany) {
       console.log('Active company found → Starting in background');
-      console.log('ok', 4)
       // Apply auto-start settings
       await applyAutoStartSettings();
-      console.log('ok', 5)
       createTrayAndStartSync(profile, syncService, dbService).catch(err => {
         console.error('Error creating tray and starting sync:', err);
       });
-      console.log('ok', 6)
       // If auto-start, don't show window; otherwise show window
       const shouldShowWindow = !isAutoStart;
       createDashboardWindow(profile, shouldShowWindow);
-      console.log('ok', 7)
     } else {
       console.log('No active company → Showing company selector');
       // Don't start sync - wait for company selection
       createCompanySelectorWindow(profile, null);
-      console.log('ok', 8)
     }
   } else {
     console.log('No profile → Opening login');
@@ -1657,19 +1651,19 @@ ipcMain.handle('get-api-status', async () => {
 
     if (shouldCheck) {
       // Perform immediate check
-      console.log('Performing immediate API health check...');
+      // console.log('Performing immediate API health check...');
       await apiHealthService.checkHealth();
     }
 
     // Get updated status after check
     const updatedStatus = apiHealthService.getStatus();
 
-    console.log('API status response:', {
-      isOnline: updatedStatus?.isOnline,
-      lastCheckTime: updatedStatus?.lastCheckTime,
-      responseTime: updatedStatus?.responseTime,
-      errorMessage: updatedStatus?.errorMessage
-    });
+    // console.log('API status response:', {
+    //   isOnline: updatedStatus?.isOnline,
+    //   lastCheckTime: updatedStatus?.lastCheckTime,
+    //   responseTime: updatedStatus?.responseTime,
+    //   errorMessage: updatedStatus?.errorMessage
+    // });
 
     // Ensure status always has required fields
     return {
@@ -2322,13 +2316,6 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
       },
       timeout: 15000,
       validateStatus: (status) => status < 500 // Accept 4xx as valid responses
-    });
-
-    console.log('Staging payments response:', {
-      status: response.status,
-      dataKeys: Object.keys(response.data || {}),
-      hasStatus: 'status' in (response.data || {}),
-      statusValue: response.data?.status
     });
 
     // Handle HTTP error status codes (4xx)
