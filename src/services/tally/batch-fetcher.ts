@@ -325,7 +325,9 @@ export async function fetchCustomersFromReportByDateRange(
  * @returns Parsed XML response with CUSTOMER array
  */
 export async function fetchCustomersFromReportByAlterId(
-  fromAlterId: string
+  fromAlterId: string,
+  fromDate: string,
+  toDate: string
 ): Promise<any> {
   const xmlRequest = `
   <ENVELOPE>
@@ -337,6 +339,8 @@ export async function fetchCustomersFromReportByAlterId(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVFROMDATE>${fromDate}</SVFROMDATE>
+                    <SVTODATE>${toDate}</SVTODATE>
                     <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
@@ -747,7 +751,7 @@ export async function fetchDeletedVouchersByAlterId(
 ): Promise<any> {
   // Use a very wide range so we rely mostly on ALTER_ID
   const wideFromDate = '20190401';
-  const wideToDate   = '20301231'; // far future
+  const wideToDate = '20301231'; // far future
 
   const xmlRequest = `
 <ENVELOPE>

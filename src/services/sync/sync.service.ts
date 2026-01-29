@@ -146,8 +146,9 @@ export class SyncService {
           }
         } else {
           // First sync complete, run incremental sync
+          const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
           this.dbService.log('INFO', 'CUSTOMER first sync complete, running incremental sync');
-          await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
+          await syncCustomers(profile, 'incremental', customerFromDate, toDate, this.dbService);
         }
 
         // Invoice sync
@@ -392,7 +393,8 @@ export class SyncService {
       } else {
         // First sync complete, run incremental sync
         this.dbService.log('INFO', 'CUSTOMER first sync complete, running incremental sync');
-        await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
+        const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
+        await syncCustomers(profile, 'incremental', customerFromDate, toDate, this.dbService);
       }
 
       // Invoice sync
@@ -735,8 +737,9 @@ export class SyncService {
 
       if (entityType === 'CUSTOMER') {
         if (isFirstSyncComplete) {
+          const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
           this.dbService.log('INFO', 'CUSTOMER: Running incremental sync');
-          await syncCustomers(profile, 'incremental', undefined, undefined, this.dbService);
+          await syncCustomers(profile, 'incremental', fromDate, toDate, this.dbService);
         } else {
           const fromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
           this.dbService.log('INFO', 'CUSTOMER: Running first sync');
