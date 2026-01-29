@@ -6,6 +6,7 @@ import { syncInvoices } from './fetch-to-tally/syncInvoices.service';
 import { syncPayments } from './fetch-to-tally/syncPayments.service';
 import { syncJournalVouchers } from './fetch-to-tally/syncJournalVouchers.service';
 import { syncDebitNotes } from './fetch-to-tally/syncDebitNotes.service';
+import { syncDeletedVouchers } from './fetch-to-tally/syncDeletedVouchers.service';
 import { OrganizationService } from './send-to-platfrom/organization.service';
 import { SyncDateManager, SyncType, EntityType } from './sync-date-manager';
 import { CompanyRepository } from '../database/repositories/company.repository';
@@ -104,6 +105,11 @@ export class SyncService {
         await syncInvoices(profile, 'first', fromDate, toDate, this.dbService);
         await syncPayments(profile, 'first', fromDate, toDate, this.dbService);
         await syncJournalVouchers(profile, 'first', fromDate, toDate, this.dbService);
+        await syncDebitNotes(profile, 'first', fromDate, toDate, this.dbService);
+
+        // Sync deleted/cancelled vouchers
+        this.dbService.log('INFO', 'Syncing deleted/cancelled vouchers');
+        await syncDeletedVouchers(profile, 'first', fromDate, toDate, this.dbService);
 
       } else {
         // BACKGROUND sync: Check per-entity first sync status
@@ -280,6 +286,11 @@ export class SyncService {
           await syncDebitNotes(profile, 'incremental', undefined, undefined, this.dbService);
         }
 
+        // Deleted vouchers sync (always incremental in background sync)
+        this.dbService.log('INFO', 'Syncing deleted/cancelled vouchers (incremental)');
+        const deleteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'ALL', 'fresh');
+        await syncDeletedVouchers(profile, 'incremental', deleteFromDate, toDate, this.dbService);
+
         // Check if all entities have completed first sync - if yes, dump database to backend
         const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
         if (allComplete) {
@@ -302,7 +313,7 @@ export class SyncService {
     }
   }
 
-  // Manual sync - smart sync (per-entity status check করে)
+  // Manual sync - smart sync (per-entity status check )
   async manualSync(profile: UserProfile): Promise<void> {
     this.dbService.log('INFO', 'Manual sync requested - performing smart sync (per-entity status check)');
 
@@ -520,6 +531,11 @@ export class SyncService {
         await syncDebitNotes(profile, 'incremental', undefined, undefined, this.dbService);
       }
 
+      // Deleted vouchers sync (always incremental in manual sync)
+      this.dbService.log('INFO', 'Syncing deleted/cancelled vouchers (incremental)');
+      const deleteFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'ALL', 'fresh');
+      await syncDeletedVouchers(profile, 'incremental', deleteFromDate, toDate, this.dbService);
+
       // Check if all entities have completed first sync
       const allComplete = await this.dbService.areAllEntitiesFirstSyncComplete();
       if (allComplete) {
@@ -601,6 +617,10 @@ export class SyncService {
       // Journal Voucher sync
       const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
       await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+
+      // Deleted vouchers sync (fresh sync)
+      this.dbService.log('INFO', 'Force full fresh sync: Syncing deleted/cancelled vouchers');
+      await syncDeletedVouchers(profile, 'first', customerFromDate, toDate, this.dbService);
 
       await this.dbService.updateLastSuccessfulSync();
       this.dbService.log('INFO', 'Force full fresh sync completed successfully');
