@@ -1,109 +1,134 @@
-import axios from 'axios';
-import fs from 'fs';
-import { parseStringPromise } from 'xml2js';
+import { DatabaseService } from '../../database/database.service';
+import {
+    fetchOrganizationFromReport,
+    extractBillersFromReport,
+    getReportText
+} from '../../tally/batch-fetcher';
 
-export async function fetchCurrentCompany() {
-    const xmlRequest = `
-<ENVELOPE>
-  <HEADER>
-    <VERSION>1</VERSION>
-    <TALLYREQUEST>Export</TALLYREQUEST>
-    <TYPE>Collection</TYPE>
-    <ID>CurrentCompany</ID>
-  </HEADER>
-  <BODY>
-    <DESC>
-      <STATICVARIABLES>
-        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-      </STATICVARIABLES>
-      <TDL>
-        <TDLMESSAGE>
-          <COLLECTION NAME="CurrentCompany" ISINITIALIZE="Yes">
-            <TYPE>Company</TYPE>
-            <BELONGSTO>Yes</BELONGSTO>
-            <NATIVEMETHOD>*</NATIVEMETHOD>
-            <!-- Explicitly fetch the Tally Serial Number (License ID) -->
-            <NATIVEMETHOD>TallySerialNumber</NATIVEMETHOD>
-            <NATIVEMETHOD>TallyLicenseID</NATIVEMETHOD>
-            <NATIVEMETHOD>SerialNumber</NATIVEMETHOD>
-            <NATIVEMETHOD>LicenseID</NATIVEMETHOD>
-          </COLLECTION>
-        </TDLMESSAGE>
-      </TDL>
-    </DESC>
-  </BODY>
-</ENVELOPE>`.trim();
+const ENTITY_TYPE = 'ORGANIZATION';
+
+export async function fetchCurrentCompany(dbService?: DatabaseService): Promise<Record<string, any> | null> {
+    const db = dbService || new DatabaseService();
+    const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
 
     try {
-        const response = await axios.post('http://localhost:9000', xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' }
-        });
+        db.log('INFO', 'Fetching current company from Tally using ZorrofinCmp report');
 
-        const parsed = await parseStringPromise(response.data);
+        // Fetch organization data using ZorrofinCmp report
+        const parsed = await fetchOrganizationFromReport();
+        const billers = extractBillersFromReport(parsed);
 
-        // Save raw response for debugging
-        const rawFile = './dump/company/current_company_raw.json';
-        fs.writeFileSync(rawFile, JSON.stringify(parsed, null, 2), 'utf8');
-
-        // Extract the current company (only one due to BELONGSTO>Yes)
-        const collection = parsed.ENVELOPE?.BODY?.[0]?.DATA?.[0]?.COLLECTION?.[0];
-        const companiesXml = collection?.COMPANY || [];
-
-        if (companiesXml.length === 0) {
-            console.log('No company is currently loaded in Tally Prime.');
+        if (billers.length === 0) {
+            const message = 'No company is currently loaded in Tally Prime.';
+            db.log('WARN', message);
+            await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, message);
             return null;
         }
 
-        const companyInfo = companiesXml[0];
+        // Get existing organization data from profile
+        const profile = await db.getProfile();
+        const profileBillerId = profile?.biller_id?.trim() || '';
 
-        const currentCompany: Record<string, any> = {};
+        // Handle multiple BILLER entries
+        let selectedBiller: any = null;
+        let gstinFromOtherBiller: string = '';
 
-        // Handle attributes (rare for Company object, but kept for completeness)
-        if (companyInfo.$) {
-            Object.keys(companyInfo.$).forEach(attrKey => {
-                currentCompany[attrKey.toUpperCase()] = companyInfo.$[attrKey];
-            });
+        if (billers.length === 1) {
+            selectedBiller = billers[0];
+        } else {
+            // Multiple entries - need to select the right one
+            // First, try to match by BILLER_ID from profile
+            if (profileBillerId) {
+                selectedBiller = billers.find((biller: any) => {
+                    const billerId = getReportText(biller, 'BILLER_ID');
+                    return billerId && billerId.trim() === profileBillerId;
+                });
+            }
+
+            // If no match found, prefer entry with GSTIN
+            if (!selectedBiller) {
+                selectedBiller = billers.find((biller: any) => {
+                    const gstin = getReportText(biller, 'GSTIN');
+                    return gstin && gstin.trim() !== '';
+                });
+            }
+
+            // If still no match, use first entry
+            if (!selectedBiller) {
+                selectedBiller = billers[0];
+            }
+
+            // If selected BILLER has empty GSTIN, check other entries with same ORGANIZATION_ID for GSTIN
+            const selectedOrgId = getReportText(selectedBiller, 'ORGANIZATION_ID');
+            const selectedGstin = getReportText(selectedBiller, 'GSTIN');
+
+            if ((!selectedGstin || selectedGstin.trim() === '') && selectedOrgId) {
+                const otherBillerWithGstin = billers.find((biller: any) => {
+                    const orgId = getReportText(biller, 'ORGANIZATION_ID');
+                    const gstin = getReportText(biller, 'GSTIN');
+                    return orgId === selectedOrgId && gstin && gstin.trim() !== '';
+                });
+
+                if (otherBillerWithGstin) {
+                    gstinFromOtherBiller = getReportText(otherBillerWithGstin, 'GSTIN');
+                }
+            }
         }
 
-        // Handle child elements and lists
-        Object.keys(companyInfo).forEach(key => {
-            if (key === '$') return;
-            const value = companyInfo[key];
+        // Get GSTIN - use from other BILLER if selected one doesn't have it
+        const selectedGstin = getReportText(selectedBiller, 'GSTIN');
+        const finalGstin = gstinFromOtherBiller || selectedGstin;
 
-            if (key.endsWith('.LIST') && Array.isArray(value)) {
-                const baseKey = key.replace('.LIST', '');
-                currentCompany[baseKey] = value.map((item: any) => {
-                    const subObj: Record<string, any> = {};
-                    if (item.$) {
-                        Object.keys(item.$).forEach(subAttr => {
-                            subObj[subAttr.toUpperCase()] = item.$[subAttr];
-                        });
-                    }
-                    Object.keys(item).forEach(subKey => {
-                        if (subKey !== '$' && Array.isArray(item[subKey]) && item[subKey].length > 0) {
-                            subObj[subKey] = item[subKey][0];
-                        }
-                    });
-                    return subObj;
-                });
-            } else if (Array.isArray(value) && value.length > 0) {
-                currentCompany[key] = value[0];
+        // Map BILLER fields to company data structure
+        const currentCompany: Record<string, any> = {
+            NAME: getReportText(selectedBiller, 'NAME'),
+            COMPANYNUMBER: getReportText(selectedBiller, 'ORGANIZATION_ID'),
+            BASICCOMPANYFORMALNAME: getReportText(selectedBiller, 'TALLY_ID'),
+            ADDRESS: getReportText(selectedBiller, 'ADDRESS'),
+            STATENAME: getReportText(selectedBiller, 'STATE'),
+            COUNTRYNAME: getReportText(selectedBiller, 'COUNTRY'),
+            PINCODE: getReportText(selectedBiller, 'PIN'),
+            GSTREGISTRATIONNUMBER: finalGstin, // Use GSTIN from other BILLER if available
+            VATNUMBER: getReportText(selectedBiller, 'VATNUMBER'),
+            TAXUNITNAME: getReportText(selectedBiller, 'TAXUNITNAME'),
+            BOOKSTARTFROM: getReportText(selectedBiller, 'BOOKSTARTFROM'),
+            // Store BILLER data for reference
+            BILLER_DATA: {
+                BILLER_ID: getReportText(selectedBiller, 'BILLER_ID'),
+                NAME: getReportText(selectedBiller, 'NAME'),
+                ORGANIZATION_ID: getReportText(selectedBiller, 'ORGANIZATION_ID'),
+                TALLY_ID: getReportText(selectedBiller, 'TALLY_ID'),
+                ADDRESS: getReportText(selectedBiller, 'ADDRESS'),
+                STATE: getReportText(selectedBiller, 'STATE'),
+                COUNTRY: getReportText(selectedBiller, 'COUNTRY'),
+                PIN: getReportText(selectedBiller, 'PIN'),
+                VATNUMBER: getReportText(selectedBiller, 'VATNUMBER'),
+                GSTIN: finalGstin, // Use GSTIN from other BILLER if available
+                TAXUNITNAME: getReportText(selectedBiller, 'TAXUNITNAME'),
+                BOOKSTARTFROM: getReportText(selectedBiller, 'BOOKSTARTFROM')
             }
+        };
+
+        // Set TALLY_LICENSE_ID (use TALLY_ID from BILLER)
+        currentCompany.TALLY_LICENSE_ID = currentCompany.BASICCOMPANYFORMALNAME || '';
+
+        db.log('INFO', 'Current company fetched successfully', {
+            company_name: currentCompany.NAME,
+            organization_id: currentCompany.COMPANYNUMBER,
+            tally_id: currentCompany.BASICCOMPANYFORMALNAME,
+            biller_id: getReportText(selectedBiller, 'BILLER_ID'),
+            selected_from: billers.length > 1 ? `${billers.length} entries (matched by ${profileBillerId ? 'biller_id' : 'GSTIN'})` : 'single entry'
         });
 
-        currentCompany.TALLY_LICENSE_ID = 
-            currentCompany.TALLYSERIALNUMBER || 
-            currentCompany.SERIALNUMBER || 
-            currentCompany.TALLYLICENSEID || 
-            currentCompany.LICENSEID || 
-            '';
-
-        const fileName = './dump/company/current_company.json';
-        fs.writeFileSync(fileName, JSON.stringify(currentCompany, null, 2), 'utf8');
+        await db.logSyncEnd(runId, 'SUCCESS', 1, 0, undefined, 'Company data fetched');
+        await db.updateLastSuccessfulSync();
 
         return currentCompany;
+
     } catch (error: any) {
-        console.error('Error fetching current company:', error?.message || error);
+        const errorMsg = error?.message || 'Unknown error while fetching company';
+        db.log('ERROR', 'Failed to fetch current company', { error: errorMsg });
+        await db.logSyncEnd(runId, 'FAILED', 0, 0, undefined, errorMsg);
         throw error;
     }
 }
