@@ -66,21 +66,21 @@ function generateMonthlyBatches(fromDate: string, toDate: string): Array<{
  */
 function formatDate(dateStr: string): string {
   if (!dateStr || dateStr.trim() === '') return '';
-  
+
   // If already in DD-MM-YYYY format, return as is
   const ddMMyyyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
   if (ddMMyyyyMatch) {
     const [, day, month, year] = ddMMyyyyMatch;
     return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
   }
-  
+
   // If in YYYY-MM-DD format, convert to DD-MM-YYYY
   const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (yyyyMMddMatch) {
     const [, year, month, day] = yyyyMMddMatch;
     return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
   }
-  
+
   // If in DD-MM-YY format (2 digit year), convert to DD-MM-YYYY
   const ddMMyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
   if (ddMMyyMatch) {
@@ -105,7 +105,7 @@ function formatDate(dateStr: string): string {
       return `${day.padStart(2, '0')}-${month}-${fullYear}`;
     }
   }
-  
+
   // If in YYYYMMDD format (8 digits)
   const yyyyMMdd8Match = dateStr.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (yyyyMMdd8Match) {
@@ -122,14 +122,14 @@ function formatDate(dateStr: string): string {
  */
 function extractLedgerEntries(jvEntry: any): any[] {
   if (!jvEntry) return [];
-  
+
   const ledgerEntries = jvEntry.LEDGER_ENTRIES;
   if (!ledgerEntries) return [];
-  
+
   if (Array.isArray(ledgerEntries)) {
     return ledgerEntries;
   }
-  
+
   return [ledgerEntries];
 }
 
@@ -138,12 +138,12 @@ function extractLedgerEntries(jvEntry: any): any[] {
  */
 function extractInvoiceDetails(ledgerEntry: any): any[] {
   if (!ledgerEntry || !ledgerEntry.INVOICE_DETAILS) return [];
-  
+
   const invoiceDetails = ledgerEntry.INVOICE_DETAILS;
   if (Array.isArray(invoiceDetails)) {
     return invoiceDetails;
   }
-  
+
   return [invoiceDetails];
 }
 
@@ -153,7 +153,7 @@ export async function syncJournalVouchers(
   dateRangeFrom?: string,
   dateRangeTo?: string,
   dbService?: DatabaseService
-): Promise<void> {
+): Promise<any> {
   // Use provided dbService or create default (for backward compatibility)
   const db = dbService || new DatabaseService();
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
@@ -179,7 +179,7 @@ export async function syncJournalVouchers(
     if (syncMode === 'first' && dateRangeFrom && dateRangeTo) {
       // FIRST SYNC: Check for incomplete months first
       const incompleteMonths = await db.getIncompleteMonths(ENTITY_TYPE);
-      
+
       let monthlyBatches: Array<{
         month: string;
         fromDate: string;
@@ -187,16 +187,16 @@ export async function syncJournalVouchers(
         tallyFromDate: string;
         tallyToDate: string;
       }>;
-      
+
       if (incompleteMonths.length > 0) {
         // Resume incomplete months only
         db.log('INFO', `Resuming first sync: ${incompleteMonths.length} incomplete months found: ${incompleteMonths.join(', ')}`);
-        
+
         const allMonthlyBatches = generateMonthlyBatches(dateRangeFrom, dateRangeTo);
-        monthlyBatches = allMonthlyBatches.filter(batch => 
+        monthlyBatches = allMonthlyBatches.filter(batch =>
           incompleteMonths.includes(batch.month)
         );
-        
+
         db.log('INFO', `Resuming ${monthlyBatches.length} incomplete months`);
       } else {
         // Normal first sync - process all months
@@ -487,9 +487,26 @@ export async function syncJournalVouchers(
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} Journal Vouchers synced`);
     db.log('INFO', 'Journal Voucher sync completed', { success: successCount, failed: failedCount });
 
+    return {
+      successCount,
+      failedCount,
+      status,  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      maxAlterId: newMaxAlterId || '0'
+    };
+
   } catch (error: any) {
     await db.logSyncEnd(runId, 'FAILED', successCount, failedCount, undefined, error.message);
     db.log('ERROR', 'Journal Voucher sync crashed', { error: error.message });
-    throw error;
+    const errorMessage = error?.message ||
+      error?.response?.data?.message ||
+      error?.stack?.split('\n')[0] ||  // first line of stack
+      'Unknown sync error';
+    return {
+      successCount,
+      failedCount,
+      status: 'FAILED',  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      message: errorMessage,
+      maxAlterId: newMaxAlterId || '0'
+    };
   }
 }

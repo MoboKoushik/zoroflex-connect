@@ -61,6 +61,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSyncStatus: () => ipcRenderer.invoke('get-sync-status'),
   testTallyConnectivity: () => ipcRenderer.invoke('test-tally-connectivity'),
   testApiConnectivity: () => ipcRenderer.invoke('test-api-connectivity'),
+
+  getSyncSummaryHistory: (limit?: number, page?: number) => ipcRenderer.invoke('get-sync-summary-history', limit, page),
   
   // Staging data
   getStagingCustomers: (page?: number, limit?: number, search?: string) => 

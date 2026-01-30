@@ -226,6 +226,57 @@ export interface SyncBatchRow {
   completed_at: string | null;
 }
 
+// ===============================================
+// DELETED/CANCELLED VOUCHER INTERFACES
+// ===============================================
+
+export interface DeletedVoucherData {
+  id?: number;
+  company_guid: string;
+  company_name?: string;
+  voucher_guid: string;
+  tally_master_id?: string;
+  voucher_type: string;
+  deletion_action: 'Delete' | 'Cancel';
+  fetched_at?: string;
+  synced_to_api?: number;
+  api_synced_at?: string;
+  api_response?: string;
+}
+
+export interface DeletedCustomerData {
+  id?: number;
+  company_guid: string;
+  company_name?: string;
+  customer_guid: string;
+  tally_master_id?: string;
+  ledger_name?: string;
+  deletion_action: 'Delete' | 'Cancel';
+  fetched_at?: string;
+  synced_to_api?: number;
+  api_synced_at?: string;
+  api_response?: string;
+}
+
+export interface DeleteSyncStatus {
+  id: number;
+  last_delete_sync_alter_id: string;
+  last_delete_sync_at: string | null;
+  total_deleted_vouchers: number;
+  total_cancelled_vouchers: number;
+  total_synced_to_api: number;
+  updated_at: string;
+}
+
+export interface TallyDeletedVoucher {
+  cmpguid: string;
+  cmpname: string;
+  guid: string;
+  master_id: string;
+  voucher_type: string;
+  delete_or_cancel: 'Delete' | 'Cancel';
+}
+
 export class DatabaseService {
   private db: Database.Database | null = null;
   private dbPath: string = '';
@@ -689,10 +740,170 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_sync_logs_status ON sync_logs(status);
       CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
       CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
+
+
+      CREATE TABLE IF NOT EXISTS sync_summary_history (
+          id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+          sync_started_at     TEXT NOT NULL,
+          sync_mode           TEXT NOT NULL,
+          trigger_type        TEXT NOT NULL,
+          entity_type         TEXT,
+          customer_count      INTEGER DEFAULT 0,   -- CUSTOMER success count
+          journal_count       INTEGER DEFAULT 0,   -- JOURNAL success count
+          invoice_count       INTEGER DEFAULT 0,
+          receipt_count       INTEGER DEFAULT 0,
+          debit_note_count    INTEGER DEFAULT 0,
+          cancel_delete_count INTEGER DEFAULT 0,
+          credit_note_count   INTEGER DEFAULT 0,
+          payable_count       INTEGER DEFAULT 0,
+          overall_status      TEXT NOT NULL,
+          error_detail        TEXT,
+          total_records       INTEGER DEFAULT 0,
+          duration_seconds    INTEGER,
+          max_alter_id        TEXT,
+          incomplete_months   TEXT,
+          created_at          TEXT DEFAULT (datetime('now'))
+      );
+
+      -- ===============================================
+      -- DELETED/CANCELLED VOUCHERS TRACKING TABLES
+      -- ===============================================
+
+      -- Table to track deleted/cancelled vouchers from Tally
+      CREATE TABLE IF NOT EXISTS deleted_vouchers_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_guid TEXT NOT NULL,
+        company_name TEXT,
+        voucher_guid TEXT NOT NULL,
+        tally_master_id TEXT,
+        voucher_type TEXT NOT NULL,
+        deletion_action TEXT NOT NULL,
+        fetched_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        synced_to_api INTEGER DEFAULT 0,
+        api_synced_at DATETIME,
+        api_response TEXT,
+        UNIQUE(voucher_guid)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_deleted_vouchers_synced ON deleted_vouchers_log(synced_to_api);
+      CREATE INDEX IF NOT EXISTS idx_deleted_vouchers_type ON deleted_vouchers_log(voucher_type);
+      CREATE INDEX IF NOT EXISTS idx_deleted_vouchers_company ON deleted_vouchers_log(company_guid);
+
+      -- Table to track deleted/cancelled customers from Tally
+      CREATE TABLE IF NOT EXISTS deleted_customers_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_guid TEXT NOT NULL,
+        company_name TEXT,
+        customer_guid TEXT NOT NULL,
+        tally_master_id TEXT,
+        ledger_name TEXT,
+        deletion_action TEXT NOT NULL,
+        fetched_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        synced_to_api INTEGER DEFAULT 0,
+        api_synced_at DATETIME,
+        api_response TEXT,
+        UNIQUE(customer_guid)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_deleted_customers_synced ON deleted_customers_log(synced_to_api);
+      CREATE INDEX IF NOT EXISTS idx_deleted_customers_company ON deleted_customers_log(company_guid);
+
+      -- Delete sync status tracking (separate from regular entity sync)
+      CREATE TABLE IF NOT EXISTS delete_sync_status (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        last_delete_sync_alter_id TEXT DEFAULT '0',
+        last_delete_sync_at DATETIME,
+        total_deleted_vouchers INTEGER DEFAULT 0,
+        total_cancelled_vouchers INTEGER DEFAULT 0,
+        total_synced_to_api INTEGER DEFAULT 0,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      INSERT OR IGNORE INTO delete_sync_status (id) VALUES (1);
     `;
 
     this.db?.exec(sql);
     console.log('Database tables initialized successfully');
+
+    // Run migrations for existing databases (add soft delete columns if not exist)
+    this.runMigrations();
+  }
+
+  /**
+   * Run database migrations for soft delete columns
+   */
+  private runMigrations(): void {
+    try {
+      // Check if vouchers table has is_deleted column
+      this.db?.exec(`
+        CREATE TABLE IF NOT EXISTS sync_summary_history (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            sync_started_at     TEXT NOT NULL,
+            sync_mode           TEXT NOT NULL,
+            trigger_type        TEXT NOT NULL,
+            entity_type         TEXT,
+            customer_count      INTEGER DEFAULT 0,   -- CUSTOMER success count
+            journal_count       INTEGER DEFAULT 0,   -- JOURNAL success count
+            invoice_count       INTEGER DEFAULT 0,
+            receipt_count       INTEGER DEFAULT 0,
+            debit_note_count    INTEGER DEFAULT 0,
+            cancel_delete_count INTEGER DEFAULT 0,
+            credit_note_count   INTEGER DEFAULT 0,
+            payable_count       INTEGER DEFAULT 0,
+            overall_status      TEXT NOT NULL,
+            error_detail        TEXT,
+            total_records       INTEGER DEFAULT 0,
+            duration_seconds    INTEGER,
+            max_alter_id        TEXT,
+            incomplete_months   TEXT,
+            created_at          TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sync_summary_started_at ON sync_summary_history(sync_started_at DESC);
+      `);
+
+      const voucherColumns = this.db!.pragma('table_info(vouchers)') as any[];
+      const hasVoucherDeleteColumn = voucherColumns.some(col => col.name === 'is_deleted');
+
+      if (!hasVoucherDeleteColumn) {
+        console.log('Running migration: Adding soft delete columns to vouchers table');
+        this.db!.exec(`
+          ALTER TABLE vouchers ADD COLUMN is_deleted INTEGER DEFAULT 0;
+          ALTER TABLE vouchers ADD COLUMN is_cancelled INTEGER DEFAULT 0;
+          ALTER TABLE vouchers ADD COLUMN deleted_at DATETIME;
+          ALTER TABLE vouchers ADD COLUMN cancelled_at DATETIME;
+          ALTER TABLE vouchers ADD COLUMN deletion_synced_to_api INTEGER DEFAULT 0;
+          ALTER TABLE vouchers ADD COLUMN deletion_action TEXT;
+        `);
+        this.db!.exec(`
+          CREATE INDEX IF NOT EXISTS idx_vouchers_is_deleted ON vouchers(is_deleted);
+          CREATE INDEX IF NOT EXISTS idx_vouchers_is_cancelled ON vouchers(is_cancelled);
+          CREATE INDEX IF NOT EXISTS idx_vouchers_deletion_synced ON vouchers(deletion_synced_to_api);
+        `);
+      }
+
+      // Check if customers table has is_deleted column
+      const customerColumns = this.db!.pragma('table_info(customers)') as any[];
+      const hasCustomerDeleteColumn = customerColumns.some(col => col.name === 'is_deleted');
+
+      if (!hasCustomerDeleteColumn) {
+        console.log('Running migration: Adding soft delete columns to customers table');
+        this.db!.exec(`
+          ALTER TABLE customers ADD COLUMN is_deleted INTEGER DEFAULT 0;
+          ALTER TABLE customers ADD COLUMN deleted_at DATETIME;
+          ALTER TABLE customers ADD COLUMN deletion_synced_to_api INTEGER DEFAULT 0;
+          ALTER TABLE customers ADD COLUMN deletion_action TEXT;
+        `);
+        this.db!.exec(`
+          CREATE INDEX IF NOT EXISTS idx_customers_is_deleted ON customers(is_deleted);
+          CREATE INDEX IF NOT EXISTS idx_customers_deletion_synced ON customers(deletion_synced_to_api);
+        `);
+      }
+
+      console.log('Database migrations completed');
+    } catch (error) {
+      console.error('Migration error (may be expected if columns already exist):', error);
+    }
   }
 
   // === Profile Management ===
@@ -2447,7 +2658,7 @@ export class DatabaseService {
       LIMIT ?
     `);
     const rows = stmt.all(limit) as any[];
-    
+
     // Format the data for the component
     return rows.map(row => ({
       id: row.id,
@@ -2709,7 +2920,7 @@ export class DatabaseService {
         LIMIT 10
       `);
       const active = stmt.all() as any[];
-      
+
       // Format the results
       return active.map((sync: any) => ({
         id: sync.id,
@@ -2786,7 +2997,7 @@ export class DatabaseService {
     // (Customers are sent to API but may not be stored locally)
     const customersTableCountStmt = this.db!.prepare(`SELECT COUNT(*) as total FROM customers`);
     const customersTableCount = (customersTableCountStmt.get() as { total: number })?.total || 0;
-    
+
     let ledgerTotal = customersTableCount;
     if (ledgerTotal === 0) {
       // If customers table is empty, use the last successful sync count
@@ -2813,7 +3024,7 @@ export class DatabaseService {
       WHERE voucher_type IN ('sales', 'credit_note')
     `);
     const invoiceTableCount = (invoiceTotalStmt.get() as { total: number })?.total || 0;
-    
+
     let invoiceTotal = invoiceTableCount;
     if (invoiceTotal === 0) {
       // If vouchers table is empty, use the last successful sync count
@@ -2840,7 +3051,7 @@ export class DatabaseService {
       WHERE voucher_type = 'receipt'
     `);
     const paymentTableCount = (paymentTotalStmt.get() as { total: number })?.total || 0;
-    
+
     let paymentTotal = paymentTableCount;
     if (paymentTotal === 0) {
       // If vouchers table is empty, use the last successful sync count
@@ -2918,6 +3129,285 @@ export class DatabaseService {
       },
     };
   }
+
+  // ===============================================
+  // DELETED/CANCELLED VOUCHER METHODS
+  // ===============================================
+
+  /**
+   * Get the last ALTER_ID used for delete sync
+   */
+  async getDeleteSyncAlterId(): Promise<string> {
+    const stmt = this.db!.prepare(`SELECT last_delete_sync_alter_id FROM delete_sync_status WHERE id = 1`);
+    const row = stmt.get() as { last_delete_sync_alter_id: string } | undefined;
+    return row?.last_delete_sync_alter_id || '0';
+  }
+
+  /**
+   * Update the last ALTER_ID for delete sync
+   */
+  async updateDeleteSyncAlterId(alterId: string): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE delete_sync_status
+      SET last_delete_sync_alter_id = ?,
+          last_delete_sync_at = datetime('now'),
+          updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run(alterId);
+  }
+
+  /**
+   * Get delete sync status
+   */
+  async getDeleteSyncStatus(): Promise<DeleteSyncStatus | null> {
+    const stmt = this.db!.prepare(`SELECT * FROM delete_sync_status WHERE id = 1`);
+    return stmt.get() as DeleteSyncStatus | null;
+  }
+
+  /**
+   * Save deleted voucher to log table
+   */
+  async saveDeletedVoucher(data: DeletedVoucherData): Promise<number> {
+    const stmt = this.db!.prepare(`
+      INSERT INTO deleted_vouchers_log (
+        company_guid, company_name, voucher_guid, tally_master_id,
+        voucher_type, deletion_action, fetched_at, synced_to_api
+      ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      ON CONFLICT(voucher_guid) DO UPDATE SET
+        deletion_action = excluded.deletion_action,
+        fetched_at = datetime('now')
+    `);
+    const result = stmt.run(
+      data.company_guid,
+      data.company_name || null,
+      data.voucher_guid,
+      data.tally_master_id || null,
+      data.voucher_type,
+      data.deletion_action
+    );
+    return result.lastInsertRowid as number;
+  }
+
+  /**
+   * Save multiple deleted vouchers (batch insert)
+   */
+  async saveDeletedVouchersBatch(vouchers: DeletedVoucherData[]): Promise<{ inserted: number; updated: number }> {
+    const insertStmt = this.db!.prepare(`
+      INSERT INTO deleted_vouchers_log (
+        company_guid, company_name, voucher_guid, tally_master_id,
+        voucher_type, deletion_action, fetched_at, synced_to_api
+      ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      ON CONFLICT(voucher_guid) DO UPDATE SET
+        deletion_action = excluded.deletion_action,
+        fetched_at = datetime('now')
+    `);
+
+    let inserted = 0;
+    let updated = 0;
+
+    const transaction = this.db!.transaction((items: DeletedVoucherData[]) => {
+      for (const v of items) {
+        const result = insertStmt.run(
+          v.company_guid,
+          v.company_name || null,
+          v.voucher_guid,
+          v.tally_master_id || null,
+          v.voucher_type,
+          v.deletion_action
+        );
+        if (result.changes > 0) {
+          if (result.lastInsertRowid) inserted++;
+          else updated++;
+        }
+      }
+    });
+
+    transaction(vouchers);
+
+    // Update counters
+    await this.updateDeleteSyncCounters();
+
+    return { inserted, updated };
+  }
+
+  /**
+   * Get deleted vouchers that haven't been synced to API
+   */
+  async getUnsyncedDeletedVouchers(limit: number = 100): Promise<DeletedVoucherData[]> {
+    const stmt = this.db!.prepare(`
+      SELECT * FROM deleted_vouchers_log
+      WHERE synced_to_api = 0
+      ORDER BY fetched_at ASC
+      LIMIT ?
+    `);
+    return stmt.all(limit) as DeletedVoucherData[];
+  }
+
+  /**
+   * Mark deleted vouchers as synced to API
+   */
+  async markDeletedVouchersSynced(voucherGuids: string[], apiResponse?: string): Promise<void> {
+    if (voucherGuids.length === 0) return;
+
+    const placeholders = voucherGuids.map(() => '?').join(',');
+    const stmt = this.db!.prepare(`
+      UPDATE deleted_vouchers_log
+      SET synced_to_api = 1,
+          api_synced_at = datetime('now'),
+          api_response = ?
+      WHERE voucher_guid IN (${placeholders})
+    `);
+    stmt.run(apiResponse || null, ...voucherGuids);
+
+    // Update counters
+    await this.updateDeleteSyncCounters();
+  }
+
+  /**
+   * Update delete sync counters
+   */
+  private async updateDeleteSyncCounters(): Promise<void> {
+    const stmt = this.db!.prepare(`
+      UPDATE delete_sync_status SET
+        total_deleted_vouchers = (SELECT COUNT(*) FROM deleted_vouchers_log WHERE deletion_action = 'Delete'),
+        total_cancelled_vouchers = (SELECT COUNT(*) FROM deleted_vouchers_log WHERE deletion_action = 'Cancel'),
+        total_synced_to_api = (SELECT COUNT(*) FROM deleted_vouchers_log WHERE synced_to_api = 1),
+        updated_at = datetime('now')
+      WHERE id = 1
+    `);
+    stmt.run();
+  }
+
+  /**
+   * Update voucher soft delete flags in local vouchers table
+   * This marks vouchers as deleted/cancelled locally for reference
+   */
+  async updateVoucherDeleteFlags(voucherGuid: string, action: 'Delete' | 'Cancel'): Promise<void> {
+    if (action === 'Delete') {
+      const stmt = this.db!.prepare(`
+        UPDATE vouchers
+        SET is_deleted = 1,
+            deleted_at = datetime('now'),
+            deletion_action = ?
+        WHERE tally_master_id = ?
+      `);
+      stmt.run(action, voucherGuid);
+    } else {
+      const stmt = this.db!.prepare(`
+        UPDATE vouchers
+        SET is_cancelled = 1,
+            cancelled_at = datetime('now'),
+            deletion_action = ?
+        WHERE tally_master_id = ?
+      `);
+      stmt.run(action, voucherGuid);
+    }
+  }
+
+  /**
+   * Get delete sync summary for dashboard
+   */
+  async getDeleteSyncSummary(): Promise<{
+    totalDeleted: number;
+    totalCancelled: number;
+    totalSynced: number;
+    pendingSync: number;
+    lastSyncAt: string | null;
+    byVoucherType: Array<{ voucher_type: string; deleted: number; cancelled: number }>;
+  }> {
+    const statusStmt = this.db!.prepare(`SELECT * FROM delete_sync_status WHERE id = 1`);
+    const status = statusStmt.get() as DeleteSyncStatus | undefined;
+
+    const pendingStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM deleted_vouchers_log WHERE synced_to_api = 0`);
+    const pending = (pendingStmt.get() as { count: number })?.count || 0;
+
+    const byTypeStmt = this.db!.prepare(`
+      SELECT
+        voucher_type,
+        SUM(CASE WHEN deletion_action = 'Delete' THEN 1 ELSE 0 END) as deleted,
+        SUM(CASE WHEN deletion_action = 'Cancel' THEN 1 ELSE 0 END) as cancelled
+      FROM deleted_vouchers_log
+      GROUP BY voucher_type
+    `);
+    const byType = byTypeStmt.all() as Array<{ voucher_type: string; deleted: number; cancelled: number }>;
+
+    return {
+      totalDeleted: status?.total_deleted_vouchers || 0,
+      totalCancelled: status?.total_cancelled_vouchers || 0,
+      totalSynced: status?.total_synced_to_api || 0,
+      pendingSync: pending,
+      lastSyncAt: status?.last_delete_sync_at || null,
+      byVoucherType: byType
+    };
+  }
+
+
+
+
+  async logSyncSummary(data: {
+    sync_started_at: string;
+    sync_mode: string;
+    trigger_type: string;
+    entity_type?: string;
+    customer_count?: number;    // NEW
+    journal_count?: number;     // NEW
+    invoice_count?: number;
+    receipt_count?: number;
+    debit_note_count?: number;
+    cancel_delete_count?: number;
+    credit_note_count?: number;
+    payable_count?: number;
+    overall_status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+    error_detail?: string;
+    total_records?: number;
+    duration_seconds?: number;
+    max_alter_id?: string;
+    incomplete_months?: string;
+  }) {
+    const stmt = this.db?.prepare(`
+    INSERT INTO sync_summary_history (
+      sync_started_at, sync_mode, trigger_type, entity_type,
+      customer_count, journal_count, invoice_count, receipt_count,
+      debit_note_count, cancel_delete_count, credit_note_count, payable_count,
+      overall_status, error_detail, total_records,
+      duration_seconds, max_alter_id, incomplete_months
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+    stmt?.run(
+      data.sync_started_at,
+      data.sync_mode,
+      data.trigger_type,
+      data.entity_type || null,
+      data.customer_count || 0,     // CUSTOMER success
+      data.journal_count || 0,      // JOURNAL success
+      data.invoice_count || 0,
+      data.receipt_count || 0,
+      data.debit_note_count || 0,
+      data.cancel_delete_count || 0,
+      data.credit_note_count || 0,
+      data.payable_count || 0,
+      data.overall_status,
+      data.error_detail || null,
+      data.total_records || 0,
+      data.duration_seconds || null,
+      data.max_alter_id || null,
+      data.incomplete_months || null
+    );
+  }
+
+
+  async getSyncSummaryHistory(limit = 100, offset = 0): Promise<any[]> {
+    return this.db
+      ?.prepare(`
+      SELECT * FROM sync_summary_history
+      ORDER BY sync_started_at DESC
+      LIMIT ? OFFSET ?
+    `)
+      .all(limit, offset) || [];
+  }
+
 
   close(): void {
     this.db?.close();

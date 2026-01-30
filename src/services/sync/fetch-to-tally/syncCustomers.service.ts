@@ -89,10 +89,10 @@ function formatDate(dateStr: string): string {
 export async function syncCustomers(
   profile: UserProfile,
   syncMode: 'first' | 'incremental' = 'incremental',
-  dateRangeFrom?: string,
-  dateRangeTo?: string,
+  dateRangeFrom: string,
+  dateRangeTo: string,
   dbService?: DatabaseService
-): Promise<void> {
+): Promise<any> {
   // Use provided dbService or create default (for backward compatibility)
   const db = dbService || new DatabaseService();
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
@@ -115,7 +115,7 @@ export async function syncCustomers(
       date_range: dateRangeFrom && dateRangeTo ? `${dateRangeFrom} to ${dateRangeTo}` : 'none'
     });
 
-    if (syncMode === 'first' && dateRangeFrom && dateRangeTo) {
+    if (syncMode === 'first') {
       // FIRST/FRESH SYNC: Fetch all data from date range in one batch
       db.log('INFO', `Fresh sync: Fetching all customers from ${dateRangeFrom} to ${dateRangeTo}`);
 
@@ -281,6 +281,9 @@ export async function syncCustomers(
       // INCREMENTAL SYNC: Using ALTER_ID only
       const lastAlterId = await db.getEntityMaxAlterId(ENTITY_TYPE);
 
+      const tallyFromDate = dateRangeFrom.replace(/-/g, '');
+      const tallyToDate = dateRangeTo.replace(/-/g, '');
+
       // If max alter id is 0 or empty, it means first sync didn't properly store alter ids
       // In this case, we should not do incremental sync - it would fetch all data
       if (!lastAlterId || lastAlterId === '0') {
@@ -294,7 +297,7 @@ export async function syncCustomers(
       const batchId = await db.createSyncBatch(runId, ENTITY_TYPE, 1, 0, lastAlterId, '');
 
       try {
-        const parsed = await fetchCustomersFromReportByAlterId(lastAlterId);
+        const parsed = await fetchCustomersFromReportByAlterId(lastAlterId, tallyFromDate, tallyToDate);
         const customers = extractCustomersFromReport(parsed);
 
         if (customers.length === 0) {
@@ -435,9 +438,26 @@ export async function syncCustomers(
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`);
     db.log('INFO', 'Customer sync completed', { success: successCount, failed: failedCount });
 
+    return {
+      successCount,
+      failedCount,
+      status,  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      maxAlterId: newMaxAlterId || '0'
+    };
+
   } catch (error: any) {
     await db.logSyncEnd(runId, 'FAILED', successCount, failedCount, undefined, error.message);
     db.log('ERROR', 'Customer sync crashed', { error: error.message });
-    throw error;
+    const errorMessage = error?.message ||
+      error?.response?.data?.message ||
+      error?.stack?.split('\n')[0] ||  // first line of stack
+      'Unknown sync error';
+    return {
+      successCount,
+      failedCount,
+      status: 'FAILED',  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      message: errorMessage,
+      maxAlterId: newMaxAlterId || '0'
+    };
   }
 }

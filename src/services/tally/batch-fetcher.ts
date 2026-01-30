@@ -325,7 +325,9 @@ export async function fetchCustomersFromReportByDateRange(
  * @returns Parsed XML response with CUSTOMER array
  */
 export async function fetchCustomersFromReportByAlterId(
-  fromAlterId: string
+  fromAlterId: string,
+  fromDate: string,
+  toDate: string
 ): Promise<any> {
   const xmlRequest = `
   <ENVELOPE>
@@ -337,6 +339,8 @@ export async function fetchCustomersFromReportByAlterId(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVFROMDATE>${fromDate}</SVFROMDATE>
+                    <SVTODATE>${toDate}</SVTODATE>
                     <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
@@ -657,4 +661,210 @@ export function extractJournalVouchersFromReport(parsed: any): any[] {
     return Array.isArray(parsed.JV_ENTRY) ? parsed.JV_ENTRY : [parsed.JV_ENTRY];
   }
   return [];
+}
+
+
+export interface TallyDeletedVoucherRaw {
+  cmpguid: string[];
+  cmpname: string[];
+  guid: string[];
+  master_id: string[];
+  voucher_type: string[];
+  delete_or_cancel: string[];
+}
+
+
+/**
+ * Fetches deleted/cancelled vouchers using ZorrofinDeletedVch report
+ * @param fromDate Start date (YYYYMMDD)
+ * @param toDate End date (YYYYMMDD)
+ * @param fromAlterId Optional - starting ALTER_ID (exclusive)
+ */
+export async function fetchDeletedVouchersFromReport(
+  fromDate: string,
+  toDate: string,
+  fromAlterId: string = '0'
+): Promise<any> {
+  const xmlRequest = `
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Export Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <EXPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>ZorrofinDeletedVch</REPORTNAME>
+        <STATICVARIABLES>
+          <SVFROMDATE>${fromDate}</SVFROMDATE>
+          <SVTODATE>${toDate}</SVTODATE>
+          <SVZORROFINALTERID>0</SVZORROFINALTERID>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+    </EXPORTDATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1,
+      }),
+      validateStatus: () => true,
+    });
+
+    // === Fix: Wrap multiple root elements ===
+    let xmlToParse = response.data.trim();
+    if (!xmlToParse.startsWith('<root>')) {
+      xmlToParse = `<root>${xmlToParse}</root>`;
+    }
+
+    const parsed = await parseStringPromise(xmlToParse, {
+      explicitArray: true,
+      mergeAttrs: false,
+      explicitRoot: false,
+      trim: true,
+      normalize: true,
+    });
+
+    // Early error detection
+    if (parsed?.RESPONSE?.[0]?.includes('Unknown Request')) {
+      throw new Error('Tally error: Unknown Request. Verify that the report "ZorrofinDeletedVch" exists in Tally.');
+    }
+
+    return parsed;
+  }, `fetchDeletedVouchersFromReport(${fromDate}-${toDate}, AlterID > ${fromAlterId})`);
+}
+
+/**
+ * Fetches deleted vouchers using only ALTER_ID filter (incremental sync)
+ * Uses a wide date range so ALTER_ID becomes the primary filter
+ */
+export async function fetchDeletedVouchersByAlterId(
+  fromAlterId: string
+): Promise<any> {
+  // Use a very wide range so we rely mostly on ALTER_ID
+  const wideFromDate = '20190401';
+  const wideToDate = '20301231'; // far future
+
+  const xmlRequest = `
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Export Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <EXPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>ZorrofinDeletedVch</REPORTNAME>
+        <STATICVARIABLES>
+          <SVFROMDATE>${wideFromDate}</SVFROMDATE>
+          <SVTODATE>${wideToDate}</SVTODATE>
+          <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+    </EXPORTDATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+  return withRetry(async () => {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 120000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1,
+      }),
+      validateStatus: () => true,
+    });
+
+    let xmlToParse = response.data.trim();
+    if (!xmlToParse.startsWith('<root>')) {
+      xmlToParse = `<root>${xmlToParse}</root>`;
+    }
+
+    const parsed = await parseStringPromise(xmlToParse, {
+      explicitArray: true,
+      mergeAttrs: false,
+      explicitRoot: false,
+      trim: true,
+      normalize: true,
+    });
+
+    if (parsed?.RESPONSE?.[0]?.includes('Unknown Request')) {
+      throw new Error('Tally error: Unknown Request. Check custom report "ZorrofinDeletedVch".');
+    }
+
+    return parsed;
+  }, `fetchDeletedVouchersByAlterId(AlterID > ${fromAlterId})`);
+}
+
+
+function getFirstText(values: string[] | undefined): string {
+  return values && values.length > 0 ? values[0].trim() : '';
+}
+
+/**
+ * Extracts array of deleted voucher records from parsed XML
+ */
+export function extractDeletedVouchersFromReport(parsed: any): TallyDeletedVoucherRaw[] {
+  let rawItems: any[] = [];
+
+  // Most common case after wrapper
+  if (parsed?.root?.DeleteTallyInvoice) {
+    rawItems = Array.isArray(parsed.root.DeleteTallyInvoice)
+      ? parsed.root.DeleteTallyInvoice
+      : [parsed.root.DeleteTallyInvoice];
+  }
+  // Fallback cases
+  else if (parsed?.DeleteTallyInvoice) {
+    rawItems = Array.isArray(parsed.DeleteTallyInvoice)
+      ? parsed.DeleteTallyInvoice
+      : [parsed.DeleteTallyInvoice];
+  }
+  else if (parsed?.ENVELOPE?.DeleteTallyInvoice) {
+    rawItems = Array.isArray(parsed.ENVELOPE.DeleteTallyInvoice)
+      ? parsed.ENVELOPE.DeleteTallyInvoice
+      : [parsed.ENVELOPE.DeleteTallyInvoice];
+  }
+
+  // Normalize shape
+  return rawItems.map((item: any) => ({
+    cmpguid: item.cmpguid || [],
+    cmpname: item.cmpname || [],
+    guid: item.guid || [],
+    master_id: item.master_id || [],
+    voucher_type: item.voucher_type || [],
+    delete_or_cancel: item.delete_or_cancel || [],
+  }));
+}
+
+/**
+ * Converts raw parsed item to clean normalized object
+ */
+export function parseDeletedVoucher(raw: TallyDeletedVoucherRaw): {
+  company_guid: string;
+  company_name: string;
+  voucher_guid: string;
+  tally_master_id: string;
+  voucher_type: string;
+  deletion_action: 'Delete' | 'Cancel';
+} {
+  return {
+    company_guid: getFirstText(raw.cmpguid),
+    company_name: getFirstText(raw.cmpname),
+    voucher_guid: getFirstText(raw.guid),
+    tally_master_id: getFirstText(raw.master_id),
+    voucher_type: getFirstText(raw.voucher_type).toLowerCase(),
+    deletion_action: getFirstText(raw.delete_or_cancel) as 'Delete' | 'Cancel',
+  };
 }

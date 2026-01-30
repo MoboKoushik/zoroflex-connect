@@ -69,6 +69,9 @@ export interface ElectronAPI {
   getSyncStatus?: () => Promise<any>;
   testTallyConnectivity?: () => Promise<{ success: boolean; status: any }>;
   testApiConnectivity?: () => Promise<{ success: boolean; status: any }>;
+
+
+  getSyncSummaryHistory?: (limit?: number, page?: number) => Promise<any>;
   
   // Staging data
   getStagingCustomers?: (page?: number, limit?: number, search?: string) => Promise<any>;

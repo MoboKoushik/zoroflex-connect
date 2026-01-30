@@ -2476,6 +2476,10 @@ ipcMain.handle('get-staging-payments', async (event, page?: number, limit?: numb
   }
 });
 
+ipcMain.handle('get-sync-summary-history', async (event, limit = 50, offset = 0) => {
+  return await dbService.getSyncSummaryHistory(limit, offset);
+});
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
