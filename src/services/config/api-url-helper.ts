@@ -8,9 +8,9 @@ import { app } from 'electron';
 export function getDefaultApiUrl(): string {
   // Check if app is packaged (exe file)
   if (app.isPackaged) {
-    return 'https://uatarmapi.a10s.in';
+    return 'http://localhost:3000';
   }
-  return 'https://uatarmapi.a10s.in';
+  return 'http://localhost:3000';
 }
 
 /**

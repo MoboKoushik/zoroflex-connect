@@ -92,7 +92,7 @@ export async function syncCustomers(
   dateRangeFrom: string,
   dateRangeTo: string,
   dbService?: DatabaseService
-): Promise<void> {
+): Promise<any> {
   // Use provided dbService or create default (for backward compatibility)
   const db = dbService || new DatabaseService();
   const runId = await db.logSyncStart('BACKGROUND', ENTITY_TYPE);
@@ -438,9 +438,26 @@ export async function syncCustomers(
     await db.logSyncEnd(runId, status, successCount, failedCount, newMaxAlterId, `${successCount} customers synced`);
     db.log('INFO', 'Customer sync completed', { success: successCount, failed: failedCount });
 
+    return {
+      successCount,
+      failedCount,
+      status,  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      maxAlterId: newMaxAlterId || '0'
+    };
+
   } catch (error: any) {
     await db.logSyncEnd(runId, 'FAILED', successCount, failedCount, undefined, error.message);
     db.log('ERROR', 'Customer sync crashed', { error: error.message });
-    throw error;
+    const errorMessage = error?.message ||
+      error?.response?.data?.message ||
+      error?.stack?.split('\n')[0] ||  // first line of stack
+      'Unknown sync error';
+    return {
+      successCount,
+      failedCount,
+      status: 'FAILED',  // 'SUCCESS' | 'PARTIAL' | 'FAILED'
+      message: errorMessage,
+      maxAlterId: newMaxAlterId || '0'
+    };
   }
 }

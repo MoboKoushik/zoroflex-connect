@@ -741,6 +741,30 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_last_sync_dates_company_id ON last_sync_dates(company_id);
       CREATE INDEX IF NOT EXISTS idx_last_sync_dates_entity_type ON last_sync_dates(entity_type);
 
+
+      CREATE TABLE IF NOT EXISTS sync_summary_history (
+          id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+          sync_started_at     TEXT NOT NULL,
+          sync_mode           TEXT NOT NULL,
+          trigger_type        TEXT NOT NULL,
+          entity_type         TEXT,
+          customer_count      INTEGER DEFAULT 0,   -- CUSTOMER success count
+          journal_count       INTEGER DEFAULT 0,   -- JOURNAL success count
+          invoice_count       INTEGER DEFAULT 0,
+          receipt_count       INTEGER DEFAULT 0,
+          debit_note_count    INTEGER DEFAULT 0,
+          cancel_delete_count INTEGER DEFAULT 0,
+          credit_note_count   INTEGER DEFAULT 0,
+          payable_count       INTEGER DEFAULT 0,
+          overall_status      TEXT NOT NULL,
+          error_detail        TEXT,
+          total_records       INTEGER DEFAULT 0,
+          duration_seconds    INTEGER,
+          max_alter_id        TEXT,
+          incomplete_months   TEXT,
+          created_at          TEXT DEFAULT (datetime('now'))
+      );
+
       -- ===============================================
       -- DELETED/CANCELLED VOUCHERS TRACKING TABLES
       -- ===============================================
@@ -811,6 +835,33 @@ export class DatabaseService {
   private runMigrations(): void {
     try {
       // Check if vouchers table has is_deleted column
+      this.db?.exec(`
+        CREATE TABLE IF NOT EXISTS sync_summary_history (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            sync_started_at     TEXT NOT NULL,
+            sync_mode           TEXT NOT NULL,
+            trigger_type        TEXT NOT NULL,
+            entity_type         TEXT,
+            customer_count      INTEGER DEFAULT 0,   -- CUSTOMER success count
+            journal_count       INTEGER DEFAULT 0,   -- JOURNAL success count
+            invoice_count       INTEGER DEFAULT 0,
+            receipt_count       INTEGER DEFAULT 0,
+            debit_note_count    INTEGER DEFAULT 0,
+            cancel_delete_count INTEGER DEFAULT 0,
+            credit_note_count   INTEGER DEFAULT 0,
+            payable_count       INTEGER DEFAULT 0,
+            overall_status      TEXT NOT NULL,
+            error_detail        TEXT,
+            total_records       INTEGER DEFAULT 0,
+            duration_seconds    INTEGER,
+            max_alter_id        TEXT,
+            incomplete_months   TEXT,
+            created_at          TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sync_summary_started_at ON sync_summary_history(sync_started_at DESC);
+      `);
+
       const voucherColumns = this.db!.pragma('table_info(vouchers)') as any[];
       const hasVoucherDeleteColumn = voucherColumns.some(col => col.name === 'is_deleted');
 
@@ -2607,7 +2658,7 @@ export class DatabaseService {
       LIMIT ?
     `);
     const rows = stmt.all(limit) as any[];
-    
+
     // Format the data for the component
     return rows.map(row => ({
       id: row.id,
@@ -2869,7 +2920,7 @@ export class DatabaseService {
         LIMIT 10
       `);
       const active = stmt.all() as any[];
-      
+
       // Format the results
       return active.map((sync: any) => ({
         id: sync.id,
@@ -2946,7 +2997,7 @@ export class DatabaseService {
     // (Customers are sent to API but may not be stored locally)
     const customersTableCountStmt = this.db!.prepare(`SELECT COUNT(*) as total FROM customers`);
     const customersTableCount = (customersTableCountStmt.get() as { total: number })?.total || 0;
-    
+
     let ledgerTotal = customersTableCount;
     if (ledgerTotal === 0) {
       // If customers table is empty, use the last successful sync count
@@ -2973,7 +3024,7 @@ export class DatabaseService {
       WHERE voucher_type IN ('sales', 'credit_note')
     `);
     const invoiceTableCount = (invoiceTotalStmt.get() as { total: number })?.total || 0;
-    
+
     let invoiceTotal = invoiceTableCount;
     if (invoiceTotal === 0) {
       // If vouchers table is empty, use the last successful sync count
@@ -3000,7 +3051,7 @@ export class DatabaseService {
       WHERE voucher_type = 'receipt'
     `);
     const paymentTableCount = (paymentTotalStmt.get() as { total: number })?.total || 0;
-    
+
     let paymentTotal = paymentTableCount;
     if (paymentTotal === 0) {
       // If vouchers table is empty, use the last successful sync count
@@ -3290,6 +3341,73 @@ export class DatabaseService {
       byVoucherType: byType
     };
   }
+
+
+
+
+  async logSyncSummary(data: {
+    sync_started_at: string;
+    sync_mode: string;
+    trigger_type: string;
+    entity_type?: string;
+    customer_count?: number;    // NEW
+    journal_count?: number;     // NEW
+    invoice_count?: number;
+    receipt_count?: number;
+    debit_note_count?: number;
+    cancel_delete_count?: number;
+    credit_note_count?: number;
+    payable_count?: number;
+    overall_status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+    error_detail?: string;
+    total_records?: number;
+    duration_seconds?: number;
+    max_alter_id?: string;
+    incomplete_months?: string;
+  }) {
+    const stmt = this.db?.prepare(`
+    INSERT INTO sync_summary_history (
+      sync_started_at, sync_mode, trigger_type, entity_type,
+      customer_count, journal_count, invoice_count, receipt_count,
+      debit_note_count, cancel_delete_count, credit_note_count, payable_count,
+      overall_status, error_detail, total_records,
+      duration_seconds, max_alter_id, incomplete_months
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+    stmt?.run(
+      data.sync_started_at,
+      data.sync_mode,
+      data.trigger_type,
+      data.entity_type || null,
+      data.customer_count || 0,     // CUSTOMER success
+      data.journal_count || 0,      // JOURNAL success
+      data.invoice_count || 0,
+      data.receipt_count || 0,
+      data.debit_note_count || 0,
+      data.cancel_delete_count || 0,
+      data.credit_note_count || 0,
+      data.payable_count || 0,
+      data.overall_status,
+      data.error_detail || null,
+      data.total_records || 0,
+      data.duration_seconds || null,
+      data.max_alter_id || null,
+      data.incomplete_months || null
+    );
+  }
+
+
+  async getSyncSummaryHistory(limit = 100, offset = 0): Promise<any[]> {
+    return this.db
+      ?.prepare(`
+      SELECT * FROM sync_summary_history
+      ORDER BY sync_started_at DESC
+      LIMIT ? OFFSET ?
+    `)
+      .all(limit, offset) || [];
+  }
+
 
   close(): void {
     this.db?.close();

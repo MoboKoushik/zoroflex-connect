@@ -16,6 +16,7 @@ import { StatusBar } from "./components/StatusBar";
 import { Sidebar } from "../shared/components/Sidebar";
 import { TitleBar } from "../shared/components/TitleBar";
 import { Toast } from "../shared/components/Toast";
+import { SyncHistory } from "./components/SyncHistory";
 
 export const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -55,7 +56,7 @@ export const Dashboard: React.FC = () => {
       window.electronAPI.onSyncCompleted((data: any) => {
         setIsSyncing(false);
         setSyncStatus(
-          data?.error ? `Sync failed: ${data.error}` : "Sync completed"
+          data?.error ? `Sync failed: ${data.error}` : "Sync completed",
         );
         if (!data?.error) {
           setToast({ message: "Sync completed successfully", type: "success" });
@@ -107,7 +108,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSyncStart = (type:'full' | 'smart' | 'entity') => {
+  const handleSyncStart = (type: "full" | "smart" | "entity") => {
     setIsSyncing(true);
     const syncTypeLabel = type === "full" ? "full fresh" : "smart";
     setSyncStatus(`Starting ${syncTypeLabel} sync...`);
@@ -197,7 +198,7 @@ export const Dashboard: React.FC = () => {
           {currentPage === "payments" && <StagingPayments />}
 
           {currentPage === "journal-vouchers" && <StagingJournalVouchers />}
-
+          {currentPage === "sync-history" && <SyncHistory />}
           {currentPage === "analytics" && (
             <Analytics data={analyticsData} loading={analyticsLoading} />
           )}
