@@ -1,7 +1,54 @@
 // src/renderer/company-selector/CompanySelector.tsx
 import React, { useEffect, useState } from 'react';
 import { CompanyCard } from './CompanyCard';
-import { LoadingSpinner } from '../shared/components/LoadingSpinner';
+
+// SVG Icons
+const icons = {
+  building: (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 22V4a2 2 0 012-2h8a2 2 0 012 2v18Z" />
+      <path d="M6 12H4a2 2 0 00-2 2v6a2 2 0 002 2h2" />
+      <path d="M18 9h2a2 2 0 012 2v9a2 2 0 01-2 2h-2" />
+      <path d="M10 6h4" />
+      <path d="M10 10h4" />
+      <path d="M10 14h4" />
+      <path d="M10 18h4" />
+    </svg>
+  ),
+  warning: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  check: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  ),
+  error: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="15" y1="9" x2="9" y2="15" />
+      <line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+  ),
+  refresh: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 2v6h-6" />
+      <path d="M3 12a9 9 0 0115-6.7L21 8" />
+      <path d="M3 22v-6h6" />
+      <path d="M21 12a9 9 0 01-15 6.7L3 16" />
+    </svg>
+  ),
+  arrow: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  ),
+};
 
 interface Company {
   id: number;
@@ -213,11 +260,29 @@ export const CompanySelector: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: '#1e1e1e',
-        color: '#cccccc'
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)'
       }}>
-        <LoadingSpinner size={48} />
-        <div style={{ marginTop: '20px', fontSize: '16px' }}>Loading companies from Tally...</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '20px',
+          background: 'var(--accent-light)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--accent-color)',
+          marginBottom: '24px'
+        }}>
+          {icons.building}
+        </div>
+        <div className="spinner" style={{ width: '32px', height: '32px', marginBottom: '16px' }} />
+        <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>
+          Loading companies from Tally...
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
+          Please wait while we connect
+        </div>
       </div>
     );
   }
@@ -230,44 +295,64 @@ export const CompanySelector: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'linear-gradient(135deg, #1e1e1e 0%, #2d2d30 100%)',
+        background: 'var(--bg-primary)',
         padding: '40px'
       }}>
         <div style={{
-          background: '#d13438',
-          color: '#ffffff',
-          padding: '24px 32px',
-          borderRadius: '12px',
-          maxWidth: '550px',
+          background: 'var(--bg-secondary)',
+          padding: '40px',
+          borderRadius: '16px',
+          maxWidth: '480px',
           textAlign: 'center',
-          boxShadow: '0 4px 20px rgba(209, 52, 56, 0.3)'
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border-light)'
         }}>
-          <div style={{ fontSize: '20px', fontWeight: 600, marginBottom: '12px' }}>⚠️ Error</div>
-          <div style={{ fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>{error}</div>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'var(--error-bg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--error-color)',
+            margin: '0 auto 20px'
+          }}>
+            {icons.error}
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+            Connection Error
+          </div>
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6' }}>
+            {error}
+          </div>
           <button
             onClick={loadCompanies}
             style={{
-              padding: '12px 24px',
-              background: '#ffffff',
-              color: '#d13438',
+              padding: '12px 28px',
+              background: 'var(--accent-color)',
+              color: 'white',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '14px',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f5f5f5';
+              e.currentTarget.style.background = 'var(--accent-hover)';
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.background = 'var(--accent-color)';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            Retry
+            {icons.refresh}
+            Try Again
           </button>
         </div>
       </div>
@@ -282,29 +367,64 @@ export const CompanySelector: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: '#1e1e1e',
-        color: '#cccccc',
+        background: 'var(--bg-primary)',
         padding: '40px'
       }}>
-        <div style={{ fontSize: '18px', marginBottom: '10px' }}>No Companies Found</div>
-        <div style={{ fontSize: '14px', color: '#999', marginBottom: '20px' }}>
-          No companies were found in Tally. Please ensure Tally is running and the ZorrofinCmp report is available.
+        <div style={{
+          background: 'var(--bg-secondary)',
+          padding: '40px',
+          borderRadius: '16px',
+          maxWidth: '480px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border-light)'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '20px',
+            background: 'var(--bg-tertiary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-muted)',
+            margin: '0 auto 20px'
+          }}>
+            {icons.building}
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+            No Companies Found
+          </div>
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6' }}>
+            No companies were found in Tally. Please ensure Tally is running and the ZorrofinCmp report is available.
+          </div>
+          <button
+            onClick={loadCompanies}
+            style={{
+              padding: '12px 28px',
+              background: 'var(--accent-color)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--accent-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--accent-color)';
+            }}
+          >
+            {icons.refresh}
+            Refresh
+          </button>
         </div>
-        <button
-          onClick={loadCompanies}
-          style={{
-            padding: '10px 20px',
-            background: '#007acc',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          Refresh
-        </button>
       </div>
     );
   }
@@ -312,26 +432,40 @@ export const CompanySelector: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#1e1e1e',
-      padding: '30px 20px',
-      color: '#cccccc'
+      background: 'var(--bg-primary)',
+      padding: '32px 24px',
+      color: 'var(--text-primary)'
     }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        {/* Header */}
         <div style={{
           textAlign: 'center',
-          marginBottom: '30px'
+          marginBottom: '32px'
         }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '16px',
+            background: 'var(--accent-light)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--accent-color)',
+            margin: '0 auto 16px'
+          }}>
+            {icons.building}
+          </div>
           <h1 style={{
-            fontSize: '28px',
+            fontSize: '26px',
             fontWeight: 600,
-            color: '#ffffff',
+            color: 'var(--text-primary)',
             marginBottom: '8px'
           }}>
             Select Your Company
           </h1>
           <p style={{
             fontSize: '14px',
-            color: '#999999'
+            color: 'var(--text-secondary)'
           }}>
             Choose the company you want to sync with Tally
           </p>
@@ -341,62 +475,87 @@ export const CompanySelector: React.FC = () => {
         {warning && (
           <div style={{
             marginBottom: '24px',
-            padding: '14px 20px',
-            background: '#ff9800',
-            border: '1px solid #ffb74d',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '13px',
+            padding: '16px 20px',
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-color)',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '10px'
+            gap: '12px'
           }}>
-            <div style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>⚠️</div>
-            <div style={{ flex: 1, lineHeight: '1.5' }}>
-              <strong style={{ fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+            <div style={{
+              color: 'var(--warning-color)',
+              flexShrink: 0,
+              marginTop: '2px'
+            }}>
+              {icons.warning}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: 'var(--warning-color)',
+                marginBottom: '4px'
+              }}>
                 Biller ID Mismatch
-              </strong>
-              <div>{warning}</div>
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                lineHeight: '1.5'
+              }}>
+                {warning}
+              </div>
             </div>
           </div>
         )}
-        
+
+        {/* Auto-selected notification */}
         {autoSelectedId !== null && (
           <div style={{
-            marginBottom: '20px',
-            padding: '12px 18px',
-            background: '#107c10',
-            border: '1px solid #4caf50',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '13px',
-            textAlign: 'center'
+            marginBottom: '24px',
+            padding: '14px 20px',
+            background: 'var(--success-bg)',
+            border: '1px solid var(--success-color)',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px'
           }}>
-            <strong>✓ Company Auto-Selected</strong> - A matching company was found and automatically selected.
+            <span style={{ color: 'var(--success-color)' }}>{icons.check}</span>
+            <span style={{ fontSize: '14px', color: 'var(--success-color)', fontWeight: 500 }}>
+              Company Auto-Selected - A matching company was found and automatically selected.
+            </span>
           </div>
         )}
 
         {/* Error message (non-blocking) */}
         {error && companies.length > 0 && (
           <div style={{
-            marginBottom: '20px',
-            padding: '12px 18px',
-            background: '#d13438',
-            border: '1px solid #ff5252',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '13px',
-            textAlign: 'center'
+            marginBottom: '24px',
+            padding: '14px 20px',
+            background: 'var(--error-bg)',
+            border: '1px solid var(--error-color)',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px'
           }}>
-            {error}
+            <span style={{ color: 'var(--error-color)' }}>{icons.error}</span>
+            <span style={{ fontSize: '14px', color: 'var(--error-color)' }}>
+              {error}
+            </span>
           </div>
         )}
-        
+
+        {/* Company Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: '20px',
-          marginBottom: '30px'
+          marginBottom: '32px'
         }}>
           {companies.map(company => (
             <CompanyCard
@@ -414,48 +573,65 @@ export const CompanySelector: React.FC = () => {
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          padding: '20px 0',
-          borderTop: '1px solid #3e3e42',
-          marginTop: '20px'
+          padding: '24px 0',
+          borderTop: '1px solid var(--border-light)',
+          marginTop: '16px'
         }}>
           <button
             onClick={handleContinue}
             disabled={!selectedId || continuing || !!warning}
             style={{
-              padding: '12px 32px',
+              padding: '14px 40px',
               background: selectedId && !continuing && !warning
-                ? '#007acc' 
-                : '#3e3e42',
-              color: '#ffffff',
-              border: 'none',
+                ? 'var(--accent-color)'
+                : 'var(--bg-tertiary)',
+              color: selectedId && !continuing && !warning ? 'white' : 'var(--text-muted)',
+              border: '1px solid',
+              borderColor: selectedId && !continuing && !warning
+                ? 'var(--accent-color)'
+                : 'var(--border-color)',
               borderRadius: '8px',
               cursor: selectedId && !continuing && !warning ? 'pointer' : 'not-allowed',
               fontSize: '15px',
-              fontWeight: 600,
-              transition: 'background 0.2s',
-              minWidth: '200px',
-              opacity: selectedId && !continuing && !warning ? 1 : 0.6
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+              minWidth: '220px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: selectedId && !continuing && !warning ? 'var(--shadow-sm)' : 'none'
             }}
             onMouseEnter={(e) => {
               if (selectedId && !continuing && !warning) {
-                e.currentTarget.style.background = '#005a9e';
+                e.currentTarget.style.background = 'var(--accent-hover)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
               }
             }}
             onMouseLeave={(e) => {
               if (selectedId && !continuing && !warning) {
-                e.currentTarget.style.background = '#007acc';
+                e.currentTarget.style.background = 'var(--accent-color)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
               }
             }}
           >
-            {continuing ? 'Loading...' : warning ? 'Cannot Proceed' : 'Continue to Dashboard'}
+            {continuing ? (
+              <>
+                <div className="spinner" style={{ width: '16px', height: '16px' }} />
+                Connecting...
+              </>
+            ) : warning ? (
+              'Cannot Proceed'
+            ) : (
+              <>
+                Continue to Dashboard
+                {icons.arrow}
+              </>
+            )}
           </button>
         </div>
-
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     </div>
   );

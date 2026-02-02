@@ -4,14 +4,64 @@
 @tailwind utilities;
 
 :root {
-  /* Dark theme (default) */
+  /* Light theme (default) - Windows 11 style */
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0f0f0;
+  --bg-titlebar: #f8f8f8;
+  --bg-hover: #e8e8e8;
+  --bg-active: #e0e0e0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #5c5c5c;
+  --text-muted: #8c8c8c;
+  --border-color: #e0e0e0;
+  --border-light: #ebebeb;
+  --accent-color: #0078d4;
+  --accent-hover: #106ebe;
+  --accent-light: #e6f2ff;
+  --success-color: #107c10;
+  --success-bg: #dff6dd;
+  --warning-color: #c87500;
+  --warning-bg: #fff4ce;
+  --error-color: #d13438;
+  --error-bg: #fde7e9;
+  --info-color: #0078d4;
+  --info-bg: #e6f2ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
   --bg-primary: #1e1e1e;
   --bg-secondary: #252526;
   --bg-tertiary: #2a2d2e;
   --bg-titlebar: #2d2d30;
-  --text-primary: #cccccc;
-  --text-secondary: #999999;
+  --bg-hover: #333333;
+  --bg-active: #3c3c3c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #707070;
   --border-color: #3e3e42;
+  --border-light: #333333;
+  --accent-color: #0078d4;
+  --accent-hover: #1a8cd8;
+  --accent-light: #1a3a5c;
+  --success-color: #6ccb5f;
+  --success-bg: #1e3a1e;
+  --warning-color: #ffc83d;
+  --warning-bg: #3a3018;
+  --error-color: #f48771;
+  --error-bg: #3a1e1e;
+  --info-color: #6cb8f6;
+  --info-bg: #1e2e3a;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -20,12 +70,16 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+html, body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -35,74 +89,273 @@ body {
   flex-direction: column;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Windows 11 style */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 5px;
+  background: var(--text-muted);
+  border-radius: 4px;
+  opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
 
-/* Card styling */
-.card {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
-/* Button styling */
+/* Card styling - Modern elevated card */
+.card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Button styling - Windows 11 style */
 .btn {
-  padding: 10px 20px;
-  border-radius: 6px;
-  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
 }
 
 .btn-primary {
-  background: #007acc;
+  background: var(--accent-color);
   color: white;
+  border-color: var(--accent-color);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-primary:active:not(:disabled) {
   background: #005a9e;
 }
 
 .btn-secondary {
-  background: #3e3e42;
-  color: #cccccc;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
-.btn-secondary:hover {
-  background: #505052;
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
 }
 
-/* Input styling */
+.btn-secondary:active:not(:disabled) {
+  background: var(--bg-active);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Input styling - Windows 11 style */
 .input {
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 14px;
+  min-height: 32px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--text-muted);
 }
 
 .input:focus {
   outline: none;
-  border-color: #007acc;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.input:disabled {
+  background: var(--bg-tertiary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Select styling */
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c5c5c' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+
+/* Badge/Tag styling */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.badge-success {
+  background: var(--success-bg);
+  color: var(--success-color);
+}
+
+.badge-warning {
+  background: var(--warning-bg);
+  color: var(--warning-color);
+}
+
+.badge-error {
+  background: var(--error-bg);
+  color: var(--error-color);
+}
+
+.badge-info {
+  background: var(--info-bg);
+  color: var(--info-color);
+}
+
+/* Table styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.table tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* Status indicators */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot-success {
+  background: var(--success-color);
+}
+
+.status-dot-warning {
+  background: var(--warning-color);
+}
+
+.status-dot-error {
+  background: var(--error-color);
+}
+
+.status-dot-info {
+  background: var(--info-color);
+}
+
+/* Loading spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Transitions */
+.transition-colors {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Selection styling */
+::selection {
+  background: var(--accent-light);
+  color: var(--text-primary);
+}
+
+/* Utility classes */
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.bg-hover:hover {
+  background: var(--bg-hover);
 }
