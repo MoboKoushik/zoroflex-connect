@@ -215,7 +215,18 @@ async function handleLoginSuccess(): Promise<void> {
       createDashboardWindow(profile, false); // Don't show window on startup, run in background
     } else {
       // No active company - fetch from Tally and check for matches
-      console.log('No active company, fetching companies from Tally...');
+      console.log('No active company, checking Tally connectivity...');
+
+      // Quick connectivity check before trying to fetch companies
+      const tallyConnected = await tallyConnectivityService.checkConnectivity();
+      if (!tallyConnected) {
+        const errorMsg = 'Cannot connect to Tally Prime. Please ensure Tally is running on port 9000.';
+        console.log('Tally not available:', errorMsg);
+        createCompanySelectorWindow(profile, null, errorMsg);
+        return;
+      }
+
+      console.log('Tally connected, fetching companies...');
       try {
         // Fetch companies from Tally
         const companies = await fetchCompanies(dbService);
