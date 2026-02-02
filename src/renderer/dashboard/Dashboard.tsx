@@ -143,7 +143,7 @@ export const Dashboard: React.FC = () => {
         >
           {currentPage === "dashboard" && (
             <>
-              <h1
+              {/* <h1
                 style={{
                   fontSize: "28px",
                   marginBottom: "24px",
@@ -151,7 +151,7 @@ export const Dashboard: React.FC = () => {
                 }}
               >
                 Dashboard
-              </h1>
+              </h1> */}
 
               <div
                 style={{

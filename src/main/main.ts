@@ -930,10 +930,18 @@ ipcMain.handle('get-analytics', async () => {
     }
 
     // Get processing stats from backend API
-    let processingStats = {
+    let processingStats: {
+      customers: { total: number; processed: number; pending: number; failed: number };
+      invoices: { total: number; processed: number; pending: number; failed: number };
+      payments: { total: number; processed: number; pending: number; failed: number };
+      journalVouchers: { total: number; processed: number; pending: number; failed: number };
+      debitNotes: { total: number; processed: number; pending: number; failed: number };
+    } = {
       customers: { total: 0, processed: 0, pending: 0, failed: 0 },
       invoices: { total: 0, processed: 0, pending: 0, failed: 0 },
-      payments: { total: 0, processed: 0, pending: 0, failed: 0 }
+      payments: { total: 0, processed: 0, pending: 0, failed: 0 },
+      journalVouchers: { total: 0, processed: 0, pending: 0, failed: 0 },
+      debitNotes: { total: 0, processed: 0, pending: 0, failed: 0 }
     };
 
     try {
@@ -961,7 +969,9 @@ ipcMain.handle('get-analytics', async () => {
         processingStats = {
           customers: statsRes.data.customers || { total: 0, processed: 0, pending: 0, failed: 0 },
           invoices: statsRes.data.invoices || { total: 0, processed: 0, pending: 0, failed: 0 },
-          payments: statsRes.data.payments || { total: 0, processed: 0, pending: 0, failed: 0 }
+          payments: statsRes.data.payments || { total: 0, processed: 0, pending: 0, failed: 0 },
+          journalVouchers: statsRes.data.journalVouchers || statsRes.data.journal_vouchers || { total: 0, processed: 0, pending: 0, failed: 0 },
+          debitNotes: statsRes.data.debitNotes || statsRes.data.debit_notes || { total: 0, processed: 0, pending: 0, failed: 0 }
         };
       } else if (statsRes?.data && !statsRes.data.status) {
         console.warn('Staging stats API returned status false:', statsRes.data);
