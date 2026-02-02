@@ -276,6 +276,7 @@ export async function fetchCustomersFromReportByDateRange(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
+                <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
                 </STATICVARIABLES>
@@ -339,6 +340,7 @@ export async function fetchCustomersFromReportByAlterId(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinCust</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
                     <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
@@ -532,6 +534,7 @@ export async function fetchJournalVouchersFromReportByDateRange(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinJV</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
                 </STATICVARIABLES>
@@ -695,9 +698,9 @@ export async function fetchDeletedVouchersFromReport(
       <REQUESTDESC>
         <REPORTNAME>ZorrofinDeletedVch</REPORTNAME>
         <STATICVARIABLES>
+          <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
           <SVFROMDATE>${fromDate}</SVFROMDATE>
           <SVTODATE>${toDate}</SVTODATE>
-          <SVZORROFINALTERID>0</SVZORROFINALTERID>
         </STATICVARIABLES>
       </REQUESTDESC>
     </EXPORTDATA>
@@ -763,6 +766,7 @@ export async function fetchDeletedVouchersByAlterId(
       <REQUESTDESC>
         <REPORTNAME>ZorrofinDeletedVch</REPORTNAME>
         <STATICVARIABLES>
+          <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
           <SVFROMDATE>${wideFromDate}</SVFROMDATE>
           <SVTODATE>${wideToDate}</SVTODATE>
           <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
@@ -867,4 +871,88 @@ export function parseDeletedVoucher(raw: TallyDeletedVoucherRaw): {
     voucher_type: getFirstText(raw.voucher_type).toLowerCase(),
     deletion_action: getFirstText(raw.delete_or_cancel) as 'Delete' | 'Cancel',
   };
+}
+
+/**
+ * Fetches ledger closing balance using ZorrofinLedger report
+ * @param ledgerName The name of the ledger to fetch balance for
+ * @param toDate Date to get balance as of (YYYYMMDD format)
+ * @returns { closingBalance: number, drCr: 'Dr' | 'Cr' | '', parent: string }
+ */
+export async function fetchLedgerBalance(
+  ledgerName: string,
+  toDate: string
+): Promise<{ closingBalance: number; drCr: 'Dr' | 'Cr' | ''; parent: string }> {
+  const xmlRequest = `
+<ENVELOPE>
+    <HEADER>
+        <TALLYREQUEST>Export Data</TALLYREQUEST>
+    </HEADER>
+    <BODY>
+        <EXPORTDATA>
+            <REQUESTDESC>
+                <REPORTNAME>ZorrofinLedger</REPORTNAME>
+                <STATICVARIABLES>
+                    <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+                    <SVTODATE>${toDate}</SVTODATE>
+                    <SVZORROLEDGERNAME>${ledgerName}</SVZORROLEDGERNAME>
+                </STATICVARIABLES>
+            </REQUESTDESC>
+        </EXPORTDATA>
+    </BODY>
+</ENVELOPE>`.trim();
+
+  try {
+    const response = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'application/xml' },
+      timeout: 15000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 1,
+        maxFreeSockets: 1,
+      }),
+      validateStatus: () => true,
+    });
+
+    const parsed = await parseStringPromise(response.data, {
+      explicitArray: false,
+      mergeAttrs: true,
+      trim: true,
+    });
+
+    // Extract LEDGER data from response
+    const ledger = parsed?.ENVELOPE?.BODY?.DATA?.LEDGER ||
+                   parsed?.LEDGER ||
+                   parsed?.ENVELOPE?.LEDGER;
+
+    if (!ledger) {
+      console.log(`[fetchLedgerBalance] No LEDGER data found for: ${ledgerName}`);
+      return { closingBalance: 0, drCr: '', parent: '' };
+    }
+
+    const closingBalStr = ledger.CLOSINGBAL || ledger.CLOSING_BALANCE || '0';
+    const drCr = (ledger.DRCR || ledger.DR_CR || '').trim() as 'Dr' | 'Cr' | '';
+    const parent = ledger.PARENT || '';
+
+    // Parse closing balance
+    let closingBalance = parseFloat(String(closingBalStr).replace(/,/g, '')) || 0;
+
+    // Apply Dr/Cr sign: Dr = negative (amount owed by customer), Cr = positive (credit)
+    // Actually for Sundry Debtors: Dr means customer owes money (positive receivable)
+    // But user said: Dr hole - and Cr hole + hobe
+    if (drCr === 'Dr') {
+      closingBalance = -Math.abs(closingBalance);
+    } else if (drCr === 'Cr') {
+      closingBalance = Math.abs(closingBalance);
+    }
+
+    return { closingBalance, drCr, parent };
+
+  } catch (error: any) {
+    console.log(`[fetchLedgerBalance] Error fetching balance for ${ledgerName}:`, error.message);
+    return { closingBalance: 0, drCr: '', parent: '' };
+  }
 }

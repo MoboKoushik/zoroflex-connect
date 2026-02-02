@@ -3350,62 +3350,82 @@ export class DatabaseService {
     sync_mode: string;
     trigger_type: string;
     entity_type?: string;
-    customer_count?: number;    // NEW
-    journal_count?: number;     // NEW
+    customer_count?: number;
+    journal_count?: number;
     invoice_count?: number;
     receipt_count?: number;
     debit_note_count?: number;
     cancel_delete_count?: number;
     credit_note_count?: number;
     payable_count?: number;
-    overall_status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
-    error_detail?: string;
+    overall_status: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'UNKNOWN';
+    error_detail?: string | null;
     total_records?: number;
     duration_seconds?: number;
     max_alter_id?: string;
     incomplete_months?: string;
   }) {
-    const stmt = this.db?.prepare(`
-    INSERT INTO sync_summary_history (
-      sync_started_at, sync_mode, trigger_type, entity_type,
-      customer_count, journal_count, invoice_count, receipt_count,
-      debit_note_count, cancel_delete_count, credit_note_count, payable_count,
-      overall_status, error_detail, total_records,
-      duration_seconds, max_alter_id, incomplete_months
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+    try {
+      const stmt = this.db?.prepare(`
+      INSERT INTO sync_summary_history (
+        sync_started_at, sync_mode, trigger_type, entity_type,
+        customer_count, journal_count, invoice_count, receipt_count,
+        debit_note_count, cancel_delete_count, credit_note_count, payable_count,
+        overall_status, error_detail, total_records,
+        duration_seconds, max_alter_id, incomplete_months
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-    stmt?.run(
-      data.sync_started_at,
-      data.sync_mode,
-      data.trigger_type,
-      data.entity_type || null,
-      data.customer_count || 0,     // CUSTOMER success
-      data.journal_count || 0,      // JOURNAL success
-      data.invoice_count || 0,
-      data.receipt_count || 0,
-      data.debit_note_count || 0,
-      data.cancel_delete_count || 0,
-      data.credit_note_count || 0,
-      data.payable_count || 0,
-      data.overall_status,
-      data.error_detail || null,
-      data.total_records || 0,
-      data.duration_seconds || null,
-      data.max_alter_id || null,
-      data.incomplete_months || null
-    );
+      const result = stmt?.run(
+        data.sync_started_at,
+        data.sync_mode,
+        data.trigger_type,
+        data.entity_type || null,
+        data.customer_count || 0,
+        data.journal_count || 0,
+        data.invoice_count || 0,
+        data.receipt_count || 0,
+        data.debit_note_count || 0,
+        data.cancel_delete_count || 0,
+        data.credit_note_count || 0,
+        data.payable_count || 0,
+        data.overall_status || 'UNKNOWN',
+        data.error_detail || null,
+        data.total_records || 0,
+        data.duration_seconds || null,
+        data.max_alter_id || null,
+        data.incomplete_months || null
+      );
+
+      console.log('[logSyncSummary] Saved sync summary:', {
+        sync_started_at: data.sync_started_at,
+        sync_mode: data.sync_mode,
+        overall_status: data.overall_status,
+        total_records: data.total_records,
+        lastInsertRowid: result?.lastInsertRowid
+      });
+    } catch (error: any) {
+      console.error('[logSyncSummary] Error saving sync summary:', error?.message || error);
+    }
   }
 
 
   async getSyncSummaryHistory(limit = 100, offset = 0): Promise<any[]> {
-    return this.db
-      ?.prepare(`
-      SELECT * FROM sync_summary_history
-      ORDER BY sync_started_at DESC
-      LIMIT ? OFFSET ?
-    `)
-      .all(limit, offset) || [];
+    try {
+      const rows = this.db
+        ?.prepare(`
+        SELECT * FROM sync_summary_history
+        ORDER BY sync_started_at DESC
+        LIMIT ? OFFSET ?
+      `)
+        .all(limit, offset) || [];
+
+      console.log('[getSyncSummaryHistory] Retrieved rows:', rows.length);
+      return rows;
+    } catch (error: any) {
+      console.error('[getSyncSummaryHistory] Error fetching sync history:', error?.message || error);
+      return [];
+    }
   }
 
 

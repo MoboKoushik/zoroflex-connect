@@ -39,10 +39,43 @@ export class SyncService {
   }
 
   private calculateOverallStatus(results: any[]): 'SUCCESS' | 'PARTIAL' | 'FAILED' {
-    const statuses = results.map(r => r?.status || 'UNKNOWN');
-    if (statuses.every(s => s === 'SUCCESS')) return 'SUCCESS';
-    if (statuses.some(s => s === 'FAILED')) return 'FAILED';
-    return 'PARTIAL';
+    // Filter out null/undefined results (entities that didn't run)
+    const validResults = results.filter(r => r != null);
+
+    // If no valid results, return SUCCESS (nothing failed)
+    if (validResults.length === 0) return 'SUCCESS';
+
+    // Normalize status from different result formats:
+    // - Some services return {status: 'SUCCESS'/'PARTIAL'/'FAILED'}
+    // - syncDeletedVouchers returns {success: true/false}
+    const statuses = validResults.map(r => {
+      // If status field exists, use it
+      if (r.status) return r.status;
+      // If success field exists (e.g., syncDeletedVouchers)
+      if (r.success !== undefined) return r.success ? 'SUCCESS' : 'FAILED';
+      // If has error field, it's failed
+      if (r.error) return 'FAILED';
+      // Default to SUCCESS if we have a result object
+      return 'SUCCESS';
+    });
+
+    const hasSuccess = statuses.some(s => s === 'SUCCESS');
+    const hasFailed = statuses.some(s => s === 'FAILED');
+    const hasPartial = statuses.some(s => s === 'PARTIAL');
+
+    // If any PARTIAL, overall is PARTIAL
+    if (hasPartial) return 'PARTIAL';
+
+    // If any failed
+    if (hasFailed) {
+      // If some success and some failed = PARTIAL
+      if (hasSuccess) return 'PARTIAL';
+      // All failed = FAILED
+      return 'FAILED';
+    }
+
+    // No failures = SUCCESS
+    return 'SUCCESS';
   }
 
   private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND'): Promise<void> {
@@ -330,6 +363,17 @@ export class SyncService {
         (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
         (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
         (deletedResult?.totalFetched || 0);
+
+      // Build error detail from failed counts
+      const failedDetails: string[] = [];
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+      if (deletedResult?.error) failedDetails.push(`Delete Sync: ${deletedResult.error}`);
+      const errorDetail = failedDetails.length > 0 ? failedDetails.join('; ') : '';
+
       await this.dbService.logSyncSummary({
         sync_started_at: syncStartedAt,
         sync_mode: type === 'MANUAL' ? 'FULL_FIRST' : 'BACKGROUND_INCREMENTAL',
@@ -341,10 +385,10 @@ export class SyncService {
         debit_note_count: debitNoteResult?.successCount || 0,
         cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
         overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
-        error_detail: '',
+        error_detail: errorDetail,
         total_records: totalRecords,
         duration_seconds: duration,
-        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',  // ba last service theke
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
         incomplete_months: incompleteMonths?.length > 0 ? incompleteMonths?.join(', ') : ''
       });
 
@@ -362,6 +406,16 @@ export class SyncService {
         (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
         (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
         (deletedResult?.totalFetched || 0);
+
+      // Build error detail including failed counts and the main error
+      const failedDetails: string[] = [];
+      if (error?.message) failedDetails.push(error.message);
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+
       await this.dbService.logSyncSummary({
         sync_started_at: syncStartedAt,
         sync_mode: type === 'MANUAL' ? 'FULL_FIRST' : 'BACKGROUND_INCREMENTAL',
@@ -373,10 +427,10 @@ export class SyncService {
         debit_note_count: debitNoteResult?.successCount || 0,
         cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
         overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
-        error_detail: error ? error.message : null,
+        error_detail: failedDetails.join('; '),
         total_records: totalRecords,
         duration_seconds: duration,
-        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',  // ba last service theke
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
         incomplete_months: ''
       });
       throw error;
@@ -631,7 +685,6 @@ export class SyncService {
       if (!await this.dbService.isEntityFirstSyncCompleted('INVOICE')) {
         incompleteMonths.push(...await this.dbService.getIncompleteMonths('INVOICE'));
       }
-      // baki entity er jonno add koro
 
       const syncStartedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
       const duration = Math.round((Date.now() - syncStartTime) / 1000);
@@ -642,6 +695,17 @@ export class SyncService {
         (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
         (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
         (deletedResult?.totalFetched || 0);
+
+      // Build error detail from failed counts
+      const failedDetails: string[] = [];
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+      if (deletedResult?.error) failedDetails.push(`Delete Sync: ${deletedResult.error}`);
+      const errorDetail = failedDetails.length > 0 ? failedDetails.join('; ') : '';
+
       await this.dbService.logSyncSummary({
         sync_started_at: syncStartedAt,
         sync_mode: 'FULL_FIRST',
@@ -653,10 +717,10 @@ export class SyncService {
         debit_note_count: debitNoteResult?.successCount || 0,
         cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
         overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
-        error_detail: '',
+        error_detail: errorDetail,
         total_records: totalRecords,
         duration_seconds: duration,
-        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',  // ba last service theke
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
         incomplete_months: incompleteMonths.length > 0 ? incompleteMonths.join(', ') : ''
       });
 
@@ -674,6 +738,16 @@ export class SyncService {
         (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
         (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
         (deletedResult?.totalFetched || 0);
+
+      // Build error detail including failed counts and the main error
+      const failedDetails: string[] = [];
+      if (error?.message) failedDetails.push(error.message);
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+
       await this.dbService.logSyncSummary({
         sync_started_at: syncStartedAt,
         sync_mode: 'FULL_FIRST',
@@ -685,10 +759,10 @@ export class SyncService {
         debit_note_count: debitNoteResult?.successCount || 0,
         cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
         overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
-        error_detail: error ? error.message : null,
+        error_detail: failedDetails.join('; '),
         total_records: totalRecords,
         duration_seconds: duration,
-        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',  // ba last service theke
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
         incomplete_months: ''
       });
       throw error;

@@ -7,7 +7,8 @@ import {
   fetchCustomersFromReportByDateRange,
   fetchCustomersFromReportByAlterId,
   extractCustomersFromReport,
-  getReportText
+  getReportText,
+  fetchLedgerBalance
 } from '../../tally/batch-fetcher';
 
 const ENTITY_TYPE = 'CUSTOMER';
@@ -316,21 +317,51 @@ export async function syncCustomers(
 
             const customerId = getReportText(customer, 'CUSTOMER_ID');
             const name = getReportText(customer, 'NAME');
-            const currentBalanceAt = getReportText(customer, 'CURRENT_BALANCE_AT');
 
             // Get biller_id from XML response first, fall back to profile
             const xmlBillerId = getReportText(customer, 'BILLER_ID');
             const billerId = xmlBillerId || profile?.biller_id || '';
 
-            // Format current_balance_at date
-            let formattedBalanceAt = '';
-            if (currentBalanceAt) {
-              formattedBalanceAt = formatDate(currentBalanceAt);
-              if (!formattedBalanceAt) {
-                formattedBalanceAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const invoiceDetails: Array<{ invoice_number: string; invoice_date: string; amount: number }> = [];
+
+            const invoiceNodes = customer.INVOICE_DETAILS || [];
+            const invoices = Array.isArray(invoiceNodes) ? invoiceNodes : [invoiceNodes];
+
+            for (const inv of invoices) {
+              if (!inv || typeof inv !== 'object') {
+                continue;
               }
-            } else {
-              formattedBalanceAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+              const invoiceNumber = getReportText(inv, 'INVOICE_NUMBER') || '';
+              if (!invoiceNumber.trim()) {
+                continue;
+              }
+
+              const dateRaw = getReportText(inv, 'INVOICE_DATE') || '';
+              let invoiceDate = formatDate(dateRaw);
+
+              const amountRaw = getReportText(inv, 'AMOUNT') || '0';
+              const amount = parseFloat(amountRaw.replace(/,/g, '')) || 0;
+
+              invoiceDetails.push({
+                invoice_number: invoiceNumber,
+                invoice_date: invoiceDate,
+                amount: amount
+              });
+            }
+
+            // Fetch correct current_balance from ZorrofinLedger report for this customer
+            let currentBalance = 0;
+            if (name) {
+              try {
+                const ledgerData = await fetchLedgerBalance(name, tallyToDate);
+                currentBalance = ledgerData.closingBalance;
+                db.log('INFO', `Fetched balance for ${name}: ${currentBalance} (${ledgerData.drCr})`);
+              } catch (ledgerError: any) {
+                db.log('WARN', `Failed to fetch ledger balance for ${name}: ${ledgerError.message}`);
+                // Fallback to the balance from customer data
+                currentBalance = parseFloat(getReportText(customer, 'CURRENT_BALANCE')?.replace(/,/g, '') || '0');
+              }
             }
 
             const apiCustomer = {
@@ -350,10 +381,10 @@ export async function syncCustomers(
               country: getReportText(customer, 'COUNTRY') || '',
               bill_by_bill: getReportText(customer, 'BILL_BY_BILL') || 'Yes',
               biller_id: billerId,
-              current_balance: parseFloat(getReportText(customer, 'CURRENT_BALANCE')?.replace(/,/g, '') || '0'),
-              current_balance_at: formattedBalanceAt,
+              current_balance: currentBalance,
+              current_balance_at: getReportText(customer, 'CURRENT_BALANCE_AT') || '',
               opening_balance: parseFloat(getReportText(customer, 'OPENING_BALANCE')?.replace(/,/g, '') || '0'),
-              invoice_details: []
+              invoice_details: invoiceDetails
             };
 
             customersForApi.push(apiCustomer);

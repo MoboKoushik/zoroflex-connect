@@ -108,4 +108,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Analytics
   getAnalytics: () => ipcRenderer.invoke('get-analytics'),
+
+  // Sync Summary History
+  getSyncSummaryHistory: (limit?: number, offset?: number) =>
+    ipcRenderer.invoke('get-sync-summary-history', limit, offset),
 });
