@@ -9,6 +9,10 @@ import {
   extractReceiptsFromReport,
   getReportText
 } from '../../tally/batch-fetcher';
+import {
+  extractSundryDebtorsLedgers,
+  updateCustomerBalancesFromVouchers
+} from '../customer-balance-updater';
 
 const ENTITY_TYPE = 'PAYMENT';
 const API_BATCH_SIZE = 100; // Max 100 records per API call
@@ -408,6 +412,23 @@ export async function syncPayments(
             receipts.length,
             apiSuccess
           );
+
+          // Update customer balances from SundryDebtors ledger entries
+          if (apiSuccess > 0 && paymentsForApi.length > 0) {
+            try {
+              const sundryDebtorsMap = extractSundryDebtorsLedgers(paymentsForApi, 'ledger_entries');
+              if (sundryDebtorsMap.size > 0) {
+                // Get current date in YYYYMMDD format for balance fetch
+                const today = new Date();
+                const syncDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+
+                const balanceResult = await updateCustomerBalancesFromVouchers(profile, sundryDebtorsMap, syncDate, db);
+                db.log('INFO', `Payment sync: Customer balance update - ${balanceResult.updated} updated, ${balanceResult.failed} failed`);
+              }
+            } catch (balanceError: any) {
+              db.log('WARN', `Failed to update customer balances after payment sync: ${balanceError.message}`);
+            }
+          }
         }
       } catch (error: any) {
         await db.updateSyncBatchStatus(batchId, 'API_FAILED', 0, 0, 0, error.message);

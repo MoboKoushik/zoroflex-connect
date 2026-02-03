@@ -9,6 +9,10 @@ import {
   extractJournalVouchersFromReport,
   getReportText
 } from '../../tally/batch-fetcher';
+import {
+  extractSundryDebtorsLedgers,
+  updateCustomerBalancesFromVouchers
+} from '../customer-balance-updater';
 
 const ENTITY_TYPE = 'JOURNAL';
 const API_BATCH_SIZE = 100; // Max 100 records per API call
@@ -463,6 +467,23 @@ export async function syncJournalVouchers(
             apiSuccess,
             apiFailed > 0 ? `API failed for ${apiFailed} records` : undefined
           );
+
+                    // Update customer balances from SundryDebtors ledger entries
+          if (apiSuccess > 0 && jvEntriesForApi.length > 0) {
+            try {
+              const sundryDebtorsMap = extractSundryDebtorsLedgers(jvEntriesForApi, 'ledger_entries');
+              if (sundryDebtorsMap.size > 0) {
+                // Get current date in YYYYMMDD format for balance fetch
+                const today = new Date();
+                const syncDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+
+                const balanceResult = await updateCustomerBalancesFromVouchers(profile, sundryDebtorsMap, syncDate, db);
+                db.log('INFO', `Invoice sync: Customer balance update - ${balanceResult.updated} updated, ${balanceResult.failed} failed`);
+              }
+            } catch (balanceError: any) {
+              db.log('WARN', `Failed to update customer balances after invoice sync: ${balanceError.message}`);
+            }
+          }
         }
       } catch (error: any) {
         await db.updateSyncBatchStatus(batchId, 'API_FAILED', 0, 0, 0, error.message);
