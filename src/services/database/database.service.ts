@@ -2442,34 +2442,47 @@ export class DatabaseService {
     const invoiceStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type IN ('sales', 'credit_note')`);
     const invoiceCount = (invoiceStmt.get() as { count: number }).count;
 
-    const receiptStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'`);
-    const receiptCount = (receiptStmt.get() as { count: number }).count;
+    // Receipt count: First check vouchers table, if empty use SUM from sync_history
+    const receiptTableStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'`);
+    const receiptTableCount = (receiptTableStmt.get() as { count: number }).count;
+
+    let receiptCount = receiptTableCount;
+    if (receiptCount === 0) {
+      // Payments might not be stored locally, use SUM of all successful syncs
+      const receiptSyncStmt = this.db!.prepare(`
+        SELECT COALESCE(SUM(entity_count), 0) as total_count
+        FROM sync_history
+        WHERE entity_type = 'PAYMENT'
+          AND status IN ('SUCCESS', 'PARTIAL')
+          AND completed_at IS NOT NULL
+      `);
+      const receiptSyncResult = receiptSyncStmt.get() as { total_count: number } | undefined;
+      receiptCount = receiptSyncResult?.total_count || 0;
+    }
 
     // JV count from sync_history (since JV entries are not stored in vouchers table)
+    // Use SUM of all successful syncs to get total count (not just last sync)
     const jvStmt = this.db!.prepare(`
-      SELECT entity_count 
-      FROM sync_history 
-      WHERE entity_type = 'JOURNAL' 
+      SELECT COALESCE(SUM(entity_count), 0) as total_count
+      FROM sync_history
+      WHERE entity_type = 'JOURNAL'
         AND status IN ('SUCCESS', 'PARTIAL')
         AND completed_at IS NOT NULL
-      ORDER BY completed_at DESC 
-      LIMIT 1
     `);
-    const jvResult = jvStmt.get() as { entity_count: number } | undefined;
-    const jvCount = jvResult?.entity_count || 0;
+    const jvResult = jvStmt.get() as { total_count: number } | undefined;
+    const jvCount = jvResult?.total_count || 0;
 
     // Debit Note count from sync_history (since debit notes are not stored in vouchers table)
+    // Use SUM of all successful syncs to get total count (not just last sync)
     const debitNoteStmt = this.db!.prepare(`
-      SELECT entity_count 
-      FROM sync_history 
-      WHERE entity_type = 'DEBITNOTE' 
+      SELECT COALESCE(SUM(entity_count), 0) as total_count
+      FROM sync_history
+      WHERE entity_type = 'DEBITNOTE'
         AND status IN ('SUCCESS', 'PARTIAL')
         AND completed_at IS NOT NULL
-      ORDER BY completed_at DESC 
-      LIMIT 1
     `);
-    const debitNoteResult = debitNoteStmt.get() as { entity_count: number } | undefined;
-    const debitNoteCount = debitNoteResult?.entity_count || 0;
+    const debitNoteResult = debitNoteStmt.get() as { total_count: number } | undefined;
+    const debitNoteCount = debitNoteResult?.total_count || 0;
 
     const lastSyncStmt = this.db!.prepare(`SELECT MAX(completed_at) as last_sync FROM sync_history WHERE status = 'SUCCESS'`);
     const lastSync = (lastSyncStmt.get() as { last_sync: string | null }).last_sync;
@@ -3044,19 +3057,26 @@ export class DatabaseService {
     `);
     const paymentSyncs = paymentStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count of unique payments (vouchers with receipt type)
+    // Get total count of payments: First check vouchers table, if empty use SUM from sync_history
     const paymentTotalStmt = this.db!.prepare(`
-      SELECT COUNT(*) as total 
-      FROM vouchers 
+      SELECT COUNT(*) as total
+      FROM vouchers
       WHERE voucher_type = 'receipt'
     `);
     const paymentTableCount = (paymentTotalStmt.get() as { total: number })?.total || 0;
 
     let paymentTotal = paymentTableCount;
     if (paymentTotal === 0) {
-      // If vouchers table is empty, use the last successful sync count
-      // This represents the most recent sync count
-      paymentTotal = paymentSyncs[0]?.entity_count || 0;
+      // Payments might not be stored locally, use SUM of all successful syncs
+      const paymentSyncTotalStmt = this.db!.prepare(`
+        SELECT COALESCE(SUM(entity_count), 0) as total_count
+        FROM sync_history
+        WHERE entity_type = 'PAYMENT'
+          AND status IN ('SUCCESS', 'PARTIAL')
+          AND completed_at IS NOT NULL
+      `);
+      const paymentSyncTotalResult = paymentSyncTotalStmt.get() as { total_count: number } | undefined;
+      paymentTotal = paymentSyncTotalResult?.total_count || 0;
     }
 
     // Get last 2 successful syncs for JOURNAL entity
@@ -3072,8 +3092,16 @@ export class DatabaseService {
     `);
     const journalSyncs = journalStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count: Use the last successful sync count (JV entries are not stored locally)
-    let journalTotal = journalSyncs[0]?.entity_count || 0;
+    // Get total count: Use SUM of all successful syncs (JV entries are not stored locally)
+    const journalTotalStmt = this.db!.prepare(`
+      SELECT COALESCE(SUM(entity_count), 0) as total_count
+      FROM sync_history
+      WHERE entity_type = 'JOURNAL'
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+    `);
+    const journalTotalResult = journalTotalStmt.get() as { total_count: number } | undefined;
+    let journalTotal = journalTotalResult?.total_count || 0;
 
     // Get last 2 successful syncs for DEBITNOTE entity
     const debitNoteStmt = this.db!.prepare(`
@@ -3088,8 +3116,16 @@ export class DatabaseService {
     `);
     const debitNoteSyncs = debitNoteStmt.all() as Array<{ completed_at: string; entity_count: number }>;
 
-    // Get total count: Use the last successful sync count (Debit notes are not stored locally)
-    let debitNoteTotal = debitNoteSyncs[0]?.entity_count || 0;
+    // Get total count: Use SUM of all successful syncs (Debit notes are not stored locally)
+    const debitNoteTotalStmt = this.db!.prepare(`
+      SELECT COALESCE(SUM(entity_count), 0) as total_count
+      FROM sync_history
+      WHERE entity_type = 'DEBITNOTE'
+        AND status IN ('SUCCESS', 'PARTIAL')
+        AND completed_at IS NOT NULL
+    `);
+    const debitNoteTotalResult = debitNoteTotalStmt.get() as { total_count: number } | undefined;
+    let debitNoteTotal = debitNoteTotalResult?.total_count || 0;
 
     return {
       ledger: {
