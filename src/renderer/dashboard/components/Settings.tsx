@@ -1,5 +1,6 @@
 // src/renderer/dashboard/components/Settings.tsx
 import React, { useEffect, useState } from 'react';
+import { validateTallyInput, type TallyInputValidation } from '../../../services/config/tally-url-helper';
 
 interface SettingsProps {
   company?: any;
@@ -17,6 +18,7 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
     showNotifications: true,
     autoStart: true, // Auto-start with Windows
     tallyPort: 9000,
+    tallyServerUrl: '', // Smart input: port or full URL
     tallyHealthCheckInterval: 30,
     apiHealthCheckInterval: 60,
   });
@@ -24,6 +26,14 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [tallyValidation, setTallyValidation] = useState<TallyInputValidation | null>(null);
+
+  // Local state for inputs to prevent scroll jump during typing
+  const [localTallyServerUrl, setLocalTallyServerUrl] = useState('');
+  const [localApiEndpoint, setLocalApiEndpoint] = useState('');
+  const [localSyncDuration, setLocalSyncDuration] = useState('');
+  const [localTallyHealthCheck, setLocalTallyHealthCheck] = useState('');
+  const [localApiHealthCheck, setLocalApiHealthCheck] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -50,6 +60,9 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       }
       
       const loadedTheme = allSettings.theme || 'dark';
+      const tallyPort = parseInt(allSettings.tallyPort || '9000', 10);
+      const tallyServerUrl = allSettings.tallyServerUrl || String(tallyPort);
+
       setSettings({
         soundEnabled: allSettings.soundEnabled !== 'false',
         theme: loadedTheme,
@@ -60,10 +73,23 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
         syncOnStartup: allSettings.syncOnStartup === 'true',
         showNotifications: allSettings.showNotifications !== 'false',
         autoStart: autoStartEnabled,
-        tallyPort: parseInt(allSettings.tallyPort || '9000', 10),
+        tallyPort: tallyPort,
+        tallyServerUrl: tallyServerUrl,
         tallyHealthCheckInterval: parseInt(allSettings.tallyHealthCheckInterval || '30', 10),
         apiHealthCheckInterval: parseInt(allSettings.apiHealthCheckInterval || '60', 10),
       });
+
+      // Initialize local input states
+      setLocalTallyServerUrl(tallyServerUrl);
+      setLocalApiEndpoint(allSettings.apiEndpoint || '');
+      setLocalSyncDuration(allSettings.syncDuration || '300');
+      setLocalTallyHealthCheck(allSettings.tallyHealthCheckInterval || '30');
+      setLocalApiHealthCheck(allSettings.apiHealthCheckInterval || '60');
+
+      // Set initial validation state
+      if (tallyServerUrl) {
+        setTallyValidation(validateTallyInput(tallyServerUrl));
+      }
       
       // Apply theme after loading
       applyTheme(loadedTheme);
@@ -446,18 +472,22 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               min="60"
               max="3600"
               step="60"
-              value={settings.syncDuration}
+              value={localSyncDuration}
               onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (!isNaN(value) && value >= 60 && value <= 3600) {
-                  setSettings(prev => ({ ...prev, syncDuration: value }));
-                }
+                setLocalSyncDuration(e.target.value);
               }}
               onBlur={async () => {
-                await saveSetting('syncDuration', settings.syncDuration);
-                // Restart background sync with new interval
-                if (window.electronAPI?.restartBackgroundSync) {
-                  await window.electronAPI.restartBackgroundSync();
+                const value = parseInt(localSyncDuration, 10);
+                if (!isNaN(value) && value >= 60 && value <= 3600) {
+                  setSettings(prev => ({ ...prev, syncDuration: value }));
+                  await saveSetting('syncDuration', value);
+                  // Restart background sync with new interval
+                  if (window.electronAPI?.restartBackgroundSync) {
+                    await window.electronAPI.restartBackgroundSync();
+                  }
+                } else {
+                  // Reset to current valid value
+                  setLocalSyncDuration(String(settings.syncDuration));
                 }
               }}
               style={{
@@ -517,9 +547,12 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
             </label>
             <input
               type="text"
-              value={settings.apiEndpoint}
-              onChange={(e) => setSettings(prev => ({ ...prev, apiEndpoint: e.target.value }))}
-              onBlur={() => saveSetting('apiEndpoint', settings.apiEndpoint)}
+              value={localApiEndpoint}
+              onChange={(e) => setLocalApiEndpoint(e.target.value)}
+              onBlur={() => {
+                setSettings(prev => ({ ...prev, apiEndpoint: localApiEndpoint }));
+                saveSetting('apiEndpoint', localApiEndpoint);
+              }}
               placeholder="https://api.example.com"
               style={{
                 width: '100%',
@@ -572,35 +605,88 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               fontWeight: 500,
               marginBottom: '6px'
             }}>
-              Tally Port
+              Tally Server Configuration
             </label>
-            <input
-              type="number"
-              min="1"
-              max="65535"
-              value={settings.tallyPort}
-              onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (!isNaN(value) && value >= 1 && value <= 65535) {
-                  setSettings(prev => ({ ...prev, tallyPort: value }));
-                }
-              }}
-              onBlur={() => {
-                saveSetting('tallyPort', settings.tallyPort);
-                saveSetting('tallyUrl', `http://localhost:${settings.tallyPort}`);
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                fontSize: '13px'
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                value={localTallyServerUrl}
+                placeholder="9000 or http://192.168.1.100:9000"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setLocalTallyServerUrl(value);
+
+                  // Validate in real-time
+                  if (value.trim()) {
+                    const validation = validateTallyInput(value);
+                    setTallyValidation(validation);
+                  } else {
+                    setTallyValidation(null);
+                  }
+                }}
+                onBlur={async () => {
+                  const value = localTallyServerUrl.trim();
+
+                  if (!value) {
+                    // If empty, use default port
+                    setLocalTallyServerUrl('9000');
+                    setSettings(prev => ({ ...prev, tallyServerUrl: '9000' }));
+                    await saveSetting('tallyServerUrl', '9000');
+                    setTallyValidation(validateTallyInput('9000'));
+                    return;
+                  }
+
+                  const validation = validateTallyInput(value);
+                  setTallyValidation(validation);
+
+                  if (validation.isValid) {
+                    setSettings(prev => ({ ...prev, tallyServerUrl: value }));
+                    await saveSetting('tallyServerUrl', value);
+                    setSaveMessage({ type: 'success', text: 'Tally server configuration saved' });
+                    setTimeout(() => setSaveMessage(null), 3000);
+                  } else {
+                    setSaveMessage({ type: 'error', text: validation.error || 'Invalid configuration' });
+                    setTimeout(() => setSaveMessage(null), 3000);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '8px 32px 8px 10px',
+                  background: 'var(--bg-tertiary)',
+                  border: `1px solid ${
+                    tallyValidation?.isValid === false
+                      ? '#e74c3c'
+                      : tallyValidation?.isValid === true
+                      ? '#27ae60'
+                      : 'var(--border-color)'
+                  }`,
+                  borderRadius: '4px',
+                  color: 'var(--text-primary)',
+                  fontSize: '13px'
+                }}
+              />
+              {tallyValidation && (
+                <span style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: '16px'
+                }}>
+                  {tallyValidation.isValid ? '✓' : '✗'}
+                </span>
+              )}
+            </div>
             <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-secondary)' }}>
-              Port number for Tally connection (default: 9000)
+              {tallyValidation?.error ? (
+                <span style={{ color: '#e74c3c' }}>{tallyValidation.error}</span>
+              ) : tallyValidation?.resolvedUrl ? (
+                <span style={{ color: '#27ae60' }}>
+                  Will connect to: {tallyValidation.resolvedUrl}
+                </span>
+              ) : (
+                'Enter port number (e.g., 9000) or full URL (e.g., http://192.168.1.100:9000)'
+              )}
             </div>
           </div>
           
@@ -650,14 +736,20 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               min="10"
               max="300"
               step="10"
-              value={settings.tallyHealthCheckInterval}
+              value={localTallyHealthCheck}
               onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
+                setLocalTallyHealthCheck(e.target.value);
+              }}
+              onBlur={() => {
+                const value = parseInt(localTallyHealthCheck, 10);
                 if (!isNaN(value) && value >= 10 && value <= 300) {
                   setSettings(prev => ({ ...prev, tallyHealthCheckInterval: value }));
+                  saveSetting('tallyHealthCheckInterval', value);
+                } else {
+                  // Reset to current valid value
+                  setLocalTallyHealthCheck(String(settings.tallyHealthCheckInterval));
                 }
               }}
-              onBlur={() => saveSetting('tallyHealthCheckInterval', settings.tallyHealthCheckInterval)}
               style={{
                 width: '100%',
                 padding: '8px 10px',
@@ -685,14 +777,20 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               min="10"
               max="300"
               step="10"
-              value={settings.apiHealthCheckInterval}
+              value={localApiHealthCheck}
               onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
+                setLocalApiHealthCheck(e.target.value);
+              }}
+              onBlur={() => {
+                const value = parseInt(localApiHealthCheck, 10);
                 if (!isNaN(value) && value >= 10 && value <= 300) {
                   setSettings(prev => ({ ...prev, apiHealthCheckInterval: value }));
+                  saveSetting('apiHealthCheckInterval', value);
+                } else {
+                  // Reset to current valid value
+                  setLocalApiHealthCheck(String(settings.apiHealthCheckInterval));
                 }
               }}
-              onBlur={() => saveSetting('apiHealthCheckInterval', settings.apiHealthCheckInterval)}
               style={{
                 width: '100%',
                 padding: '8px 10px',
