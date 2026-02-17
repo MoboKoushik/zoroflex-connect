@@ -1534,7 +1534,7 @@ async function createTrayAndStartSync(profile: any, syncServiceParam?: SyncServi
 
   // Start background sync (check settings first)
   const backgroundSyncEnabled = await dbSvc.getSetting('backgroundSyncEnabled');
-  if (backgroundSyncEnabled !== 'false') {
+  if (backgroundSyncEnabled === 'true') {
     await syncSvc.startBackgroundSync(profile);
   } else {
     console.log('Background sync is disabled in settings');

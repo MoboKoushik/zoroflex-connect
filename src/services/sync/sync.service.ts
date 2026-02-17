@@ -780,7 +780,13 @@ export class SyncService {
       return;
     }
     this.isRunning = true;
-
+    let customerResult: any;
+    let invoiceResult: any;
+    let paymentResult: any;
+    let jvResult: any;
+    let debitNoteResult: any;
+    let deletedResult: any;
+    const syncStartTime = Date.now();
     try {
       // Initialize Tally URL from settings
       await this.initializeTallyUrl();
@@ -821,26 +827,108 @@ export class SyncService {
       const customerFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'CUSTOMER', 'fresh');
       const invoiceFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'INVOICE', 'fresh');
       const paymentFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'PAYMENT', 'fresh');
-
+      const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
+      const dnFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'DEBITNOTE', 'fresh');
       this.dbService.log('INFO', 'Force full fresh sync: Running fresh sync for all entities');
 
-      await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
-      await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
-      await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
+      customerResult = await syncCustomers(profile, 'first', customerFromDate, toDate, this.dbService);
+      invoiceResult = await syncInvoices(profile, 'first', invoiceFromDate, toDate, this.dbService);
+      paymentResult = await syncPayments(profile, 'first', paymentFromDate, toDate, this.dbService);
 
       // Journal Voucher sync
-      const jvFromDate = this.syncDateManager.getSyncStartDate(activeCompany.id, 'JOURNAL', 'fresh');
-      await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+      jvResult = await syncJournalVouchers(profile, 'first', jvFromDate, toDate, this.dbService);
+      debitNoteResult = await syncDebitNotes(profile, 'first', dnFromDate, toDate, this.dbService);
 
       // Deleted vouchers sync (fresh sync)
       this.dbService.log('INFO', 'Force full fresh sync: Syncing deleted/cancelled vouchers');
-      await syncDeletedVouchers(profile, 'first', customerFromDate, toDate, this.dbService);
+      deletedResult = await syncDeletedVouchers(profile, 'first', customerFromDate, toDate, this.dbService);
+
+
+      const incompleteMonths = [];
+      if (!await this.dbService.isEntityFirstSyncCompleted('INVOICE')) {
+        incompleteMonths.push(...await this.dbService.getIncompleteMonths('INVOICE'));
+      }
+
+      const syncStartedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      const duration = Math.round((Date.now() - syncStartTime) / 1000);
+      const totalRecords =
+        (customerResult?.successCount || 0) + (customerResult?.failedCount || 0) +
+        (invoiceResult?.successCount || 0) + (invoiceResult?.failedCount || 0) +
+        (paymentResult?.successCount || 0) + (paymentResult?.failedCount || 0) +
+        (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
+        (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
+        (deletedResult?.totalFetched || 0);
+
+      // Build error detail from failed counts
+      const failedDetails: string[] = [];
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+      if (deletedResult?.error) failedDetails.push(`Delete Sync: ${deletedResult.error}`);
+      const errorDetail = failedDetails.length > 0 ? failedDetails.join('; ') : '';
+
+      await this.dbService.logSyncSummary({
+        sync_started_at: syncStartedAt,
+        sync_mode: 'FULL_FIRST',
+        trigger_type: 'MANUAL_FULL',
+        customer_count: customerResult?.successCount || 0,
+        journal_count: jvResult?.successCount || 0,
+        invoice_count: invoiceResult?.successCount || 0,
+        receipt_count: paymentResult?.successCount || 0,
+        debit_note_count: debitNoteResult?.successCount || 0,
+        cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
+        overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
+        error_detail: errorDetail,
+        total_records: totalRecords,
+        duration_seconds: duration,
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
+        incomplete_months: incompleteMonths?.length > 0 ? incompleteMonths?.join(', ') : ''
+      });
+
 
       await this.dbService.updateLastSuccessfulSync();
       this.dbService.log('INFO', 'Force full fresh sync completed successfully');
 
     } catch (error: any) {
       this.dbService.log('ERROR', 'Force full fresh sync failed', { error: error?.message || error });
+      const syncStartedAt = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      const duration = Math.round((Date.now() - syncStartTime) / 1000);
+      const totalRecords =
+        (customerResult?.successCount || 0) + (customerResult?.failedCount || 0) +
+        (invoiceResult?.successCount || 0) + (invoiceResult?.failedCount || 0) +
+        (paymentResult?.successCount || 0) + (paymentResult?.failedCount || 0) +
+        (jvResult?.successCount || 0) + (jvResult?.failedCount || 0) +
+        (debitNoteResult?.successCount || 0) + (debitNoteResult?.failedCount || 0) +
+        (deletedResult?.totalFetched || 0);
+
+      // Build error detail including failed counts and the main error
+      const failedDetails: string[] = [];
+      if (error?.message) failedDetails.push(error.message);
+      if (customerResult?.failedCount > 0) failedDetails.push(`Customer: ${customerResult.failedCount} failed`);
+      if (invoiceResult?.failedCount > 0) failedDetails.push(`Invoice: ${invoiceResult.failedCount} failed`);
+      if (paymentResult?.failedCount > 0) failedDetails.push(`Receipt: ${paymentResult.failedCount} failed`);
+      if (jvResult?.failedCount > 0) failedDetails.push(`Journal: ${jvResult.failedCount} failed`);
+      if (debitNoteResult?.failedCount > 0) failedDetails.push(`Debit Note: ${debitNoteResult.failedCount} failed`);
+
+      await this.dbService.logSyncSummary({
+        sync_started_at: syncStartedAt,
+        sync_mode: 'FULL_FIRST',
+        trigger_type: 'MANUAL_FULL',
+        customer_count: customerResult?.successCount || 0,
+        journal_count: jvResult?.successCount || 0,
+        invoice_count: invoiceResult?.successCount || 0,
+        receipt_count: paymentResult?.successCount || 0,
+        debit_note_count: debitNoteResult?.successCount || 0,
+        cancel_delete_count: (deletedResult?.deleted || 0) + (deletedResult?.cancelled || 0),
+        overall_status: this.calculateOverallStatus([customerResult, invoiceResult, paymentResult, jvResult, debitNoteResult, deletedResult]),
+        error_detail: failedDetails.join('; '),
+        total_records: totalRecords,
+        duration_seconds: duration,
+        max_alter_id: await this.dbService.getEntityMaxAlterId('INVOICE') || '0',
+        incomplete_months: ''
+      });
       throw error;
     } finally {
       this.isRunning = false;

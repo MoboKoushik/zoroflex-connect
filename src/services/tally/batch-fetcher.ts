@@ -139,6 +139,7 @@ export async function fetchVouchersFromReportByDateRange(
             <REQUESTDESC>
                 <REPORTNAME>${collection}</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
                 </STATICVARIABLES>
@@ -200,6 +201,7 @@ export async function fetchVouchersFromReportByAlterId(
             <REQUESTDESC>
                 <REPORTNAME>${collection}</REPORTNAME>
                 <STATICVARIABLES>
+                    <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
@@ -925,8 +927,8 @@ export async function fetchLedgerBalance(
 
     // Extract LEDGER data from response
     const ledger = parsed?.ENVELOPE?.BODY?.DATA?.LEDGER ||
-                   parsed?.LEDGER ||
-                   parsed?.ENVELOPE?.LEDGER;
+      parsed?.LEDGER ||
+      parsed?.ENVELOPE?.LEDGER;
 
     if (!ledger) {
       console.log(`[fetchLedgerBalance] No LEDGER data found for: ${ledgerName}`);

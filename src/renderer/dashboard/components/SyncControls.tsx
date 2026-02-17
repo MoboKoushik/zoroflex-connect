@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 interface SyncControlsProps {
   onSyncStart: (type: 'full' | 'smart' | 'entity') => void;
-  onSyncComplete: () => void;
+  onSyncComplete: (error?: string) => void;
 }
 
 interface SyncResult {
@@ -31,7 +31,7 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ onSyncStart, onSyncC
         setSyncMessage({ type: 'success', text: `Sync completed successfully!${entityMsg}` });
       }
 
-      onSyncComplete();
+      onSyncComplete(data?.error);
 
       // Clear message after 5 seconds
       setTimeout(() => setSyncMessage(null), 5000);

@@ -114,8 +114,9 @@ export const Dashboard: React.FC = () => {
     setSyncStatus(`Starting ${syncTypeLabel} sync...`);
   };
 
-  const handleSyncComplete = () => {
+  const handleSyncComplete = (error?: string) => {
     setIsSyncing(false);
+    setSyncStatus(error ? `Sync failed: ${error}` : "Ready");
     loadData();
   };
 

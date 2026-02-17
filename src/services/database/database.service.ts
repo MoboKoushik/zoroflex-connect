@@ -287,7 +287,7 @@ export class DatabaseService {
       this.initializeDatabase(organizationUuid);
     } else {
       // Default database for initial setup (before login)
-      this.dbPath = path.join(app.getPath('userData'), 'tally-sync_default_1.db');
+      this.dbPath = path.join(app.getPath('userData'), 'tally-sync_prod.db');
       const dir = path.dirname(this.dbPath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       this.init();

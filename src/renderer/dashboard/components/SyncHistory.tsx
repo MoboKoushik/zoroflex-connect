@@ -57,8 +57,10 @@ export const SyncHistory: React.FC = () => {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
-    const date = new Date(dateStr.replace(" ", "T"));
+    // Database stores UTC time, append 'Z' to parse as UTC
+    const date = new Date(dateStr.replace(" ", "T") + "Z");
     return date.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
       day: "2-digit",
       month: "short",
       year: "numeric",

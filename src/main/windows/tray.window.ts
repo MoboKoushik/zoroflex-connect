@@ -86,7 +86,7 @@ export async function createTrayAndStartSync(
 
   // Start background sync (check settings first)
   const backgroundSyncEnabled = await dbService.getSetting('backgroundSyncEnabled');
-  if (backgroundSyncEnabled !== 'false') {
+  if (backgroundSyncEnabled === 'true') {
     await syncService.startBackgroundSync(profile);
     console.log('Tray created + Background sync started');
   } else {
