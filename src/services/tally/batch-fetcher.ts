@@ -161,7 +161,7 @@ export async function fetchVouchersFromReportByDateRange(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'text/plain' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -226,7 +226,7 @@ export async function fetchVouchersFromReportByAlterId(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'text/plain' },
       timeout: 360000,
       maxContentLength: Infinity,
@@ -308,7 +308,7 @@ export async function fetchCustomersFromReportByDateRange(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -378,7 +378,7 @@ export async function fetchCustomersFromReportByAlterId(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -449,8 +449,10 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     </BODY>
 </ENVELOPE>`.trim();
 
+  console.log('TALLY_URL====>', getCurrentTallyUrl())
+
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -575,7 +577,7 @@ export async function fetchJournalVouchersFromReportByDateRange(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -642,7 +644,7 @@ export async function fetchJournalVouchersFromReportByAlterId(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -746,7 +748,7 @@ export async function fetchDeletedVouchersFromReport(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -818,7 +820,7 @@ export async function fetchDeletedVouchersByAlterId(
 </ENVELOPE>`.trim();
 
   return withRetry(async () => {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 120000,
       maxContentLength: Infinity,
@@ -948,7 +950,7 @@ export async function fetchLedgerBalance(
 </ENVELOPE>`.trim();
 
   try {
-    const response = await axios.post(TALLY_URL, xmlRequest, {
+    const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },
       timeout: 15000,
       maxContentLength: Infinity,

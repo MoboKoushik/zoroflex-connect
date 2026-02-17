@@ -8,6 +8,8 @@ import { CompanyRepository } from '../../services/database/repositories/company.
 import { fetchCompanies } from '../../services/sync/fetch-to-tally/fetchCompanies';
 import { getApiUrl } from '../../services/config/api-url-helper';
 import { getAppApiKey } from '../../config/app-config';
+import { getTallyUrl } from '../../services/config/tally-url-helper';
+import { setTallyUrl } from '../../services/tally/batch-fetcher';
 import { getDashboardWindow, createDashboardWindow } from '../windows/dashboard.window';
 import { closeCompanySelectorWindow } from '../windows/company-selector.window';
 import { createTrayAndStartSync, destroyTray } from '../windows/tray.window';
@@ -78,6 +80,14 @@ export function setupIpcHandlers(
       if (!profile || !profile.biller_id) {
         return { success: false, error: 'No profile or biller_id found' };
       }
+
+      // Initialize Tally URL from settings (supports both HTTP and HTTPS)
+      console.log('[fetch-companies] Getting Tally URL from settings...');
+      const tallyUrl = await getTallyUrl(dbService);
+      console.log('[fetch-companies] Got Tally URL:', tallyUrl);
+      setTallyUrl(tallyUrl);
+      console.log('[fetch-companies] Set TALLY_URL to:', tallyUrl);
+      dbService.log('INFO', `Tally URL initialized for fetch-companies: ${tallyUrl}`);
 
       const companies = await fetchCompanies(dbService);
       const filteredCompanies = companies.filter(c => c.biller_id === profile.biller_id);

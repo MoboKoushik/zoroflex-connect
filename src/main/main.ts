@@ -12,6 +12,8 @@ import { fetchCompanies } from '../services/sync/fetch-to-tally/fetchCompanies';
 import { TallyConnectivityService } from '../services/tally/tally-connectivity.service';
 import { ApiHealthService } from '../services/api/api-health.service';
 import { SystemNotificationService } from '../services/notifications/system-notification.service';
+import { getTallyUrl } from '../services/config/tally-url-helper';
+import { setTallyUrl } from '../services/tally/batch-fetcher';
 
 let tray: Tray | null = null;
 let loginWindow: BrowserWindow | null = null;
@@ -119,6 +121,13 @@ async function handleLoginSuccess(): Promise<void> {
       createLoginWindow();
       return;
     }
+
+    // Initialize Tally URL from settings (supports HTTP and HTTPS)
+    console.log('[handleLoginSuccess] Initializing Tally URL from settings...');
+    const tallyUrl = await getTallyUrl(dbService);
+    setTallyUrl(tallyUrl);
+    console.log('[handleLoginSuccess] ✓ Tally URL initialized:', tallyUrl);
+
     const organizationUuid = dbService.extractOrganizationUuid(profile);
 
     if (!organizationUuid) {
@@ -390,6 +399,13 @@ app.whenReady().then(async () => {
 
   if (profile) {
     console.log('Profile found → Checking for active company');
+
+    // Initialize Tally URL from settings on app start
+    console.log('[App Start] Initializing Tally URL from settings...');
+    const tallyUrl = await getTallyUrl(dbService);
+    setTallyUrl(tallyUrl);
+    console.log('[App Start] ✓ Tally URL initialized:', tallyUrl);
+
     const activeCompany = companyRepository.getActiveCompany(profile.biller_id || '');
     if (activeCompany) {
       console.log('Active company found → Starting in background');

@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { DatabaseService } from '../database/database.service';
 import { getApiUrl } from '../config/api-url-helper';
+import { getTallyUrl as getTallyUrlHelper } from '../config/tally-url-helper';
 
 export interface TallyConnectivityStatus {
   isOnline: boolean;
@@ -29,36 +30,23 @@ export class TallyConnectivityService {
   }
 
   /**
-   * Get Tally URL from settings
+   * Get Tally URL from settings (supports both HTTP and HTTPS)
    */
-  private async getTallyUrl(): Promise<string> {
-    // First try to get port from settings
-    const port = await this.dbService.getSetting('tallyPort');
-    if (port) {
-      const portNumber = parseInt(port, 10);
-      if (!isNaN(portNumber) && portNumber > 0 && portNumber <= 65535) {
-        this.currentStatus.port = portNumber;
-        return `http://localhost:${portNumber}`;
-      }
+    async getTallyUrl(): Promise<string> {
+    // Use centralized helper that checks: tallyServerUrl -> tallyUrl -> tallyPort -> default
+    const tallyUrl = await getTallyUrlHelper(this.dbService);
+    console.log('tallyUrl===>', tallyUrl)
+
+    // Extract port for status tracking
+    try {
+      const url = new URL(tallyUrl);
+      const portNumber = parseInt(url.port || '9000', 10);
+      this.currentStatus.port = portNumber;
+    } catch {
+      this.currentStatus.port = 9000;
     }
-    
-    // Fallback to tallyUrl setting
-    const tallyUrl = await this.dbService.getSetting('tallyUrl');
-    if (tallyUrl) {
-      try {
-        const url = new URL(tallyUrl);
-        const portNumber = parseInt(url.port || '9000', 10);
-        this.currentStatus.port = portNumber;
-        return tallyUrl;
-      } catch {
-        // Invalid URL, use default
-      }
-    }
-    
-    // Default
-    const portNumber = 9000;
-    this.currentStatus.port = portNumber;
-    return `http://localhost:${portNumber}`;
+
+    return tallyUrl;
   }
 
   /**
