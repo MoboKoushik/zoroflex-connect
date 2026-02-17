@@ -20,6 +20,7 @@ export class SyncService {
   private syncDateManager: SyncDateManager;
   private companyRepository: CompanyRepository;
   private isRunning = false;
+  private syncQueue: Promise<void> = Promise.resolve();
   private backgroundSyncInterval: NodeJS.Timeout | null = null;
 
   constructor(dbService: DatabaseService, organizationService: OrganizationService) {
@@ -27,6 +28,26 @@ export class SyncService {
     this.organizationService = organizationService;
     this.syncDateManager = new SyncDateManager(dbService);
     this.companyRepository = new CompanyRepository(dbService);
+  }
+
+  /**
+   * Acquire sync lock - prevents concurrent sync operations
+   * Returns true if lock acquired, false if sync already running
+   */
+  private async acquireSyncLock(): Promise<boolean> {
+    if (this.isRunning) {
+      this.dbService.log('WARN', 'Sync lock acquisition failed - sync already in progress');
+      return false;
+    }
+    this.isRunning = true;
+    return true;
+  }
+
+  /**
+   * Release sync lock after sync completes or fails
+   */
+  private releaseSyncLock(): void {
+    this.isRunning = false;
   }
 
   /**
@@ -79,11 +100,13 @@ export class SyncService {
   }
 
   private async fullSync(profile: UserProfile, type: 'MANUAL' | 'BACKGROUND' = 'BACKGROUND'): Promise<void> {
-    if (this.isRunning) {
+    // Acquire lock - prevent concurrent syncs
+    const lockAcquired = await this.acquireSyncLock();
+    if (!lockAcquired) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
     }
-    this.isRunning = true;
+
     let customerResult: any;
     let invoiceResult: any;
     let paymentResult: any;
@@ -435,7 +458,8 @@ export class SyncService {
       });
       throw error;
     } finally {
-      this.isRunning = false;
+      // Always release lock, even on error
+      this.releaseSyncLock();
     }
   }
 
@@ -443,7 +467,9 @@ export class SyncService {
   async manualSync(profile: UserProfile): Promise<void> {
     this.dbService.log('INFO', 'Manual sync requested - performing smart sync (per-entity status check)');
 
-    if (this.isRunning) {
+    // Acquire lock - prevent concurrent syncs
+    const lockAcquired = await this.acquireSyncLock();
+    if (!lockAcquired) {
       this.dbService.log('WARN', 'Sync already in progress; skipping this run');
       return;
     }
@@ -767,7 +793,8 @@ export class SyncService {
       });
       throw error;
     } finally {
-      this.isRunning = false;
+      // Always release lock, even on error
+      this.releaseSyncLock();
     }
   }
 
@@ -931,7 +958,8 @@ export class SyncService {
       });
       throw error;
     } finally {
-      this.isRunning = false;
+      // Always release lock, even on error
+      this.releaseSyncLock();
     }
   }
 

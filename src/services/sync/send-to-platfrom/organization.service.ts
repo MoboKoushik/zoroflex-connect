@@ -3,8 +3,8 @@
 import axios from 'axios';
 import { DatabaseService, UserProfile } from '../../database/database.service';
 import { getApiUrl } from '../../config/api-url-helper';
+import { getAppApiKey } from '../../../config/app-config';
 
-const API_KEY = '7061797A6F72726F74616C6C79';
 const ENTITY_TYPE = 'ORGANIZATION';
 
 export class OrganizationService {
@@ -128,10 +128,13 @@ export class OrganizationService {
 
       this.dbService.log('INFO', 'Sending organization payload to API', { payload });
 
+      // Get shared API key for app verification
+      const apiKey = getAppApiKey();
+
       const baseUrl = await getApiUrl(this.dbService);
       const response = await axios.post(`${baseUrl}/billers/tally/set-organization`, payload, {
-        headers: { 
-          'API-KEY': API_KEY,
+        headers: {
+          'API-KEY': apiKey,
           'Content-Type': 'application/json'
         },
         timeout: 20000

@@ -7,6 +7,7 @@ import { app } from 'electron';
 import axios from 'axios';
 import FormData from 'form-data';
 import { getApiUrl } from '../config/api-url-helper';
+import { getAppApiKey } from '../../config/app-config';
 
 export interface UserProfile {
   id?: number;
@@ -952,6 +953,64 @@ export class DatabaseService {
     this.currentOrganizationUuid = null;
   }
 
+  // === Transaction Management ===
+
+  /**
+   * Begin a database transaction
+   * Use this for operations that need atomic execution
+   */
+  beginTransaction(): void {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    this.db.exec('BEGIN TRANSACTION');
+  }
+
+  /**
+   * Commit a database transaction
+   * Call this after all operations in the transaction succeed
+   */
+  commitTransaction(): void {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    this.db.exec('COMMIT');
+  }
+
+  /**
+   * Rollback a database transaction
+   * Call this if any operation in the transaction fails
+   */
+  rollbackTransaction(): void {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    this.db.exec('ROLLBACK');
+  }
+
+  /**
+   * Run a function within a transaction
+   * Automatically commits on success, rolls back on error
+   * @param fn - Function to run within transaction
+   * @returns Result of the function
+   */
+  async runInTransaction<T>(fn: () => Promise<T> | T): Promise<T> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    this.beginTransaction();
+    try {
+      const result = await fn();
+      this.commitTransaction();
+      return result;
+    } catch (error) {
+      this.rollbackTransaction();
+      this.log('ERROR', 'Transaction rolled back due to error', { error: (error as Error).message });
+      throw error;
+    }
+  }
+
   // === Entity-Specific AlterID Tracking ===
   async getEntityMaxAlterId(entity: string): Promise<string> {
     const stmt = this.db!.prepare(`SELECT last_max_alter_id FROM entity_sync_status WHERE entity = ?`);
@@ -1595,6 +1654,226 @@ export class DatabaseService {
     return stmt.all(...params) as TallyVoucherLogRow[];
   }
 
+  // === Log Rotation ===
+  /**
+   * Delete logs older than specified days from all log tables
+   * @param retentionDays Number of days to retain logs (default: 30)
+   * @returns Statistics about deleted logs
+   */
+  async rotateAllLogs(retentionDays: number = 30): Promise<{
+    logsDeleted: number;
+    apiLogsDeleted: number;
+    tallyVoucherLogsDeleted: number;
+    tallySyncLogsDeleted: number;
+    syncLogsDeleted: number;
+    oldestRemainingLog: string | null;
+  }> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    this.log('INFO', `Starting log rotation with ${retentionDays} days retention`, {
+      retentionDays
+    });
+
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+    const cutoffDateStr = cutoffDate.toISOString();
+
+    // Use transaction for consistency
+    return await this.runInTransaction(() => {
+      // Delete from logs table
+      const logsStmt = this.db!.prepare(`DELETE FROM logs WHERE created_at < ?`);
+      const logsInfo = logsStmt.run(cutoffDateStr);
+
+      // Delete from api_logs table
+      const apiLogsStmt = this.db!.prepare(`DELETE FROM api_logs WHERE created_at < ?`);
+      const apiLogsInfo = apiLogsStmt.run(cutoffDateStr);
+
+      // Delete from tally_voucher_logs table
+      const tallyVoucherLogsStmt = this.db!.prepare(`DELETE FROM tally_voucher_logs WHERE created_at < ?`);
+      const tallyVoucherLogsInfo = tallyVoucherLogsStmt.run(cutoffDateStr);
+
+      // Delete from tally_sync_logs table
+      const tallySyncLogsStmt = this.db!.prepare(`DELETE FROM tally_sync_logs WHERE created_at < ?`);
+      const tallySyncLogsInfo = tallySyncLogsStmt.run(cutoffDateStr);
+
+      // Delete from sync_logs table
+      const syncLogsStmt = this.db!.prepare(`DELETE FROM sync_logs WHERE created_at < ?`);
+      const syncLogsInfo = syncLogsStmt.run(cutoffDateStr);
+
+      // Get oldest remaining log across all tables
+      const oldestLogStmt = this.db!.prepare(`
+        SELECT MIN(created_at) as oldest FROM (
+          SELECT MIN(created_at) as created_at FROM logs
+          UNION ALL
+          SELECT MIN(created_at) FROM api_logs
+          UNION ALL
+          SELECT MIN(created_at) FROM tally_voucher_logs
+          UNION ALL
+          SELECT MIN(created_at) FROM tally_sync_logs
+          UNION ALL
+          SELECT MIN(created_at) FROM sync_logs
+        )
+      `);
+      const oldestResult = oldestLogStmt.get() as { oldest: string | null } | undefined;
+
+      const stats = {
+        logsDeleted: logsInfo.changes,
+        apiLogsDeleted: apiLogsInfo.changes,
+        tallyVoucherLogsDeleted: tallyVoucherLogsInfo.changes,
+        tallySyncLogsDeleted: tallySyncLogsInfo.changes,
+        syncLogsDeleted: syncLogsInfo.changes,
+        oldestRemainingLog: oldestResult?.oldest || null
+      };
+
+      this.log('INFO', 'Log rotation completed', {
+        ...stats,
+        cutoffDate: cutoffDateStr
+      });
+
+      return stats;
+    });
+  }
+
+  /**
+   * Limit log tables to a maximum number of entries (keeps most recent)
+   * @param maxEntries Maximum number of entries to keep per table (default: 10000)
+   * @returns Statistics about deleted logs
+   */
+  async limitLogSize(maxEntries: number = 10000): Promise<{
+    logsDeleted: number;
+    apiLogsDeleted: number;
+    tallyVoucherLogsDeleted: number;
+    tallySyncLogsDeleted: number;
+    syncLogsDeleted: number;
+  }> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    this.log('INFO', `Limiting log tables to ${maxEntries} entries each`, {
+      maxEntries
+    });
+
+    return await this.runInTransaction(() => {
+      // Limit logs table
+      const logsStmt = this.db!.prepare(`
+        DELETE FROM logs WHERE id NOT IN (
+          SELECT id FROM logs ORDER BY created_at DESC LIMIT ?
+        )
+      `);
+      const logsInfo = logsStmt.run(maxEntries);
+
+      // Limit api_logs table
+      const apiLogsStmt = this.db!.prepare(`
+        DELETE FROM api_logs WHERE id NOT IN (
+          SELECT id FROM api_logs ORDER BY created_at DESC LIMIT ?
+        )
+      `);
+      const apiLogsInfo = apiLogsStmt.run(maxEntries);
+
+      // Limit tally_voucher_logs table
+      const tallyVoucherLogsStmt = this.db!.prepare(`
+        DELETE FROM tally_voucher_logs WHERE id NOT IN (
+          SELECT id FROM tally_voucher_logs ORDER BY created_at DESC LIMIT ?
+        )
+      `);
+      const tallyVoucherLogsInfo = tallyVoucherLogsStmt.run(maxEntries);
+
+      // Limit tally_sync_logs table
+      const tallySyncLogsStmt = this.db!.prepare(`
+        DELETE FROM tally_sync_logs WHERE id NOT IN (
+          SELECT id FROM tally_sync_logs ORDER BY created_at DESC LIMIT ?
+        )
+      `);
+      const tallySyncLogsInfo = tallySyncLogsStmt.run(maxEntries);
+
+      // Limit sync_logs table
+      const syncLogsStmt = this.db!.prepare(`
+        DELETE FROM sync_logs WHERE id NOT IN (
+          SELECT id FROM sync_logs ORDER BY created_at DESC LIMIT ?
+        )
+      `);
+      const syncLogsInfo = syncLogsStmt.run(maxEntries);
+
+      const stats = {
+        logsDeleted: logsInfo.changes,
+        apiLogsDeleted: apiLogsInfo.changes,
+        tallyVoucherLogsDeleted: tallyVoucherLogsInfo.changes,
+        tallySyncLogsDeleted: tallySyncLogsInfo.changes,
+        syncLogsDeleted: syncLogsInfo.changes
+      };
+
+      this.log('INFO', 'Log size limiting completed', stats);
+
+      return stats;
+    });
+  }
+
+  /**
+   * Get log table statistics
+   */
+  async getLogStatistics(): Promise<{
+    logsCount: number;
+    apiLogsCount: number;
+    tallyVoucherLogsCount: number;
+    tallySyncLogsCount: number;
+    syncLogsCount: number;
+    oldestLog: string | null;
+    newestLog: string | null;
+  }> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+
+    const logsCount = (this.db.prepare('SELECT COUNT(*) as count FROM logs').get() as { count: number }).count;
+    const apiLogsCount = (this.db.prepare('SELECT COUNT(*) as count FROM api_logs').get() as { count: number }).count;
+    const tallyVoucherLogsCount = (this.db.prepare('SELECT COUNT(*) as count FROM tally_voucher_logs').get() as { count: number }).count;
+    const tallySyncLogsCount = (this.db.prepare('SELECT COUNT(*) as count FROM tally_sync_logs').get() as { count: number }).count;
+    const syncLogsCount = (this.db.prepare('SELECT COUNT(*) as count FROM sync_logs').get() as { count: number }).count;
+
+    const oldestStmt = this.db.prepare(`
+      SELECT MIN(created_at) as oldest FROM (
+        SELECT MIN(created_at) as created_at FROM logs
+        UNION ALL
+        SELECT MIN(created_at) FROM api_logs
+        UNION ALL
+        SELECT MIN(created_at) FROM tally_voucher_logs
+        UNION ALL
+        SELECT MIN(created_at) FROM tally_sync_logs
+        UNION ALL
+        SELECT MIN(created_at) FROM sync_logs
+      )
+    `);
+    const oldestResult = oldestStmt.get() as { oldest: string | null } | undefined;
+
+    const newestStmt = this.db.prepare(`
+      SELECT MAX(created_at) as newest FROM (
+        SELECT MAX(created_at) as created_at FROM logs
+        UNION ALL
+        SELECT MAX(created_at) FROM api_logs
+        UNION ALL
+        SELECT MAX(created_at) FROM tally_voucher_logs
+        UNION ALL
+        SELECT MAX(created_at) FROM tally_sync_logs
+        UNION ALL
+        SELECT MAX(created_at) FROM sync_logs
+      )
+    `);
+    const newestResult = newestStmt.get() as { newest: string | null } | undefined;
+
+    return {
+      logsCount,
+      apiLogsCount,
+      tallyVoucherLogsCount,
+      tallySyncLogsCount,
+      syncLogsCount,
+      oldestLog: oldestResult?.oldest || null,
+      newestLog: newestResult?.newest || null
+    };
+  }
+
   // === App Settings ===
   async getSetting(key: string): Promise<string | null> {
     const stmt = this.db!.prepare(`SELECT value FROM app_settings WHERE key = ?`);
@@ -2194,31 +2473,64 @@ export class DatabaseService {
     );
   }
 
-  async getCustomerByMasterId(masterId: string): Promise<CustomerData | null> {
-    const stmt = this.db!.prepare(`SELECT * FROM customers WHERE tally_master_id = ?`);
-    const row = stmt.get(masterId) as any;
+  async getCustomerByMasterId(masterId: string, billerId?: string): Promise<CustomerData | null> {
+    let query = `SELECT * FROM customers WHERE tally_master_id = ?`;
+    const params: any[] = [masterId];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    const stmt = this.db!.prepare(query);
+    const row = stmt.get(...params) as any;
     return row || null;
   }
 
-  async getCustomerByLedgerName(ledgerName: string): Promise<CustomerData | null> {
-    const stmt = this.db!.prepare(`SELECT * FROM customers WHERE ledger_name_lower = ?`);
-    const row = stmt.get(ledgerName.toLowerCase()) as any;
+  async getCustomerByLedgerName(ledgerName: string, billerId?: string): Promise<CustomerData | null> {
+    let query = `SELECT * FROM customers WHERE ledger_name_lower = ?`;
+    const params: any[] = [ledgerName.toLowerCase()];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    const stmt = this.db!.prepare(query);
+    const row = stmt.get(...params) as any;
     return row || null;
   }
 
-  async getCustomersByAlterIdRange(fromAlterId: string, toAlterId: string): Promise<CustomerData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM customers 
-      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER) 
+  async getCustomersByAlterIdRange(fromAlterId: string, toAlterId: string, billerId?: string): Promise<CustomerData[]> {
+    let query = `
+      SELECT * FROM customers
+      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER)
         AND CAST(tally_alter_id AS INTEGER) <= CAST(? AS INTEGER)
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC
-    `);
-    return stmt.all(fromAlterId, toAlterId) as CustomerData[];
+    `;
+    const params: any[] = [fromAlterId, toAlterId];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    query += ` ORDER BY CAST(tally_alter_id AS INTEGER) ASC`;
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as CustomerData[];
   }
 
-  async getMaxCustomerAlterId(): Promise<string> {
-    const stmt = this.db!.prepare(`SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM customers`);
-    const row = stmt.get() as { max_id: number | null } | undefined;
+  async getMaxCustomerAlterId(billerId?: string): Promise<string> {
+    let query = `SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM customers`;
+    const params: any[] = [];
+
+    if (billerId) {
+      query += ` WHERE biller_id = ?`;
+      params.push(billerId);
+    }
+
+    const stmt = this.db!.prepare(query);
+    const row = stmt.get(...params) as { max_id: number | null } | undefined;
     return row?.max_id?.toString() || '0';
   }
 
@@ -2275,38 +2587,64 @@ export class DatabaseService {
     insertMany(ledgers);
   }
 
-  async getVouchersByAlterIdRange(fromAlterId: string, toAlterId: string): Promise<VoucherData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM vouchers 
-      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER) 
+  async getVouchersByAlterIdRange(fromAlterId: string, toAlterId: string, billerId?: string): Promise<VoucherData[]> {
+    let query = `
+      SELECT * FROM vouchers
+      WHERE CAST(tally_alter_id AS INTEGER) >= CAST(? AS INTEGER)
         AND CAST(tally_alter_id AS INTEGER) <= CAST(? AS INTEGER)
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC
-    `);
-    return stmt.all(fromAlterId, toAlterId) as VoucherData[];
+    `;
+    const params: any[] = [fromAlterId, toAlterId];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    query += ` ORDER BY CAST(tally_alter_id AS INTEGER) ASC`;
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as VoucherData[];
   }
 
-  async getVouchersNotSyncedToApi(limit: number = 100): Promise<VoucherData[]> {
-    const stmt = this.db!.prepare(`
-      SELECT * FROM vouchers 
-      WHERE synced_to_api = 0 
-      ORDER BY CAST(tally_alter_id AS INTEGER) ASC 
-      LIMIT ?
-    `);
-    return stmt.all(limit) as VoucherData[];
+  async getVouchersNotSyncedToApi(limit: number = 100, billerId?: string): Promise<VoucherData[]> {
+    let query = `
+      SELECT * FROM vouchers
+      WHERE synced_to_api = 0
+    `;
+    const params: any[] = [];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    query += ` ORDER BY CAST(tally_alter_id AS INTEGER) ASC LIMIT ?`;
+    params.push(limit);
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as VoucherData[];
   }
 
   async markVoucherSyncedToApi(voucherId: number): Promise<void> {
     const stmt = this.db!.prepare(`
-      UPDATE vouchers 
+      UPDATE vouchers
       SET synced_to_api = 1, api_sync_at = datetime('now'), updated_at = datetime('now')
       WHERE id = ?
     `);
     stmt.run(voucherId);
   }
 
-  async getMaxVoucherAlterId(): Promise<string> {
-    const stmt = this.db!.prepare(`SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM vouchers`);
-    const row = stmt.get() as { max_id: number | null } | undefined;
+  async getMaxVoucherAlterId(billerId?: string): Promise<string> {
+    let query = `SELECT MAX(CAST(tally_alter_id AS INTEGER)) as max_id FROM vouchers`;
+    const params: any[] = [];
+
+    if (billerId) {
+      query += ` WHERE biller_id = ?`;
+      params.push(billerId);
+    }
+
+    const stmt = this.db!.prepare(query);
+    const row = stmt.get(...params) as { max_id: number | null } | undefined;
     return row?.max_id?.toString() || '0';
   }
 
@@ -2424,7 +2762,7 @@ export class DatabaseService {
   }
 
   // === Dashboard Query Methods ===
-  async getDashboardStats(): Promise<{
+  async getDashboardStats(billerId?: string): Promise<{
     totalCustomers: number;
     totalVouchers: number;
     invoiceCount: number;
@@ -2433,18 +2771,22 @@ export class DatabaseService {
     debitNoteCount: number;
     lastSyncTime: string | null;
   }> {
-    const customerStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM customers`);
-    const customerCount = (customerStmt.get() as { count: number }).count;
+    const billerFilter = billerId ? ` WHERE biller_id = ?` : '';
+    const params = billerId ? [billerId] : [];
 
-    const voucherStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers`);
-    const voucherCount = (voucherStmt.get() as { count: number }).count;
+    const customerStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM customers${billerFilter}`);
+    const customerCount = (customerStmt.get(...params) as { count: number }).count;
 
-    const invoiceStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type IN ('sales', 'credit_note')`);
-    const invoiceCount = (invoiceStmt.get() as { count: number }).count;
+    const voucherStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers${billerFilter}`);
+    const voucherCount = (voucherStmt.get(...params) as { count: number }).count;
+
+    const invoiceFilter = billerId ? ` AND biller_id = ?` : '';
+    const invoiceStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type IN ('sales', 'credit_note')${invoiceFilter}`);
+    const invoiceCount = (invoiceStmt.get(...params) as { count: number }).count;
 
     // Receipt count: First check vouchers table, if empty use SUM from sync_history
-    const receiptTableStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'`);
-    const receiptTableCount = (receiptTableStmt.get() as { count: number }).count;
+    const receiptTableStmt = this.db!.prepare(`SELECT COUNT(*) as count FROM vouchers WHERE voucher_type = 'receipt'${invoiceFilter}`);
+    const receiptTableCount = (receiptTableStmt.get(...params) as { count: number }).count;
 
     let receiptCount = receiptTableCount;
     if (receiptCount === 0) {
@@ -2498,9 +2840,14 @@ export class DatabaseService {
     };
   }
 
-  async getCustomers(limit: number = 100, offset: number = 0, search?: string): Promise<CustomerData[]> {
+  async getCustomers(limit: number = 100, offset: number = 0, search?: string, billerId?: string): Promise<CustomerData[]> {
     let query = `SELECT * FROM customers WHERE 1=1`;
     const params: any[] = [];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
 
     if (search) {
       query += ` AND (ledger_name LIKE ? OR email LIKE ? OR phone LIKE ? OR mobile LIKE ?)`;
@@ -2519,18 +2866,31 @@ export class DatabaseService {
    * Get all customers for building in-memory map (no limit)
    * Returns only ledger_name and tally_master_id for efficiency
    */
-  async getAllCustomersForMap(): Promise<Array<{ ledger_name: string; tally_master_id: string }>> {
-    const stmt = this.db!.prepare(`
-      SELECT ledger_name, tally_master_id 
-      FROM customers 
+  async getAllCustomersForMap(billerId?: string): Promise<Array<{ ledger_name: string; tally_master_id: string }>> {
+    let query = `
+      SELECT ledger_name, tally_master_id
+      FROM customers
       WHERE ledger_name IS NOT NULL AND tally_master_id IS NOT NULL
-    `);
-    return stmt.all() as Array<{ ledger_name: string; tally_master_id: string }>;
+    `;
+    const params: any[] = [];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
+
+    const stmt = this.db!.prepare(query);
+    return stmt.all(...params) as Array<{ ledger_name: string; tally_master_id: string }>;
   }
 
-  async getVouchers(limit: number = 100, offset: number = 0, search?: string, voucherType?: string): Promise<VoucherData[]> {
+  async getVouchers(limit: number = 100, offset: number = 0, search?: string, voucherType?: string, billerId?: string): Promise<VoucherData[]> {
     let query = `SELECT * FROM vouchers WHERE 1=1`;
     const params: any[] = [];
+
+    if (billerId) {
+      query += ` AND biller_id = ?`;
+      params.push(billerId);
+    }
 
     if (voucherType) {
       if (voucherType === 'invoice') {
@@ -2745,8 +3105,7 @@ export class DatabaseService {
 
       // Upload to backend
       const apiUrl = await getApiUrl(this);
-      const profile = await this.getProfile();
-      const apiKey = profile?.apikey || '7061797A6F72726F74616C6C79';
+      const apiKey = getAppApiKey();
 
       const formData = new FormData();
       formData.append('file', dbBuffer, {

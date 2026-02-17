@@ -7,10 +7,23 @@ import { OrganizationService } from '../../services/sync/send-to-platfrom/organi
 import { CompanyRepository } from '../../services/database/repositories/company.repository';
 import { fetchCompanies } from '../../services/sync/fetch-to-tally/fetchCompanies';
 import { getApiUrl } from '../../services/config/api-url-helper';
+import { getAppApiKey } from '../../config/app-config';
 import { getDashboardWindow, createDashboardWindow } from '../windows/dashboard.window';
 import { closeCompanySelectorWindow } from '../windows/company-selector.window';
 import { createTrayAndStartSync, destroyTray } from '../windows/tray.window';
 import { app } from 'electron';
+import {
+  validateEmail,
+  validatePassword,
+  validatePositiveInteger,
+  validateIntegerRange,
+  validateSettingKey,
+  validateSettingValue,
+  validateSearchQuery,
+  validateEnum,
+  validateOptionalPositiveInteger,
+  validateFilters
+} from '../../utils/ipc-validators';
 
 export function setupIpcHandlers(
   dbService: DatabaseService,
@@ -20,6 +33,17 @@ export function setupIpcHandlers(
 ): void {
   // Login handler
   ipcMain.handle('login', async (event, credentials: { email: string; password: string }) => {
+    // Validate input parameters
+    const emailValidation = validateEmail(credentials?.email);
+    if (!emailValidation.isValid) {
+      return { success: false, message: emailValidation.error };
+    }
+
+    const passwordValidation = validatePassword(credentials?.password);
+    if (!passwordValidation.isValid) {
+      return { success: false, message: passwordValidation.error };
+    }
+
     console.log('Login attempt:', credentials.email);
 
     try {
@@ -104,6 +128,12 @@ export function setupIpcHandlers(
   });
 
   ipcMain.handle('select-company', async (event, companyId: number) => {
+    // Validate company ID
+    const companyIdValidation = validatePositiveInteger(companyId, 'Company ID');
+    if (!companyIdValidation.isValid) {
+      return { success: false, error: companyIdValidation.error };
+    }
+
     try {
       const profile = await dbService.getProfile();
       if (!profile || !profile.biller_id) {
@@ -146,7 +176,7 @@ export function setupIpcHandlers(
       // Send company data to backend before continuing
       try {
         const apiUrl = await getApiUrl(dbService);
-        const apiKey = profile.apikey || '7061797A6F72726F74616C6C79';
+        const apiKey = getAppApiKey();
         
         await axios.post(
           `${apiUrl}/billers/tally/set-organization`,
@@ -236,6 +266,12 @@ export function setupIpcHandlers(
 
   // Sync handlers
   ipcMain.handle('manual-sync', async (event, syncType: 'full' | 'fresh' = 'full') => {
+    // Validate sync type
+    const syncTypeValidation = validateEnum(syncType, ['full', 'fresh'], 'Sync type');
+    if (!syncTypeValidation.isValid) {
+      return { success: false, error: syncTypeValidation.error };
+    }
+
     try {
       const profile = await dbService.getProfile();
       if (!profile) {
@@ -325,7 +361,9 @@ export function setupIpcHandlers(
   // Dashboard data handlers
   ipcMain.handle('get-dashboard-stats', async () => {
     try {
-      return await dbService.getDashboardStats();
+      const profile = await dbService.getProfile();
+      const billerId = profile?.biller_id;
+      return await dbService.getDashboardStats(billerId);
     } catch (error: any) {
       console.error('get-dashboard-stats error:', error);
       return {
@@ -352,6 +390,13 @@ export function setupIpcHandlers(
   });
 
   ipcMain.handle('get-recent-sync-logs', async (event, limit: number = 20) => {
+    // Validate limit parameter
+    const limitValidation = validateIntegerRange(limit, 1, 1000, 'Limit');
+    if (!limitValidation.isValid) {
+      console.error('Invalid limit parameter:', limitValidation.error);
+      return [];
+    }
+
     try {
       const profile = await dbService.getProfile();
       if (!profile || !profile.biller_id) {
@@ -430,10 +475,28 @@ export function setupIpcHandlers(
 
   // Settings handlers
   ipcMain.handle('get-setting', async (event, key: string) => {
+    // Validate setting key
+    const keyValidation = validateSettingKey(key);
+    if (!keyValidation.isValid) {
+      console.error('Invalid setting key:', keyValidation.error);
+      return null;
+    }
+
     return await dbService.getSetting(key);
   });
 
   ipcMain.handle('set-setting', async (event, key: string, value: string) => {
+    // Validate setting key and value
+    const keyValidation = validateSettingKey(key);
+    if (!keyValidation.isValid) {
+      return { success: false, error: keyValidation.error };
+    }
+
+    const valueValidation = validateSettingValue(value);
+    if (!valueValidation.isValid) {
+      return { success: false, error: valueValidation.error };
+    }
+
     await dbService.setSetting(key, value);
     return { success: true };
   });
@@ -444,20 +507,142 @@ export function setupIpcHandlers(
 
   // Data handlers (for Customers, Invoices, Payments pages)
   ipcMain.handle('get-customers', async (event, limit?: number, offset?: number, search?: string) => {
-    return await dbService.getCustomers(limit, offset, search);
+    // Validate optional parameters
+    const limitValidation = validateOptionalPositiveInteger(limit, 'Limit');
+    if (!limitValidation.isValid) {
+      console.error('Invalid limit parameter:', limitValidation.error);
+      return { customers: [], total: 0 };
+    }
+
+    const offsetValidation = validateOptionalPositiveInteger(offset, 'Offset');
+    if (!offsetValidation.isValid) {
+      console.error('Invalid offset parameter:', offsetValidation.error);
+      return { customers: [], total: 0 };
+    }
+
+    const searchValidation = validateSearchQuery(search);
+    if (!searchValidation.isValid) {
+      console.error('Invalid search parameter:', searchValidation.error);
+      return { customers: [], total: 0 };
+    }
+
+    // Get biller_id from profile to ensure org isolation
+    const profile = await dbService.getProfile();
+    const billerId = profile?.biller_id;
+
+    return await dbService.getCustomers(limit, offset, search, billerId);
   });
 
   ipcMain.handle('get-vouchers', async (event, limit?: number, offset?: number, search?: string, voucherType?: string) => {
-    return await dbService.getVouchers(limit, offset, search, voucherType);
+    // Validate optional parameters
+    const limitValidation = validateOptionalPositiveInteger(limit, 'Limit');
+    if (!limitValidation.isValid) {
+      console.error('Invalid limit parameter:', limitValidation.error);
+      return { vouchers: [], total: 0 };
+    }
+
+    const offsetValidation = validateOptionalPositiveInteger(offset, 'Offset');
+    if (!offsetValidation.isValid) {
+      console.error('Invalid offset parameter:', offsetValidation.error);
+      return { vouchers: [], total: 0 };
+    }
+
+    const searchValidation = validateSearchQuery(search);
+    if (!searchValidation.isValid) {
+      console.error('Invalid search parameter:', searchValidation.error);
+      return { vouchers: [], total: 0 };
+    }
+
+    if (voucherType !== undefined) {
+      const voucherTypeValidation = validateSearchQuery(voucherType);
+      if (!voucherTypeValidation.isValid) {
+        console.error('Invalid voucherType parameter:', voucherTypeValidation.error);
+        return { vouchers: [], total: 0 };
+      }
+    }
+
+    // Get biller_id from profile to ensure org isolation
+    const profile = await dbService.getProfile();
+    const billerId = profile?.biller_id;
+
+    return await dbService.getVouchers(limit, offset, search, voucherType, billerId);
   });
 
   // API Logs handlers
   ipcMain.handle('get-api-logs', async (event, filters?: any) => {
+    // Validate filters parameter
+    const filtersValidation = validateFilters(filters);
+    if (!filtersValidation.isValid) {
+      console.error('Invalid filters parameter:', filtersValidation.error);
+      return [];
+    }
+
     return await dbService.getApiLogs(filters);
   });
 
   // Tally Voucher Logs handlers
   ipcMain.handle('get-tally-voucher-logs', async (event, filters?: any) => {
+    // Validate filters parameter
+    const filtersValidation = validateFilters(filters);
+    if (!filtersValidation.isValid) {
+      console.error('Invalid filters parameter:', filtersValidation.error);
+      return [];
+    }
+
     return await dbService.getTallyVoucherLogs(filters);
+  });
+
+  // Log Rotation handlers
+  ipcMain.handle('rotate-logs', async (event, retentionDays?: number) => {
+    try {
+      // Validate retention days parameter
+      if (retentionDays !== undefined) {
+        const retentionValidation = validateIntegerRange(retentionDays, 1, 365, 'Retention days');
+        if (!retentionValidation.isValid) {
+          return { success: false, error: retentionValidation.error };
+        }
+      }
+
+      const stats = await dbService.rotateAllLogs(retentionDays || 30);
+      return { success: true, stats };
+    } catch (error: any) {
+      console.error('Error rotating logs:', error);
+      return { success: false, error: error.message || 'Failed to rotate logs' };
+    }
+  });
+
+  ipcMain.handle('limit-log-size', async (event, maxEntries?: number) => {
+    try {
+      // Validate max entries parameter
+      if (maxEntries !== undefined) {
+        const maxEntriesValidation = validateIntegerRange(maxEntries, 100, 100000, 'Max entries');
+        if (!maxEntriesValidation.isValid) {
+          return { success: false, error: maxEntriesValidation.error };
+        }
+      }
+
+      const stats = await dbService.limitLogSize(maxEntries || 10000);
+      return { success: true, stats };
+    } catch (error: any) {
+      console.error('Error limiting log size:', error);
+      return { success: false, error: error.message || 'Failed to limit log size' };
+    }
+  });
+
+  ipcMain.handle('get-log-statistics', async () => {
+    try {
+      return await dbService.getLogStatistics();
+    } catch (error: any) {
+      console.error('Error getting log statistics:', error);
+      return {
+        logsCount: 0,
+        apiLogsCount: 0,
+        tallyVoucherLogsCount: 0,
+        tallySyncLogsCount: 0,
+        syncLogsCount: 0,
+        oldestLog: null,
+        newestLog: null
+      };
+    }
   });
 }

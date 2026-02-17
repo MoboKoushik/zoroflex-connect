@@ -4,6 +4,13 @@ import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
 import http from 'http';
 import { getDefaultTallyUrl } from '../config/tally-url-helper';
+import {
+  escapeXml,
+  validateTallyDate,
+  validateAlterId,
+  validateReportName,
+  sanitizeLedgerName
+} from './xml-sanitizer';
 
 // Dynamic Tally URL - can be set via setTallyUrl()
 let TALLY_URL = getDefaultTallyUrl();
@@ -129,6 +136,11 @@ export async function fetchVouchersFromReportByDateRange(
   toDate: string,
   collection: string
 ): Promise<any> {
+  // Validate and sanitize inputs to prevent XML injection
+  validateTallyDate(fromDate);
+  validateTallyDate(toDate);
+  const safeCollection = validateReportName(collection);
+
   const xmlRequest = `
   <ENVELOPE>
     <HEADER>
@@ -137,7 +149,7 @@ export async function fetchVouchersFromReportByDateRange(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>${collection}</REPORTNAME>
+                <REPORTNAME>${safeCollection}</REPORTNAME>
                 <STATICVARIABLES>
                     <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
@@ -191,6 +203,10 @@ export async function fetchVouchersFromReportByDateRange(
  */
 export async function fetchVouchersFromReportByAlterId(
   fromAlterId: string, collection: string): Promise<any> {
+  // Validate and sanitize inputs to prevent XML injection
+  const safeAlterId = validateAlterId(fromAlterId);
+  const safeCollection = validateReportName(collection);
+
   const xmlRequest = `
   <ENVELOPE>
     <HEADER>
@@ -199,10 +215,10 @@ export async function fetchVouchersFromReportByAlterId(
     <BODY>
         <EXPORTDATA>
             <REQUESTDESC>
-                <REPORTNAME>${collection}</REPORTNAME>
+                <REPORTNAME>${safeCollection}</REPORTNAME>
                 <STATICVARIABLES>
                     <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
-                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+                    <SVZORROFINALTERID>${safeAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -268,6 +284,10 @@ export async function fetchCustomersFromReportByDateRange(
   fromDate: string,
   toDate: string
 ): Promise<any> {
+  // Validate dates to prevent XML injection
+  validateTallyDate(fromDate);
+  validateTallyDate(toDate);
+
   const xmlRequest = `
   <ENVELOPE>
     <HEADER>
@@ -332,6 +352,11 @@ export async function fetchCustomersFromReportByAlterId(
   fromDate: string,
   toDate: string
 ): Promise<any> {
+  // Validate and sanitize inputs to prevent XML injection
+  validateTallyDate(fromDate);
+  validateTallyDate(toDate);
+  const safeAlterId = validateAlterId(fromAlterId);
+
   const xmlRequest = `
   <ENVELOPE>
     <HEADER>
@@ -345,7 +370,7 @@ export async function fetchCustomersFromReportByAlterId(
                     <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVFROMDATE>${fromDate}</SVFROMDATE>
                     <SVTODATE>${toDate}</SVTODATE>
-                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+                    <SVZORROFINALTERID>${safeAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -526,6 +551,10 @@ export async function fetchJournalVouchersFromReportByDateRange(
   fromDate: string,
   toDate: string
 ): Promise<any> {
+  // Validate dates to prevent XML injection
+  validateTallyDate(fromDate);
+  validateTallyDate(toDate);
+
   const xmlRequest = `
 <ENVELOPE>
     <HEADER>
@@ -592,6 +621,9 @@ export async function fetchJournalVouchersFromReportByDateRange(
 export async function fetchJournalVouchersFromReportByAlterId(
   fromAlterId: string
 ): Promise<any> {
+  // Validate ALTER_ID to prevent XML injection
+  const safeAlterId = validateAlterId(fromAlterId);
+
   const xmlRequest = `
 <ENVELOPE>
     <HEADER>
@@ -602,7 +634,7 @@ export async function fetchJournalVouchersFromReportByAlterId(
             <REQUESTDESC>
                 <REPORTNAME>ZorrofinJV</REPORTNAME>
                 <STATICVARIABLES>
-                    <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+                    <SVZORROFINALTERID>${safeAlterId}</SVZORROFINALTERID>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>
@@ -690,6 +722,10 @@ export async function fetchDeletedVouchersFromReport(
   toDate: string,
   fromAlterId: string = '0'
 ): Promise<any> {
+  // Validate dates to prevent XML injection
+  validateTallyDate(fromDate);
+  validateTallyDate(toDate);
+
   const xmlRequest = `
 <ENVELOPE>
   <HEADER>
@@ -754,6 +790,9 @@ export async function fetchDeletedVouchersFromReport(
 export async function fetchDeletedVouchersByAlterId(
   fromAlterId: string
 ): Promise<any> {
+  // Validate ALTER_ID to prevent XML injection
+  const safeAlterId = validateAlterId(fromAlterId);
+
   // Use a very wide range so we rely mostly on ALTER_ID
   const wideFromDate = '20190401';
   const wideToDate = '20301231'; // far future
@@ -771,7 +810,7 @@ export async function fetchDeletedVouchersByAlterId(
           <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
           <SVFROMDATE>${wideFromDate}</SVFROMDATE>
           <SVTODATE>${wideToDate}</SVTODATE>
-          <SVZORROFINALTERID>${fromAlterId}</SVZORROFINALTERID>
+          <SVZORROFINALTERID>${safeAlterId}</SVZORROFINALTERID>
         </STATICVARIABLES>
       </REQUESTDESC>
     </EXPORTDATA>
@@ -885,6 +924,10 @@ export async function fetchLedgerBalance(
   ledgerName: string,
   toDate: string
 ): Promise<{ closingBalance: number; drCr: 'Dr' | 'Cr' | ''; parent: string }> {
+  // Validate and sanitize inputs to prevent XML injection
+  validateTallyDate(toDate);
+  const safeLedgerName = sanitizeLedgerName(ledgerName);
+
   const xmlRequest = `
 <ENVELOPE>
     <HEADER>
@@ -897,7 +940,7 @@ export async function fetchLedgerBalance(
                 <STATICVARIABLES>
                     <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
                     <SVTODATE>${toDate}</SVTODATE>
-                    <SVZORROLEDGERNAME>${ledgerName}</SVZORROLEDGERNAME>
+                    <SVZORROLEDGERNAME>${safeLedgerName}</SVZORROLEDGERNAME>
                 </STATICVARIABLES>
             </REQUESTDESC>
         </EXPORTDATA>

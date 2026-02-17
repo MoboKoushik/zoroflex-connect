@@ -6,6 +6,7 @@ import { SyncService } from '../services/sync/sync.service';
 import { OrganizationService } from '../services/sync/send-to-platfrom/organization.service';
 import { ApiLoggerService } from '../services/api/api-logger.service';
 import { getApiUrl, getDefaultApiUrl } from '../services/config/api-url-helper';
+import { getAppApiKey } from '../config/app-config';
 import { CompanyRepository } from '../services/database/repositories/company.repository';
 import { fetchCompanies } from '../services/sync/fetch-to-tally/fetchCompanies';
 import { TallyConnectivityService } from '../services/tally/tally-connectivity.service';
@@ -946,7 +947,7 @@ ipcMain.handle('get-analytics', async () => {
 
     try {
       const apiUrl = await getApiUrl(dbService);
-      const apiKey = profile.apikey || '7061797A6F72726F74616C6C79';
+      const apiKey = getAppApiKey();
 
       // Get staging stats from backend
       const statsRes = await axios.get(`${apiUrl}/billers/tally/staging-stats`, {
@@ -1252,7 +1253,11 @@ ipcMain.handle('continue-to-dashboard', async () => {
     // Send company data to backend before continuing
     try {
       const apiUrl = await getApiUrl(dbService);
-      const apiKey = profile.apikey || '7061797A6F72726F74616C6C79';
+
+      // Validate API key is present - required for authentication
+      if (!profile.apikey) {
+        throw new Error('API key is required. Please ensure profile has valid API key.');
+      }
 
       await axios.post(
         `${apiUrl}/billers/tally/set-organization`,
@@ -1272,7 +1277,7 @@ ipcMain.handle('continue-to-dashboard', async () => {
         },
         {
           headers: {
-            'API-KEY': apiKey,
+            'API-KEY': profile.apikey,
             'Content-Type': 'application/json'
           },
           timeout: 15000
