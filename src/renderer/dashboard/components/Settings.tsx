@@ -1,39 +1,184 @@
 // src/renderer/dashboard/components/Settings.tsx
-import React, { useEffect, useState } from 'react';
-import { validateTallyInput, type TallyInputValidation } from '../../../services/config/tally-url-helper';
+import React, { useEffect, useState } from "react";
+import {
+  validateTallyInput,
+  type TallyInputValidation,
+} from "../../../services/config/tally-url-helper";
 
 interface SettingsProps {
   company?: any;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ company }) => {
+// Move components outside to prevent recreation on every render
+const ToggleSwitch: React.FC<{
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+  description?: string;
+}> = ({ checked, onChange, label, description }) => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "10px 0",
+    }}
+  >
+    <div style={{ flex: 1 }}>
+      <div
+        style={{
+          color: "var(--text-primary)",
+          fontSize: "13px",
+          fontWeight: 500,
+          marginBottom: description ? "4px" : 0,
+        }}
+      >
+        {label}
+      </div>
+      {description && (
+        <div
+          style={{
+            color: "var(--text-secondary)",
+            fontSize: "11px",
+            marginTop: "3px",
+            lineHeight: "1.4",
+          }}
+        >
+          {description}
+        </div>
+      )}
+    </div>
+    <label
+      style={{
+        position: "relative",
+        display: "inline-block",
+        width: "44px",
+        height: "24px",
+        cursor: "pointer",
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ opacity: 0, width: 0, height: 0 }}
+      />
+      <span
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: checked ? "#007acc" : "#3e3e42",
+          borderRadius: "12px",
+          transition: "background-color 0.3s",
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            content: '""',
+            height: "18px",
+            width: "18px",
+            left: checked ? "22px" : "3px",
+            bottom: "3px",
+            backgroundColor: "#ffffff",
+            borderRadius: "50%",
+            transition: "left 0.3s",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          }}
+        />
+      </span>
+    </label>
+  </div>
+);
+
+const SettingSection: React.FC<{
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+}> = ({ title, icon, children }) => (
+  <div
+    style={{
+      background: "var(--bg-secondary)",
+      borderRadius: "6px",
+      padding: "16px",
+      marginBottom: "16px",
+      border: "1px solid var(--border-color)",
+      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "12px",
+        paddingBottom: "10px",
+        borderBottom: "1px solid var(--border-color)",
+      }}
+    >
+      <span
+        style={{
+          fontSize: "18px",
+          width: "24px",
+          height: "24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {icon}
+      </span>
+      <h2
+        style={{
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "var(--text-primary)",
+          margin: 0,
+          letterSpacing: "0.3px",
+        }}
+      >
+        {title}
+      </h2>
+    </div>
+    {children}
+  </div>
+);
+
+const SettingsComponent: React.FC<SettingsProps> = ({ company }) => {
   const [settings, setSettings] = useState({
     soundEnabled: true,
-    theme: 'dark',
+    theme: "light",
     syncDuration: 300, // 5 minutes in seconds
     backgroundSyncEnabled: false,
-    apiEndpoint: '',
+    apiEndpoint: "",
     autoSync: false,
     syncOnStartup: false,
     showNotifications: true,
     autoStart: true, // Auto-start with Windows
     tallyPort: 9000,
-    tallyServerUrl: '', // Smart input: port or full URL
+    tallyServerUrl: "", // Smart input: port or full URL
     tallyHealthCheckInterval: 30,
     apiHealthCheckInterval: 60,
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [tallyValidation, setTallyValidation] = useState<TallyInputValidation | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [tallyValidation, setTallyValidation] =
+    useState<TallyInputValidation | null>(null);
 
   // Local state for inputs to prevent scroll jump during typing
-  const [localTallyServerUrl, setLocalTallyServerUrl] = useState('');
-  const [localApiEndpoint, setLocalApiEndpoint] = useState('');
-  const [localSyncDuration, setLocalSyncDuration] = useState('');
-  const [localTallyHealthCheck, setLocalTallyHealthCheck] = useState('');
-  const [localApiHealthCheck, setLocalApiHealthCheck] = useState('');
+  const [localTallyServerUrl, setLocalTallyServerUrl] = useState("");
+  const [localApiEndpoint, setLocalApiEndpoint] = useState("");
+  const [localSyncDuration, setLocalSyncDuration] = useState("");
+  const [localTallyHealthCheck, setLocalTallyHealthCheck] = useState("");
+  const [localApiHealthCheck, setLocalApiHealthCheck] = useState("");
 
   useEffect(() => {
     loadSettings();
@@ -42,61 +187,68 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
   const loadSettings = async () => {
     try {
       if (!window.electronAPI?.getAllSettings) return;
-      
+
       const allSettings = await window.electronAPI.getAllSettings();
-      
+
       // Load auto-start setting separately
       let autoStartEnabled = true; // Default to true
       if (window.electronAPI?.getAutoStart) {
         try {
           const autoStartResult = await window.electronAPI.getAutoStart();
-          autoStartEnabled = autoStartResult?.enabled ?? (allSettings.autoStart !== 'false');
+          autoStartEnabled =
+            autoStartResult?.enabled ?? allSettings.autoStart !== "false";
         } catch (error) {
-          console.error('Error loading auto-start setting:', error);
-          autoStartEnabled = allSettings.autoStart !== 'false';
+          console.error("Error loading auto-start setting:", error);
+          autoStartEnabled = allSettings.autoStart !== "false";
         }
       } else {
-        autoStartEnabled = allSettings.autoStart !== 'false';
+        autoStartEnabled = allSettings.autoStart !== "false";
       }
-      
-      const loadedTheme = allSettings.theme || 'dark';
-      const tallyPort = parseInt(allSettings.tallyPort || '9000', 10);
+
+      const loadedTheme = allSettings.theme || "dark";
+      const tallyPort = parseInt(allSettings.tallyPort || "9000", 10);
       const tallyServerUrl = allSettings.tallyServerUrl || String(tallyPort);
 
       setSettings({
-        soundEnabled: allSettings.soundEnabled !== 'false',
+        soundEnabled: allSettings.soundEnabled !== "false",
         theme: loadedTheme,
-        syncDuration: parseInt(allSettings.syncDuration || '300', 10),
-        backgroundSyncEnabled: allSettings.backgroundSyncEnabled === 'true',
-        apiEndpoint: allSettings.apiEndpoint || '',
-        autoSync: allSettings.autoSync === 'true',
-        syncOnStartup: allSettings.syncOnStartup === 'true',
-        showNotifications: allSettings.showNotifications !== 'false',
+        syncDuration: parseInt(allSettings.syncDuration || "300", 10),
+        backgroundSyncEnabled: allSettings.backgroundSyncEnabled === "true",
+        apiEndpoint: allSettings.apiEndpoint || "",
+        autoSync: allSettings.autoSync === "true",
+        syncOnStartup: allSettings.syncOnStartup === "true",
+        showNotifications: allSettings.showNotifications !== "false",
         autoStart: autoStartEnabled,
         tallyPort: tallyPort,
         tallyServerUrl: tallyServerUrl,
-        tallyHealthCheckInterval: parseInt(allSettings.tallyHealthCheckInterval || '30', 10),
-        apiHealthCheckInterval: parseInt(allSettings.apiHealthCheckInterval || '60', 10),
+        tallyHealthCheckInterval: parseInt(
+          allSettings.tallyHealthCheckInterval || "30",
+          10,
+        ),
+        apiHealthCheckInterval: parseInt(
+          allSettings.apiHealthCheckInterval || "60",
+          10,
+        ),
       });
 
       // Initialize local input states
       setLocalTallyServerUrl(tallyServerUrl);
-      setLocalApiEndpoint(allSettings.apiEndpoint || '');
-      setLocalSyncDuration(allSettings.syncDuration || '300');
-      setLocalTallyHealthCheck(allSettings.tallyHealthCheckInterval || '30');
-      setLocalApiHealthCheck(allSettings.apiHealthCheckInterval || '60');
+      setLocalApiEndpoint(allSettings.apiEndpoint || "");
+      setLocalSyncDuration(allSettings.syncDuration || "300");
+      setLocalTallyHealthCheck(allSettings.tallyHealthCheckInterval || "30");
+      setLocalApiHealthCheck(allSettings.apiHealthCheckInterval || "60");
 
       // Set initial validation state
       if (tallyServerUrl) {
         setTallyValidation(validateTallyInput(tallyServerUrl));
       }
-      
+
       // Apply theme after loading
       applyTheme(loadedTheme);
-      
+
       setLoading(false);
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error("Error loading settings:", error);
       setLoading(false);
     }
   };
@@ -104,53 +256,53 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
   const saveSetting = async (key: string, value: string | boolean | number) => {
     try {
       if (!window.electronAPI?.setSetting) return;
-      
+
       await window.electronAPI.setSetting(key, String(value));
-      
+
       // Update local state
-      setSettings(prev => ({
+      setSettings((prev) => ({
         ...prev,
-        [key]: value
+        [key]: value,
       }));
-      
+
       // Apply theme immediately if changed
-      if (key === 'theme') {
+      if (key === "theme") {
         applyTheme(value as string);
       }
-      
-      setSaveMessage({ type: 'success', text: 'Settings saved successfully' });
+
+      setSaveMessage({ type: "success", text: "Settings saved successfully" });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
-      console.error('Error saving setting:', error);
-      setSaveMessage({ type: 'error', text: 'Failed to save setting' });
+      console.error("Error saving setting:", error);
+      setSaveMessage({ type: "error", text: "Failed to save setting" });
       setTimeout(() => setSaveMessage(null), 3000);
     }
   };
 
   const applyTheme = (theme: string) => {
     const root = document.documentElement;
-    if (theme === 'light') {
-      root.style.setProperty('--bg-primary', '#ffffff');
-      root.style.setProperty('--bg-secondary', '#f3f3f3');
-      root.style.setProperty('--bg-tertiary', '#e8e8e8');
-      root.style.setProperty('--bg-titlebar', '#f3f3f3');
-      root.style.setProperty('--text-primary', '#1e1e1e');
-      root.style.setProperty('--text-secondary', '#666666');
-      root.style.setProperty('--border-color', '#d4d4d4');
+    if (theme === "light") {
+      root.style.setProperty("--bg-primary", "#ffffff");
+      root.style.setProperty("--bg-secondary", "#f3f3f3");
+      root.style.setProperty("--bg-tertiary", "#e8e8e8");
+      root.style.setProperty("--bg-titlebar", "#f3f3f3");
+      root.style.setProperty("--text-primary", "#1e1e1e");
+      root.style.setProperty("--text-secondary", "#666666");
+      root.style.setProperty("--border-color", "#d4d4d4");
       // Update body background
-      document.body.style.background = '#ffffff';
-      document.body.style.color = '#1e1e1e';
+      document.body.style.background = "#ffffff";
+      document.body.style.color = "#1e1e1e";
     } else {
-      root.style.setProperty('--bg-primary', '#1e1e1e');
-      root.style.setProperty('--bg-secondary', '#252526');
-      root.style.setProperty('--bg-tertiary', '#2a2d2e');
-      root.style.setProperty('--bg-titlebar', '#2d2d30');
-      root.style.setProperty('--text-primary', '#cccccc');
-      root.style.setProperty('--text-secondary', '#999999');
-      root.style.setProperty('--border-color', '#3e3e42');
+      root.style.setProperty("--bg-primary", "#1e1e1e");
+      root.style.setProperty("--bg-secondary", "#252526");
+      root.style.setProperty("--bg-tertiary", "#2a2d2e");
+      root.style.setProperty("--bg-titlebar", "#2d2d30");
+      root.style.setProperty("--text-primary", "#cccccc");
+      root.style.setProperty("--text-secondary", "#999999");
+      root.style.setProperty("--border-color", "#3e3e42");
       // Update body background
-      document.body.style.background = '#1e1e1e';
-      document.body.style.color = '#cccccc';
+      document.body.style.background = "#1e1e1e";
+      document.body.style.color = "#cccccc";
     }
   };
 
@@ -158,200 +310,128 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
     setSaving(true);
     try {
       if (!window.electronAPI?.setSetting) return;
-      
+
       await Promise.all([
-        window.electronAPI.setSetting('soundEnabled', String(settings.soundEnabled)),
-        window.electronAPI.setSetting('theme', settings.theme),
-        window.electronAPI.setSetting('syncDuration', String(settings.syncDuration)),
-        window.electronAPI.setSetting('backgroundSyncEnabled', String(settings.backgroundSyncEnabled)),
-        window.electronAPI.setSetting('autoSync', String(settings.autoSync)),
-        window.electronAPI.setSetting('syncOnStartup', String(settings.syncOnStartup)),
-        window.electronAPI.setSetting('showNotifications', String(settings.showNotifications)),
+        window.electronAPI.setSetting(
+          "soundEnabled",
+          String(settings.soundEnabled),
+        ),
+        window.electronAPI.setSetting("theme", settings.theme),
+        window.electronAPI.setSetting(
+          "syncDuration",
+          String(settings.syncDuration),
+        ),
+        window.electronAPI.setSetting(
+          "backgroundSyncEnabled",
+          String(settings.backgroundSyncEnabled),
+        ),
+        window.electronAPI.setSetting("autoSync", String(settings.autoSync)),
+        window.electronAPI.setSetting(
+          "syncOnStartup",
+          String(settings.syncOnStartup),
+        ),
+        window.electronAPI.setSetting(
+          "showNotifications",
+          String(settings.showNotifications),
+        ),
       ]);
-      
+
       // Restart background sync if settings changed
       if (window.electronAPI?.restartBackgroundSync) {
         await window.electronAPI.restartBackgroundSync();
       }
-      
+
       applyTheme(settings.theme);
-      
-      setSaveMessage({ type: 'success', text: 'All settings saved successfully' });
+
+      setSaveMessage({
+        type: "success",
+        text: "All settings saved successfully",
+      });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
-      setSaveMessage({ type: 'error', text: 'Failed to save settings' });
+      console.error("Error saving settings:", error);
+      setSaveMessage({ type: "error", text: "Failed to save settings" });
       setTimeout(() => setSaveMessage(null), 3000);
     } finally {
       setSaving(false);
     }
   };
 
-  const ToggleSwitch: React.FC<{
-    checked: boolean;
-    onChange: (checked: boolean) => void;
-    label: string;
-    description?: string;
-  }> = ({ checked, onChange, label, description }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500, marginBottom: description ? '4px' : 0 }}>
-          {label}
-        </div>
-        {description && (
-          <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '3px', lineHeight: '1.4' }}>
-            {description}
-          </div>
-        )}
-      </div>
-      <label style={{
-        position: 'relative',
-        display: 'inline-block',
-        width: '44px',
-        height: '24px',
-        cursor: 'pointer'
-      }}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          style={{ opacity: 0, width: 0, height: 0 }}
-        />
-        <span style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: checked ? '#007acc' : '#3e3e42',
-          borderRadius: '12px',
-          transition: 'background-color 0.3s',
-        }}>
-          <span style={{
-            position: 'absolute',
-            content: '""',
-            height: '18px',
-            width: '18px',
-            left: checked ? '22px' : '3px',
-            bottom: '3px',
-            backgroundColor: '#ffffff',
-            borderRadius: '50%',
-            transition: 'left 0.3s',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-          }} />
-        </span>
-      </label>
-    </div>
-  );
-
-  const SettingSection: React.FC<{
-    title: string;
-    icon: string;
-    children: React.ReactNode;
-  }> = ({ title, icon, children }) => (
-    <div style={{
-      background: 'var(--bg-secondary)',
-      borderRadius: '6px',
-      padding: '16px',
-      marginBottom: '16px',
-      border: '1px solid var(--border-color)',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        marginBottom: '12px',
-        paddingBottom: '10px',
-        borderBottom: '1px solid var(--border-color)'
-      }}>
-        <span style={{ 
-          fontSize: '18px',
-          width: '24px',
-          height: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          {icon}
-        </span>
-        <h2 style={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          margin: 0,
-          letterSpacing: '0.3px'
-        }}>
-          {title}
-        </h2>
-      </div>
-      {children}
-    </div>
-  );
-
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+      <div
+        style={{
+          padding: "40px",
+          textAlign: "center",
+          color: "var(--text-secondary)",
+        }}
+      >
         Loading settings...
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px'
-      }}>
-        <h1 style={{
-          fontSize: '24px',
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          margin: 0,
-          letterSpacing: '0.5px'
-        }}>
+    <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            margin: 0,
+            letterSpacing: "0.5px",
+          }}
+        >
           Settings
         </h1>
         <button
           onClick={handleSaveAll}
           disabled={saving}
           style={{
-            padding: '7px 14px',
-            background: saving ? '#3e3e42' : '#007acc',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            fontSize: '13px',
+            padding: "7px 14px",
+            background: saving ? "#3e3e42" : "#007acc",
+            color: "#ffffff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: saving ? "not-allowed" : "pointer",
+            fontSize: "13px",
             fontWeight: 500,
-            transition: 'background 0.2s'
+            transition: "background 0.2s",
           }}
           onMouseEnter={(e) => {
-            if (!saving) e.currentTarget.style.background = '#005a9e';
+            if (!saving) e.currentTarget.style.background = "#005a9e";
           }}
           onMouseLeave={(e) => {
-            if (!saving) e.currentTarget.style.background = '#007acc';
+            if (!saving) e.currentTarget.style.background = "#007acc";
           }}
         >
-          {saving ? 'Saving...' : 'Save All'}
+          {saving ? "Saving..." : "Save All"}
         </button>
       </div>
 
       {saveMessage && (
-        <div style={{
-          padding: '10px 14px',
-          marginBottom: '16px',
-          borderRadius: '4px',
-          background: saveMessage.type === 'success' ? '#1e7e34' : '#a1260d',
-          color: '#ffffff',
-          fontSize: '13px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span>{saveMessage.type === 'success' ? '✓' : '✕'}</span>
+        <div
+          style={{
+            padding: "10px 14px",
+            marginBottom: "16px",
+            borderRadius: "4px",
+            background: saveMessage.type === "success" ? "#1e7e34" : "#a1260d",
+            color: "#ffffff",
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <span>{saveMessage.type === "success" ? "✓" : "✕"}</span>
           {saveMessage.text}
         </div>
       )}
@@ -359,53 +439,67 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       {/* Appearance Settings */}
       <SettingSection title="Appearance" icon="◐">
         <div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '8px'
-            }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "8px",
+              }}
+            >
               Theme
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: "flex", gap: "8px" }}>
               <button
                 onClick={() => {
-                  setSettings(prev => ({ ...prev, theme: 'dark' }));
-                  saveSetting('theme', 'dark');
+                  setSettings((prev) => ({ ...prev, theme: "dark" }));
+                  saveSetting("theme", "dark");
                 }}
                 style={{
                   flex: 1,
-                  padding: '10px 12px',
-                  background: settings.theme === 'dark' ? '#007acc' : 'var(--bg-tertiary)',
-                  color: settings.theme === 'dark' ? '#ffffff' : 'var(--text-primary)',
-                  border: `1px solid ${settings.theme === 'dark' ? '#007acc' : 'var(--border-color)'}`,
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
+                  padding: "10px 12px",
+                  background:
+                    settings.theme === "dark"
+                      ? "#007acc"
+                      : "var(--bg-tertiary)",
+                  color:
+                    settings.theme === "dark"
+                      ? "#ffffff"
+                      : "var(--text-primary)",
+                  border: `1px solid ${settings.theme === "dark" ? "#007acc" : "var(--border-color)"}`,
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
                   fontWeight: 500,
-                  transition: 'all 0.2s'
+                  transition: "all 0.2s",
                 }}
               >
                 🌙 Dark
               </button>
               <button
                 onClick={() => {
-                  setSettings(prev => ({ ...prev, theme: 'light' }));
-                  saveSetting('theme', 'light');
+                  setSettings((prev) => ({ ...prev, theme: "light" }));
+                  saveSetting("theme", "light");
                 }}
                 style={{
                   flex: 1,
-                  padding: '10px 12px',
-                  background: settings.theme === 'light' ? '#007acc' : 'var(--bg-tertiary)',
-                  color: settings.theme === 'light' ? '#ffffff' : 'var(--text-primary)',
-                  border: `1px solid ${settings.theme === 'light' ? '#007acc' : 'var(--border-color)'}`,
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
+                  padding: "10px 12px",
+                  background:
+                    settings.theme === "light"
+                      ? "#007acc"
+                      : "var(--bg-tertiary)",
+                  color:
+                    settings.theme === "light"
+                      ? "#ffffff"
+                      : "var(--text-primary)",
+                  border: `1px solid ${settings.theme === "light" ? "#007acc" : "var(--border-color)"}`,
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
                   fontWeight: 500,
-                  transition: 'all 0.2s'
+                  transition: "all 0.2s",
                 }}
               >
                 ☀️ Light
@@ -421,18 +515,24 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
           <ToggleSwitch
             checked={settings.soundEnabled}
             onChange={(checked) => {
-              setSettings(prev => ({ ...prev, soundEnabled: checked }));
-              saveSetting('soundEnabled', checked);
+              setSettings((prev) => ({ ...prev, soundEnabled: checked }));
+              saveSetting("soundEnabled", checked);
             }}
             label="Enable Sound"
             description="Play sound notifications for sync events"
           />
-          <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }} />
+          <div
+            style={{
+              height: "1px",
+              background: "var(--border-color)",
+              margin: "8px 0",
+            }}
+          />
           <ToggleSwitch
             checked={settings.showNotifications}
             onChange={(checked) => {
-              setSettings(prev => ({ ...prev, showNotifications: checked }));
-              saveSetting('showNotifications', checked);
+              setSettings((prev) => ({ ...prev, showNotifications: checked }));
+              saveSetting("showNotifications", checked);
             }}
             label="Show Notifications"
             description="Display system notifications for important events"
@@ -446,8 +546,11 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
           <ToggleSwitch
             checked={settings.backgroundSyncEnabled}
             onChange={async (checked) => {
-              setSettings(prev => ({ ...prev, backgroundSyncEnabled: checked }));
-              await saveSetting('backgroundSyncEnabled', checked);
+              setSettings((prev) => ({
+                ...prev,
+                backgroundSyncEnabled: checked,
+              }));
+              await saveSetting("backgroundSyncEnabled", checked);
               // Restart background sync with new setting
               if (window.electronAPI?.restartBackgroundSync) {
                 await window.electronAPI.restartBackgroundSync();
@@ -456,15 +559,23 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
             label="Background Sync"
             description="Enable automatic background synchronization"
           />
-          <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }} />
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '6px'
-            }}>
+          <div
+            style={{
+              height: "1px",
+              background: "var(--border-color)",
+              margin: "8px 0",
+            }}
+          />
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "6px",
+              }}
+            >
               Sync Duration (seconds)
             </label>
             <input
@@ -479,8 +590,8 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               onBlur={async () => {
                 const value = parseInt(localSyncDuration, 10);
                 if (!isNaN(value) && value >= 60 && value <= 3600) {
-                  setSettings(prev => ({ ...prev, syncDuration: value }));
-                  await saveSetting('syncDuration', value);
+                  setSettings((prev) => ({ ...prev, syncDuration: value }));
+                  await saveSetting("syncDuration", value);
                   // Restart background sync with new interval
                   if (window.electronAPI?.restartBackgroundSync) {
                     await window.electronAPI.restartBackgroundSync();
@@ -491,40 +602,56 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
                 }
               }}
               style={{
-                width: '100%',
-                padding: '8px 10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                fontSize: '13px'
+                width: "100%",
+                padding: "8px 10px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                fontSize: "13px",
               }}
             />
-            <div style={{
-              color: 'var(--text-secondary)',
-              fontSize: '11px',
-              marginTop: '5px',
-              lineHeight: '1.4'
-            }}>
-              Background sync will run every {Math.floor(settings.syncDuration / 60)} minute(s) ({settings.syncDuration} seconds)
+            <div
+              style={{
+                color: "var(--text-secondary)",
+                fontSize: "11px",
+                marginTop: "5px",
+                lineHeight: "1.4",
+              }}
+            >
+              Background sync will run every{" "}
+              {Math.floor(settings.syncDuration / 60)} minute(s) (
+              {settings.syncDuration} seconds)
             </div>
           </div>
-          <div style={{ height: '1px', background: 'var(--border-color)', margin: '12px 0' }} />
+          <div
+            style={{
+              height: "1px",
+              background: "var(--border-color)",
+              margin: "12px 0",
+            }}
+          />
           <ToggleSwitch
             checked={settings.autoSync}
             onChange={(checked) => {
-              setSettings(prev => ({ ...prev, autoSync: checked }));
-              saveSetting('autoSync', checked);
+              setSettings((prev) => ({ ...prev, autoSync: checked }));
+              saveSetting("autoSync", checked);
             }}
             label="Auto Sync"
             description="Automatically sync data in the background"
           />
-          <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }} />
+          <div
+            style={{
+              height: "1px",
+              background: "var(--border-color)",
+              margin: "8px 0",
+            }}
+          />
           <ToggleSwitch
             checked={settings.syncOnStartup}
             onChange={(checked) => {
-              setSettings(prev => ({ ...prev, syncOnStartup: checked }));
-              saveSetting('syncOnStartup', checked);
+              setSettings((prev) => ({ ...prev, syncOnStartup: checked }));
+              saveSetting("syncOnStartup", checked);
             }}
             label="Sync on Startup"
             description="Start syncing when the application starts"
@@ -535,14 +662,16 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       {/* API Settings */}
       <SettingSection title="API Configuration" icon="⚡">
         <div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '6px'
-            }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "6px",
+              }}
+            >
               API Endpoint
             </label>
             <input
@@ -550,18 +679,21 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               value={localApiEndpoint}
               onChange={(e) => setLocalApiEndpoint(e.target.value)}
               onBlur={() => {
-                setSettings(prev => ({ ...prev, apiEndpoint: localApiEndpoint }));
-                saveSetting('apiEndpoint', localApiEndpoint);
+                setSettings((prev) => ({
+                  ...prev,
+                  apiEndpoint: localApiEndpoint,
+                }));
+                saveSetting("apiEndpoint", localApiEndpoint);
               }}
               placeholder="https://api.example.com"
               style={{
-                width: '100%',
-                padding: '8px 10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                fontSize: '13px'
+                width: "100%",
+                padding: "8px 10px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                fontSize: "13px",
               }}
             />
           </div>
@@ -571,23 +703,43 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       {/* Company Info */}
       {company && (
         <SettingSection title="Company Information" icon="◉">
-          <div style={{ color: 'var(--text-primary)', fontSize: '13px' }}>
-            <div style={{ marginBottom: '6px', lineHeight: '1.5' }}>
-              <strong style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>Name:</strong> {company.name}
+          <div style={{ color: "var(--text-primary)", fontSize: "13px" }}>
+            <div style={{ marginBottom: "6px", lineHeight: "1.5" }}>
+              <strong
+                style={{ color: "var(--text-secondary)", marginRight: "8px" }}
+              >
+                Name:
+              </strong>{" "}
+              {company.name}
             </div>
             {company.organization_id && (
-              <div style={{ marginBottom: '6px', lineHeight: '1.5' }}>
-                <strong style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>Organization ID:</strong> {company.organization_id}
+              <div style={{ marginBottom: "6px", lineHeight: "1.5" }}>
+                <strong
+                  style={{ color: "var(--text-secondary)", marginRight: "8px" }}
+                >
+                  Organization ID:
+                </strong>{" "}
+                {company.organization_id}
               </div>
             )}
             {company.tally_id && (
-              <div style={{ marginBottom: '6px', lineHeight: '1.5' }}>
-                <strong style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>Tally ID:</strong> {company.tally_id}
+              <div style={{ marginBottom: "6px", lineHeight: "1.5" }}>
+                <strong
+                  style={{ color: "var(--text-secondary)", marginRight: "8px" }}
+                >
+                  Tally ID:
+                </strong>{" "}
+                {company.tally_id}
               </div>
             )}
             {company.address && (
-              <div style={{ marginBottom: '6px', lineHeight: '1.5' }}>
-                <strong style={{ color: 'var(--text-secondary)', marginRight: '8px' }}>Address:</strong> {company.address}
+              <div style={{ marginBottom: "6px", lineHeight: "1.5" }}>
+                <strong
+                  style={{ color: "var(--text-secondary)", marginRight: "8px" }}
+                >
+                  Address:
+                </strong>{" "}
+                {company.address}
               </div>
             )}
           </div>
@@ -597,17 +749,19 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
       {/* Connectivity Settings */}
       <SettingSection title="Connectivity Settings" icon="🔌">
         <div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '6px'
-            }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "6px",
+              }}
+            >
               Tally Server Configuration
             </label>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: "relative" }}>
               <input
                 type="text"
                 value={localTallyServerUrl}
@@ -629,10 +783,13 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
 
                   if (!value) {
                     // If empty, use default port
-                    setLocalTallyServerUrl('9000');
-                    setSettings(prev => ({ ...prev, tallyServerUrl: '9000' }));
-                    await saveSetting('tallyServerUrl', '9000');
-                    setTallyValidation(validateTallyInput('9000'));
+                    setLocalTallyServerUrl("9000");
+                    setSettings((prev) => ({
+                      ...prev,
+                      tallyServerUrl: "9000",
+                    }));
+                    await saveSetting("tallyServerUrl", "9000");
+                    setTallyValidation(validateTallyInput("9000"));
                     return;
                   }
 
@@ -640,95 +797,129 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
                   setTallyValidation(validation);
 
                   if (validation.isValid) {
-                    setSettings(prev => ({ ...prev, tallyServerUrl: value }));
-                    await saveSetting('tallyServerUrl', value);
-                    setSaveMessage({ type: 'success', text: 'Tally server configuration saved' });
+                    setSettings((prev) => ({ ...prev, tallyServerUrl: value }));
+                    await saveSetting("tallyServerUrl", value);
+                    setSaveMessage({
+                      type: "success",
+                      text: "Tally server configuration saved",
+                    });
                     setTimeout(() => setSaveMessage(null), 3000);
                   } else {
-                    setSaveMessage({ type: 'error', text: validation.error || 'Invalid configuration' });
+                    setSaveMessage({
+                      type: "error",
+                      text: validation.error || "Invalid configuration",
+                    });
                     setTimeout(() => setSaveMessage(null), 3000);
                   }
                 }}
                 style={{
-                  width: '100%',
-                  padding: '8px 32px 8px 10px',
-                  background: 'var(--bg-tertiary)',
+                  width: "100%",
+                  padding: "8px 32px 8px 10px",
+                  background: "var(--bg-tertiary)",
                   border: `1px solid ${
                     tallyValidation?.isValid === false
-                      ? '#e74c3c'
+                      ? "#e74c3c"
                       : tallyValidation?.isValid === true
-                      ? '#27ae60'
-                      : 'var(--border-color)'
+                        ? "#27ae60"
+                        : "var(--border-color)"
                   }`,
-                  borderRadius: '4px',
-                  color: 'var(--text-primary)',
-                  fontSize: '13px'
+                  borderRadius: "4px",
+                  color: "var(--text-primary)",
+                  fontSize: "13px",
                 }}
               />
               {tallyValidation && (
-                <span style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: '16px'
-                }}>
-                  {tallyValidation.isValid ? '✓' : '✗'}
+                <span
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: "16px",
+                  }}
+                >
+                  {tallyValidation.isValid ? "✓" : "✗"}
                 </span>
               )}
             </div>
-            <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <div
+              style={{
+                marginTop: "4px",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+              }}
+            >
               {tallyValidation?.error ? (
-                <span style={{ color: '#e74c3c' }}>{tallyValidation.error}</span>
+                <span style={{ color: "#e74c3c" }}>
+                  {tallyValidation.error}
+                </span>
               ) : tallyValidation?.resolvedUrl ? (
-                <span style={{ color: '#27ae60' }}>
+                <span style={{ color: "#27ae60" }}>
                   Will connect to: {tallyValidation.resolvedUrl}
                 </span>
               ) : (
-                'Enter port number (e.g., 9000) or full URL (e.g., http://192.168.1.100:9000)'
+                "Enter port number (e.g., 9000) or full URL (e.g., http://192.168.1.100:9000)"
               )}
             </div>
           </div>
-          
-          <div style={{ marginBottom: '12px' }}>
+
+          <div style={{ marginBottom: "12px" }}>
             <button
               onClick={async () => {
                 try {
-                  const result = await window.electronAPI?.testTallyConnectivity?.();
+                  const result =
+                    await window.electronAPI?.testTallyConnectivity?.();
                   if (result?.success) {
-                    setSaveMessage({ type: 'success', text: 'Tally connection successful!' });
+                    setSaveMessage({
+                      type: "success",
+                      text: "Tally connection successful!",
+                    });
                   } else {
-                    setSaveMessage({ type: 'error', text: `Tally connection failed: ${result?.status?.errorMessage || 'Unknown error'}` });
+                    setSaveMessage({
+                      type: "error",
+                      text: `Tally connection failed: ${result?.status?.errorMessage || "Unknown error"}`,
+                    });
                   }
                 } catch (error: any) {
-                  setSaveMessage({ type: 'error', text: `Test failed: ${error.message}` });
+                  setSaveMessage({
+                    type: "error",
+                    text: `Test failed: ${error.message}`,
+                  });
                 }
                 setTimeout(() => setSaveMessage(null), 5000);
               }}
               style={{
-                padding: '8px 16px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                fontSize: '13px'
+                padding: "8px 16px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                cursor: "pointer",
+                fontSize: "13px",
               }}
             >
               Test Tally Connection
             </button>
           </div>
 
-          <div style={{ height: '1px', background: 'var(--border-color)', margin: '12px 0' }} />
+          <div
+            style={{
+              height: "1px",
+              background: "var(--border-color)",
+              margin: "12px 0",
+            }}
+          />
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '6px'
-            }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "6px",
+              }}
+            >
               Tally Health Check Interval (seconds)
             </label>
             <input
@@ -743,33 +934,40 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               onBlur={() => {
                 const value = parseInt(localTallyHealthCheck, 10);
                 if (!isNaN(value) && value >= 10 && value <= 300) {
-                  setSettings(prev => ({ ...prev, tallyHealthCheckInterval: value }));
-                  saveSetting('tallyHealthCheckInterval', value);
+                  setSettings((prev) => ({
+                    ...prev,
+                    tallyHealthCheckInterval: value,
+                  }));
+                  saveSetting("tallyHealthCheckInterval", value);
                 } else {
                   // Reset to current valid value
-                  setLocalTallyHealthCheck(String(settings.tallyHealthCheckInterval));
+                  setLocalTallyHealthCheck(
+                    String(settings.tallyHealthCheckInterval),
+                  );
                 }
               }}
               style={{
-                width: '100%',
-                padding: '8px 10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                fontSize: '13px'
+                width: "100%",
+                padding: "8px 10px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                fontSize: "13px",
               }}
             />
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{
-              display: 'block',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              marginBottom: '6px'
-            }}>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{
+                display: "block",
+                color: "var(--text-primary)",
+                fontSize: "13px",
+                fontWeight: 500,
+                marginBottom: "6px",
+              }}
+            >
               API Health Check Interval (seconds)
             </label>
             <input
@@ -784,48 +982,63 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
               onBlur={() => {
                 const value = parseInt(localApiHealthCheck, 10);
                 if (!isNaN(value) && value >= 10 && value <= 300) {
-                  setSettings(prev => ({ ...prev, apiHealthCheckInterval: value }));
-                  saveSetting('apiHealthCheckInterval', value);
+                  setSettings((prev) => ({
+                    ...prev,
+                    apiHealthCheckInterval: value,
+                  }));
+                  saveSetting("apiHealthCheckInterval", value);
                 } else {
                   // Reset to current valid value
-                  setLocalApiHealthCheck(String(settings.apiHealthCheckInterval));
+                  setLocalApiHealthCheck(
+                    String(settings.apiHealthCheckInterval),
+                  );
                 }
               }}
               style={{
-                width: '100%',
-                padding: '8px 10px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                fontSize: '13px'
+                width: "100%",
+                padding: "8px 10px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                fontSize: "13px",
               }}
             />
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: "12px" }}>
             <button
               onClick={async () => {
                 try {
-                  const result = await window.electronAPI?.testApiConnectivity?.();
+                  const result =
+                    await window.electronAPI?.testApiConnectivity?.();
                   if (result?.success) {
-                    setSaveMessage({ type: 'success', text: 'API connection successful!' });
+                    setSaveMessage({
+                      type: "success",
+                      text: "API connection successful!",
+                    });
                   } else {
-                    setSaveMessage({ type: 'error', text: `API connection failed: ${result?.status?.errorMessage || 'Unknown error'}` });
+                    setSaveMessage({
+                      type: "error",
+                      text: `API connection failed: ${result?.status?.errorMessage || "Unknown error"}`,
+                    });
                   }
                 } catch (error: any) {
-                  setSaveMessage({ type: 'error', text: `Test failed: ${error.message}` });
+                  setSaveMessage({
+                    type: "error",
+                    text: `Test failed: ${error.message}`,
+                  });
                 }
                 setTimeout(() => setSaveMessage(null), 5000);
               }}
               style={{
-                padding: '8px 16px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                fontSize: '13px'
+                padding: "8px 16px",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                cursor: "pointer",
+                fontSize: "13px",
               }}
             >
               Test API Connection
@@ -840,23 +1053,32 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
           <ToggleSwitch
             checked={settings.autoStart}
             onChange={async (checked) => {
-              setSettings(prev => ({ ...prev, autoStart: checked }));
-              
+              setSettings((prev) => ({ ...prev, autoStart: checked }));
+
               // Save to database
-              await saveSetting('autoStart', checked);
-              
+              await saveSetting("autoStart", checked);
+
               // Apply auto-start setting via IPC
               if (window.electronAPI?.setAutoStart) {
                 try {
                   const result = await window.electronAPI.setAutoStart(checked);
                   if (result?.success) {
-                    setSaveMessage({ type: 'success', text: `Auto-start ${checked ? 'enabled' : 'disabled'}. Changes will take effect after restart.` });
+                    setSaveMessage({
+                      type: "success",
+                      text: `Auto-start ${checked ? "enabled" : "disabled"}. Changes will take effect after restart.`,
+                    });
                   } else {
-                    setSaveMessage({ type: 'error', text: `Failed to ${checked ? 'enable' : 'disable'} auto-start: ${result?.error || 'Unknown error'}` });
+                    setSaveMessage({
+                      type: "error",
+                      text: `Failed to ${checked ? "enable" : "disable"} auto-start: ${result?.error || "Unknown error"}`,
+                    });
                   }
                 } catch (error: any) {
-                  console.error('Error setting auto-start:', error);
-                  setSaveMessage({ type: 'error', text: `Failed to update auto-start: ${error.message}` });
+                  console.error("Error setting auto-start:", error);
+                  setSaveMessage({
+                    type: "error",
+                    text: `Failed to update auto-start: ${error.message}`,
+                  });
                 }
                 setTimeout(() => setSaveMessage(null), 5000);
               }
@@ -869,3 +1091,12 @@ export const Settings: React.FC<SettingsProps> = ({ company }) => {
     </div>
   );
 };
+
+// Wrap with React.memo to prevent unnecessary re-renders when company prop hasn't changed
+export const Settings = React.memo(
+  SettingsComponent,
+  (prevProps, nextProps) => {
+    // Only re-render if company.id actually changes
+    return prevProps.company?.id === nextProps.company?.id;
+  },
+);

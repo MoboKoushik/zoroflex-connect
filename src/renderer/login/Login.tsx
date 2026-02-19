@@ -11,9 +11,19 @@ export const Login: React.FC<LoginProps> = () => {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | '' }>({ text: '', type: '' });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [tallyMode, setTallyMode] = useState<'local' | 'remote'>('local');
+  const [tallyProtocol, setTallyProtocol] = useState<'http' | 'https'>('http');
   const [tallyServerIp, setTallyServerIp] = useState('');
   const [tallyServerPort, setTallyServerPort] = useState('9000');
   const [tallyValidation, setTallyValidation] = useState<TallyInputValidation | null>(null);
+
+  const validateUrl = (protocol: string, ip: string, port: string) => {
+    if (ip.trim()) {
+      const constructedUrl = `${protocol}://${ip.trim()}:${port.trim() || '9000'}`;
+      setTallyValidation(validateTallyInput(constructedUrl));
+    } else {
+      setTallyValidation(null);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +43,7 @@ export const Login: React.FC<LoginProps> = () => {
         const port = tallyServerPort.trim() || '9000';
 
         if (ip) {
-          const constructedUrl = `http://${ip}:${port}`;
+          const constructedUrl = `${tallyProtocol}://${ip}:${port}`;
           await window.electronAPI.setSetting('tallyServerUrl', constructedUrl);
           console.log('Tally server configuration saved:', constructedUrl);
         }
@@ -203,12 +213,8 @@ export const Login: React.FC<LoginProps> = () => {
                         checked={tallyMode === 'remote'}
                         onChange={() => {
                           setTallyMode('remote');
-                          // Validate if fields are filled
                           if (tallyServerIp.trim()) {
-                            const ip = tallyServerIp.trim();
-                            const port = tallyServerPort.trim() || '9000';
-                            const constructedUrl = `http://${ip}:${port}`;
-                            setTallyValidation(validateTallyInput(constructedUrl));
+                            validateUrl(tallyProtocol, tallyServerIp, tallyServerPort);
                           }
                         }}
                         disabled={loading}
@@ -218,7 +224,7 @@ export const Login: React.FC<LoginProps> = () => {
                     </label>
                   </div>
 
-                  {/* Show IP and Port fields only when Remote is selected */}
+                  {/* Show Protocol, IP and Port fields only when Remote is selected */}
                   {tallyMode === 'remote' && (
                     <div style={{
                       marginTop: '8px',
@@ -227,7 +233,45 @@ export const Login: React.FC<LoginProps> = () => {
                       border: '1px solid #edebe9',
                       borderRadius: '2px',
                     }}>
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'flex-end' }}>
+
+                        {/* Protocol Select */}
+                        <div style={{ flexShrink: 0 }}>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '0.75rem',
+                            color: '#323130',
+                            marginBottom: '3px',
+                            fontWeight: 400,
+                          }}>
+                            Protocol
+                          </label>
+                          <select
+                            value={tallyProtocol}
+                            onChange={(e) => {
+                              const proto = e.target.value as 'http' | 'https';
+                              setTallyProtocol(proto);
+                              validateUrl(proto, tallyServerIp, tallyServerPort);
+                            }}
+                            disabled={loading}
+                            style={{
+                              height: '30px',
+                              padding: '0 4px',
+                              border: '1px solid #e1e1e1',
+                              borderRadius: '2px',
+                              fontSize: '0.8125rem',
+                              fontFamily: '"Segoe UI", sans-serif',
+                              background: 'white',
+                              color: '#323130',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              outline: 'none',
+                            }}
+                          >
+                            <option value="http">HTTP</option>
+                            <option value="https">HTTPS</option>
+                          </select>
+                        </div>
+
                         {/* IP/Domain Input */}
                         <div style={{ flex: 2 }}>
                           <label style={{
@@ -237,7 +281,7 @@ export const Login: React.FC<LoginProps> = () => {
                             marginBottom: '3px',
                             fontWeight: 400,
                           }}>
-                            IP/Domain
+                            IP / Domain
                           </label>
                           <input
                             type="text"
@@ -246,15 +290,7 @@ export const Login: React.FC<LoginProps> = () => {
                             onChange={(e) => {
                               const value = e.target.value;
                               setTallyServerIp(value);
-                              // Validate the constructed URL
-                              if (value.trim()) {
-                                const ip = value.trim();
-                                const port = tallyServerPort.trim() || '9000';
-                                const constructedUrl = `http://${ip}:${port}`;
-                                setTallyValidation(validateTallyInput(constructedUrl));
-                              } else {
-                                setTallyValidation(null);
-                              }
+                              validateUrl(tallyProtocol, value, tallyServerPort);
                             }}
                             disabled={loading}
                             style={{
@@ -293,13 +329,7 @@ export const Login: React.FC<LoginProps> = () => {
                             onChange={(e) => {
                               const value = e.target.value;
                               setTallyServerPort(value);
-                              // Validate the constructed URL
-                              if (tallyServerIp.trim()) {
-                                const ip = tallyServerIp.trim();
-                                const port = value.trim() || '9000';
-                                const constructedUrl = `http://${ip}:${port}`;
-                                setTallyValidation(validateTallyInput(constructedUrl));
-                              }
+                              validateUrl(tallyProtocol, tallyServerIp, value);
                             }}
                             disabled={loading}
                             style={{
@@ -333,7 +363,7 @@ export const Login: React.FC<LoginProps> = () => {
                         ) : tallyServerIp.trim() ? (
                           <span style={{ color: '#8a8886' }}>Validating...</span>
                         ) : (
-                          <span style={{ color: '#8a8886' }}>Enter server details</span>
+                          <span style={{ color: '#8a8886' }}>Enter server IP and port</span>
                         )}
                       </div>
                     </div>
@@ -500,6 +530,10 @@ styleSheet.textContent = `
   input::placeholder {
     color: #8a8886;
     font-weight: 400;
+  }
+  select:focus {
+    outline: none;
+    border-color: #0078d4 !important;
   }
 `;
 document.head.appendChild(styleSheet);
