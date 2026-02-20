@@ -227,8 +227,8 @@ export function setupIpcHandlers(
       }
 
       // Start background sync and create tray
-      app.setLoginItemSettings({ openAtLogin: true });
-      
+      // Note: auto-start is managed by applyAutoStartSettings() in main.ts based on user's Settings preference
+
       // Destroy existing tray if any
       destroyTray();
       

@@ -35,7 +35,7 @@ apiLogger.setupInterceptor(axios);
 async function applyAutoStartSettings(): Promise<void> {
   try {
     const autoStartSetting = await dbService.getSetting('autoStart');
-    const autoStartEnabled = autoStartSetting !== 'false'; // Default to true if not set
+    const autoStartEnabled = autoStartSetting === 'true'; // Default to false if not set
 
     app.setLoginItemSettings({
       openAtLogin: autoStartEnabled,
@@ -46,11 +46,11 @@ async function applyAutoStartSettings(): Promise<void> {
     console.log(`Auto-start ${autoStartEnabled ? 'enabled' : 'disabled'}`);
   } catch (error: any) {
     console.error('Error applying auto-start settings:', error);
-    // Default to enabled on error
+    // Safe default on error — disable auto-start
     app.setLoginItemSettings({
-      openAtLogin: true,
-      openAsHidden: true,
-      args: ['--hidden']
+      openAtLogin: false,
+      openAsHidden: false,
+      args: []
     });
   }
 }
@@ -386,10 +386,10 @@ app.whenReady().then(async () => {
     console.log('Initialized API endpoint setting with default:', defaultUrl);
   }
 
-  // Initialize auto-start setting if not exists (default to true)
+  // Initialize auto-start setting if not exists (default to false — user must opt-in)
   const autoStartSetting = await dbService.getSetting('autoStart');
   if (autoStartSetting === null) {
-    await dbService.setSetting('autoStart', 'true');
+    await dbService.setSetting('autoStart', 'false');
   }
 
   // Apply auto-start settings

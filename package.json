@@ -1,7 +1,7 @@
 {
   "name": "zorrofin-connect",
-  "version": "1.0.1",
-  "description": "Electron app to sync Tally data to Nest backend",
+  "version": "1.0.2",
+  "description": "Tally to Cloud Sync Client by Zorrofin Solutions",
   "main": "dist/main/main.js",
   "scripts": {
     "clean": "rimraf dist release",
@@ -15,7 +15,7 @@
     "package": "npm run build && electron-builder",
     "package-win": "npm run build && electron-builder --win",
     "postinstall": "electron-builder install-app-deps || exit 0",
-    "rebuild": "electron-rebuild -f -w better-sqlite3 odbc"
+    "rebuild": "electron-builder install-app-deps"
   },
   "keywords": [
     "electron",
@@ -40,7 +40,6 @@
     "copyfiles": "^2.4.1",
     "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
-    "electron-rebuild": "^3.2.9",
     "postcss": "^8.4.32",
     "prebuild-install": "^7.1.1",
     "rimraf": "^5.0.0",
@@ -64,6 +63,7 @@
   "build": {
     "appId": "com.zorrofin.connect",
     "productName": "Zorrofin Connect",
+    "copyright": "Copyright © 2025 Zorrofin Solutions",
     "directories": {
       "output": "release"
     },
@@ -94,6 +94,8 @@
           ]
         }
       ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
       "publisherName": "Zorrofin Solutions"
     },
     "nsis": {
