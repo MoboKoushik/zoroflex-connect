@@ -14,6 +14,7 @@ export const Login: React.FC<LoginProps> = () => {
   const [tallyProtocol, setTallyProtocol] = useState<'http' | 'https'>('http');
   const [tallyServerIp, setTallyServerIp] = useState('');
   const [tallyServerPort, setTallyServerPort] = useState('9000');
+  const [localTallyPort, setLocalTallyPort] = useState('9000');
   const [tallyValidation, setTallyValidation] = useState<TallyInputValidation | null>(null);
 
   const validateUrl = (protocol: string, ip: string, port: string) => {
@@ -37,13 +38,19 @@ export const Login: React.FC<LoginProps> = () => {
     setMessage({ text: '', type: '' });
 
     try {
-      // Save Tally server configuration if remote mode is selected
-      if (window.electronAPI?.setSetting && tallyMode === 'remote') {
-        const ip = tallyServerIp.trim();
-        const port = tallyServerPort.trim() || '9000';
-
-        if (ip) {
-          const constructedUrl = `${tallyProtocol}://${ip}:${port}`;
+      // Save Tally server configuration
+      if (window.electronAPI?.setSetting) {
+        if (tallyMode === 'remote') {
+          const ip = tallyServerIp.trim();
+          const port = tallyServerPort.trim() || '9000';
+          if (ip) {
+            const constructedUrl = `${tallyProtocol}://${ip}:${port}`;
+            await window.electronAPI.setSetting('tallyServerUrl', constructedUrl);
+            console.log('Tally server configuration saved:', constructedUrl);
+          }
+        } else {
+          const port = localTallyPort.trim() || '9000';
+          const constructedUrl = `http://localhost:${port}`;
           await window.electronAPI.setSetting('tallyServerUrl', constructedUrl);
           console.log('Tally server configuration saved:', constructedUrl);
         }
@@ -186,7 +193,7 @@ export const Login: React.FC<LoginProps> = () => {
                         disabled={loading}
                         style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
                       />
-                      <span>Local Tally <span style={{ color: '#605e5c', fontSize: '0.75rem' }}>(localhost:9000)</span></span>
+                      <span>Local Tally <span style={{ color: '#605e5c', fontSize: '0.75rem' }}>(localhost:{localTallyPort || '9000'})</span></span>
                     </label>
 
                     <label style={{
@@ -223,6 +230,54 @@ export const Login: React.FC<LoginProps> = () => {
                       <span>Remote Tally</span>
                     </label>
                   </div>
+
+                  {/* Show Port field for Local Tally */}
+                  {tallyMode === 'local' && (
+                    <div style={{
+                      marginTop: '8px',
+                      padding: '8px',
+                      background: 'white',
+                      border: '1px solid #edebe9',
+                      borderRadius: '2px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                        <div style={{ flex: '0 0 90px' }}>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '0.75rem',
+                            color: '#323130',
+                            marginBottom: '3px',
+                            fontWeight: 400,
+                          }}>
+                            Port
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="9000"
+                            min="1"
+                            max="65535"
+                            value={localTallyPort}
+                            onChange={(e) => setLocalTallyPort(e.target.value)}
+                            disabled={loading}
+                            style={{
+                              width: '100%',
+                              height: '30px',
+                              padding: '0 8px',
+                              border: '1px solid #e1e1e1',
+                              borderRadius: '2px',
+                              fontSize: '0.8125rem',
+                              fontFamily: '"Segoe UI", sans-serif',
+                              boxSizing: 'border-box',
+                              outline: 'none',
+                            }}
+                          />
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#605e5c', paddingBottom: '7px' }}>
+                          → http://localhost:{localTallyPort || '9000'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Show Protocol, IP and Port fields only when Remote is selected */}
                   {tallyMode === 'remote' && (
