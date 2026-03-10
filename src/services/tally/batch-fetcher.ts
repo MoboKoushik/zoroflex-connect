@@ -449,8 +449,6 @@ export async function fetchOrganizationFromReport(): Promise<any> {
     </BODY>
 </ENVELOPE>`.trim();
 
-  console.log('TALLY_URL====>', getCurrentTallyUrl())
-
   return withRetry(async () => {
     const response = await axios.post(getCurrentTallyUrl(), xmlRequest, {
       headers: { 'Content-Type': 'application/xml' },

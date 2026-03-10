@@ -60,13 +60,13 @@ FunctionEnd
 !macro customInstall
     ; Create Desktop Shortcut if checked
     ${If} $DesktopShortcutCheckbox == "1"
-        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' "" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' 0 SW_SHOWNORMAL "" ""
+        CreateShortcut "$DESKTOP\Zorrofin Connect.lnk" "$INSTDIR\${PRODUCT_FILENAME}.exe" "" "$INSTDIR\${PRODUCT_FILENAME}.exe" 0 SW_SHOWNORMAL "" ""
     ${EndIf}
 
     ; Create Start Menu Shortcut if checked
     ${If} $StartMenuShortcutCheckbox == "1"
         CreateDirectory "$SMPROGRAMS\Zorrofin Connect"
-        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Zorrofin Connect.lnk" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' "" '"$INSTDIR\${PRODUCT_FILENAME}.exe"' 0 SW_SHOWNORMAL "" ""
+        CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Zorrofin Connect.lnk" "$INSTDIR\${PRODUCT_FILENAME}.exe" "" "$INSTDIR\${PRODUCT_FILENAME}.exe" 0 SW_SHOWNORMAL "" ""
         CreateShortcut "$SMPROGRAMS\Zorrofin Connect\Uninstall Zorrofin Connect.lnk" "$INSTDIR\Uninstall ${PRODUCT_FILENAME}.exe"
     ${EndIf}
 
